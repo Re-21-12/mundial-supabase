@@ -1,0 +1,457 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Templates reutilizables -->
+
+  <!--Label -->
+  <ng-template #labelTemplate let-defaultLabel="defaultLabel">
+    <label [attr.for]="fieldProps().key" class="block text-sm font-medium text-gray-700 mb-2">
+      {{ fieldProps().label || defaultLabel }}
+      @if (fieldProps().state.required) {
+        <span
+          class="text-red-500 ml-1"
+          pTooltip="Este campo es obligatorio"
+          tooltipPosition="top"
+          tooltipStyleClass="tooltip-warning"
+          >*</span
+        >
+      }
+    </label>
+  </ng-template>
+
+  <!-- Campos Dinámicos según el tipo -->
+  @switch (fieldProps().type) {
+    <!-- TEXT -->
+    @case (TypeFields.TEXT) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Texto' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup>
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <input
+              type="text"
+              pInputText
+              [formControl]="formControl()"
+              (keypress)="onKeypressLetras($event)"
+              (paste)="validarLetrasPaste($event)"
+              [attr.maxlength]="getMaxLength() ?? null"
+              [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <input
+            type="text"
+            pInputText
+            [formControl]="formControl()"
+            (keypress)="onKeypressLetras($event)"
+            (paste)="validarLetrasPaste($event)"
+            [attr.maxlength]="getMaxLength() ?? null"
+            [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
+            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- EMAIL -->
+    @case (TypeFields.EMAIL) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Email' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup>
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <input
+              type="email"
+              pInputText
+              [formControl]="formControl()"
+              (paste)="validarEmailPaste($event)"
+              (keypress)="onKeypressEmail($event)"
+              [attr.maxlength]="getMaxLength() ?? null"
+              [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <input
+            type="email"
+            pInputText
+            [formControl]="formControl()"
+            (paste)="validarEmailPaste($event)"
+            (keypress)="onKeypressEmail($event)"
+            [attr.maxlength]="getMaxLength() ?? null"
+            [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
+            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- NUMBER -->
+    @case (TypeFields.NUMBER) {
+      <div class="w-full">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Número' }"
+        ></ng-container>
+        <p-inputnumber
+          [formControl]="formControl()"
+          [useGrouping]="false"
+          [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
+          class="w-full"
+          inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+        />
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- INTEGER -->
+    @case (TypeFields.INTEGER) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Número Entero' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup>
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <input
+              type="text"
+              pInputText
+              [formControl]="formControl()"
+              (keypress)="onKeypressEntero($event)"
+              (paste)="validarEnteroPaste($event)"
+              [attr.maxlength]="getMaxLength() ?? null"
+              [placeholder]="fieldProps().placeholder || 'Ingresa un número entero'"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <input
+            type="text"
+            pInputText
+            [formControl]="formControl()"
+            (keypress)="onKeypressEntero($event)"
+            (paste)="validarEnteroPaste($event)"
+            [attr.maxlength]="getMaxLength() ?? null"
+            [placeholder]="fieldProps().placeholder || 'Ingresa un número entero'"
+            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- DECIMAL -->
+    @case (TypeFields.DECIMAL) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Número Decimal' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup>
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <input
+              type="text"
+              pInputText
+              [formControl]="formControl()"
+              (keypress)="onKeypressDecimal($event)"
+              (paste)="validarDecimalPaste($event)"
+              [attr.maxlength]="getMaxLength() ?? null"
+              [placeholder]="fieldProps().placeholder || 'Ingresa un número decimal'"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <input
+            type="text"
+            pInputText
+            [formControl]="formControl()"
+            (keypress)="onKeypressDecimal($event)"
+            (paste)="validarDecimalPaste($event)"
+            [attr.maxlength]="getMaxLength() ?? null"
+            [placeholder]="fieldProps().placeholder || 'Ingresa un número decimal'"
+            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- CURRENCY -->
+    @case (TypeFields.CURRENCY) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Moneda' }"
+        ></ng-container>
+        <div
+          class="flex items-center bg-white border border-gray-300 rounded-lg h-11 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition"
+        >
+          <span class="px-3 py-2.5 text-gray-500 font-medium select-none">$</span>
+          <input
+            type="text"
+            pInputText
+            [formControl]="formControl()"
+            (keypress)="onKeypressMoneda($event)"
+            (paste)="validarMonedaPaste($event)"
+            [attr.maxlength]="getMaxLength() ?? null"
+            [placeholder]="fieldProps().placeholder || '0.00'"
+            class="flex-1 bg-transparent border-0 px-0 py-2.5 text-sm focus:outline-none"
+          />
+        </div>
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- DATE -->
+    @case (TypeFields.DATE) {
+      <div class="w-full">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Fecha' }"
+        ></ng-container>
+        <p-datepicker
+          [formControl]="formControl()"
+          [placeholder]="fieldProps().placeholder || 'Selecciona una fecha'"
+          [showIcon]="true"
+          iconDisplay="input"
+          class="w-full"
+          inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+        />
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- TEXTAREA -->
+    @case (TypeFields.TEXTAREA) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Área de Texto' }"
+        ></ng-container>
+        <textarea
+          pTextarea
+          [formControl]="formControl()"
+          [placeholder]="fieldProps().placeholder || 'Ingresa tu texto aquí...'"
+          [attr.maxlength]="getMaxLength() ?? null"
+          rows="4"
+          class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
+        ></textarea>
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- PASSWORD -->
+    @case (TypeFields.PASSWORD) {
+      <div class="w-full">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Contraseña' }"
+        ></ng-container>
+        <p-password
+          [formControl]="formControl()"
+          [placeholder]="fieldProps().placeholder || 'Ingresa tu contraseña'"
+          [toggleMask]="true"
+          [attr.maxlength]="getMaxLength() ?? null"
+          inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+        />
+        <app-dynamic-hint
+          [hint]="fieldProps().hint || null"
+          [currentLength]="isTextualField() ? getCurrentLength() : null"
+          [maxLength]="isTextualField() ? getMaxLength() : null"
+          [field]="formControl()"
+        />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- SELECT -->
+    @case (TypeFields.SELECT) {
+      <div class="w-full">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Seleccionar' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup>
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <p-select
+              [formControl]="formControl()"
+              [options]="fieldProps().options || []"
+              optionLabel="value"
+              optionValue="key"
+              [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
+              class="w-full"
+              styleClass="w-full"
+              inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <p-select
+            [formControl]="formControl()"
+            [options]="fieldProps().options || []"
+            optionLabel="value"
+            optionValue="key"
+            [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
+            class="w-full"
+            styleClass="w-full"
+            inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- CHECKBOX -->
+    @case (TypeFields.CHECKBOX) {
+      <div class="flex items-center gap-3">
+        <p-checkbox
+          [formControl]="formControl()"
+          binary="true"
+          [inputId]="fieldProps().key"
+        ></p-checkbox>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Aceptar' }"
+        ></ng-container>
+
+      </div>
+              <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+    }
+
+    <!-- RADIO -->
+    @case (TypeFields.RADIO) {
+      <div class="flex flex-col gap-2">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Opciones' }"
+        ></ng-container>
+        <div class="flex flex-wrap gap-4">
+          @for (option of fieldProps().options || []; track option.key + $index) {
+            <div class="flex items-center gap-2">
+              <p-radiobutton
+                [formControl]="formControl()"
+                [inputId]="'radio-' + option.key + $index"
+                [value]="option.key"
+              ></p-radiobutton>
+              <label class="text-sm" [for]="'radio-' + option.key + $index">{{
+                option.value
+              }}</label>
+            </div>
+          }
+        </div>
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- MULTISELECT -->
+    @case (TypeFields.MULTISELECT) {
+      <div class="w-full">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Múltiple' }"
+        ></ng-container>
+        <p-multiselect
+          [formControl]="formControl()"
+          [options]="fieldProps().options || []"
+          optionLabel="value"
+          optionValue="key"
+          [placeholder]="fieldProps().placeholder || 'Selecciona opciones'"
+          display="chip"
+          class="w-full"
+          styleClass="w-full"
+          inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 min-h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+        />
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
+    <!-- TOGGLE -->
+    @case (TypeFields.TOGGLE) {
+      <div class="flex items-center gap-3">
+        <p-toggleswitch [formControl]="formControl()"></p-toggleswitch>
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Activar' }"
+        ></ng-container>
+      </div>
+      <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+      <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+    }
+
+    @default {
+      <p class="text-gray-500 italic">Campo no configurado</p>
+    }
+  }
+
+  <!-- Controles del Formulario -->
+  <!--   <div class="flex flex-wrap gap-4 p-4 bg-gray-100 rounded items-center">
+    <div class="flex-1 min-w-50">
+      <p-toggleswitch [field]="registrationForm.hidden" />
+      Oculto
+    </div>
+    <div class="flex-1 min-w-50">
+      <p-toggleswitch [field]="registrationForm.disabled" />
+      Deshabilitado
+    </div>
+    <div class="flex-1 min-w-50">
+      <p-toggleswitch [field]="registrationForm.readonly" />
+      Solo Lectura
+    </div>
+    <div class="h-fit">
+      <p-button label="Limpiar" (click)="formControl().reset()" class="bg-red-500 hover:bg-red-600"></p-button>
+    </div>
+  </div> -->
+
+  <!-- Componente de Estados -->
+  <!--   <app-dynamic-state
+    [registrationForm]="formControl()"
+    [field]="getCurrentField()"
+  ></app-dynamic-state> -->
+</div>

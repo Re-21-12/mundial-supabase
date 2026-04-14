@@ -1,0 +1,18 @@
+<div>
+  <label for="file-upload">Seleccionar imagen</label>
+  <input id="file-upload" type="file" (change)="recognizeImage($event)" accept="image/*" />
+</div>
+
+@if (isRecognizing()) {
+<div>
+  <p>Reconociendo texto...</p>
+  <progress [value]="progress()" max="1"></progress>
+</div>
+} @if (recognizedText()) {
+<div>
+  <h3>Texto Reconocido:</h3>
+  <p>{{ recognizedText() }}</p>
+</div>
+}
+
+

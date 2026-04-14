@@ -1,0 +1,64 @@
+<div hlmSidebarWrapper class="bg-background text-foreground w-full min-h-screen">
+    <!-- Start Side bar -->
+  <hlm-sidebar variant="inset" collapsible="icon">
+    <div hlmSidebarHeader class="flex items-center justify-between">
+      <span class="text-sm font-semibold tracking-tight">{{ title() }}</span>
+      <button hlmSidebarRail aria-label="Alternar sidebar"></button>
+    </div>
+
+    <div hlmSidebarContent>
+      <div hlmSidebarGroup>
+        <div hlmSidebarGroupLabel>Menú</div>
+        <ul hlmSidebarMenu>
+          @for (item of menuItems(); track item.path) {
+            <li hlmSidebarMenuItem>
+              <a
+                hlmSidebarMenuButton
+                [routerLink]="item.path"
+                routerLinkActive="active"
+                #rla="routerLinkActive"
+                [attr.data-active]="rla.isActive"
+                [tooltip]="getTooltipText(item.title)"
+              >
+                <ng-icon hlm [name]="item.data?.['icon']" />
+                <span>{{ item.title }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </hlm-sidebar>
+    <!-- End Side bar -->
+
+  <main hlmSidebarInset class="flex flex-col min-h-screen">
+    <header class="flex h-12 items-center justify-between px-4 border-b">
+      <div class="flex items-center gap-2">
+       <!-- Toggle -->
+        <button hlmSidebarTrigger>
+          <span class="sr-only">Alternar menú</span>
+        </button>
+
+        <nav hlmNavigationMenu>
+          <ul hlmNavigationMenuList>
+            <li hlmNavigationMenuItem>
+              <button hlmNavigationMenuTrigger>Home</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <button hlmBtn variant="ghost" size="icon" (click)="themeService.toggleTheme()">
+        @if(themeService.darkMode()) {
+          <ng-icon hlm size="sm" name="lucideSun" />
+        } @else {
+          <ng-icon hlm size="sm" name="lucideMoon" />
+        }
+      </button>
+    </header>
+
+    <div class="flex-1 flex items-center justify-center overflow-auto p-4">
+      <router-outlet />
+    </div>
+  </main>
+</div>

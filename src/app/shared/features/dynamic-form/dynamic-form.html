@@ -1,0 +1,65 @@
+<form >
+  <div [class]="gridClasses()">
+  @for (field of fields(); track field.key) {
+    @if (isRepeatableField(field)) {
+      <!-- Campo Repetible -->
+      <div class="flex flex-col gap-2">
+        <div formArrayName="field.key" class="space-y-2">
+          @for (control of getFormArray(field.key).controls; track i; let i = $index) {
+            <app-dynamic-field
+              [fieldControl]="field"
+              [form]="form()"
+              [isArrayItem]="true"
+              [arrayIndex]="i"
+            >
+            </app-dynamic-field>
+            <div class="flex flex-1 justify-end gap-2">
+              <p-button
+                icon="pi pi-times"
+                [rounded]="true"
+                [outlined]="getFormArray(field.key).length === field.state.repeatible.minItems"
+                severity="danger"
+                (click)="removeField(field.key, i)"
+                [disabled]="getFormArray(field.key).length === field.state.repeatible.minItems"
+                pTooltip="Eliminar"
+                tooltipPosition="top"
+              />
+              <p-button
+                icon="pi pi-plus"
+                [rounded]="true"
+                [outlined]="getFormArray(field.key).length >= field.state.repeatible.maxItems"
+                severity="success"
+                (click)="addField(field.key)"
+                [disabled]="getFormArray(field.key).length >= field.state.repeatible.maxItems"
+                pTooltip="Agregar"
+                tooltipPosition="top"
+              />
+            </div>
+          }
+        </div>
+        <!-- Agregar -->
+      </div>
+    } @else {
+      <!-- Campo Normal -->
+      <app-dynamic-field [fieldControl]="field" [form]="form()"> </app-dynamic-field>
+    }
+  }
+
+  </div>
+    <div class="flex flex-col items-center gap-2">
+    <p-button
+      [raised]="true"
+      severity="success"
+      label="Enviar"
+      (click)="onSubmit()"
+      [disabled]="!form().valid"
+    />
+    <p-button
+      [raised]="true"
+      severity="secondary"
+      label="Limpiar"
+      (click)="onClear()"
+      [disabled]="!hasData()"
+    />
+  </div>
+</form>

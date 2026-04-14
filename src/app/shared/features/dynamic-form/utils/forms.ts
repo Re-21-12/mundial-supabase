@@ -1,0 +1,139 @@
+import { TypeFields } from '../enums/type-fields';
+import { FieldBase } from '../interfaces/field-props';
+import { Validators } from '@angular/forms';
+
+// Mapa de campos usando Record y FieldProps
+export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
+  proofForm: {
+    fields: [
+      {
+        icon: 'pi pi-user',
+        key: 'nombre', // Identificador único en el objeto de datos
+        type: TypeFields.TEXT,
+        label: 'Nombre',
+        placeholder: 'Tu nombre',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: true, minItems: 1, maxItems: 2 },
+        },
+        hint: 'Escribe tu nombre completo',
+        value: '',
+        rules: [Validators.required, Validators.minLength(3), Validators.maxLength(10)],
+        options: [],
+        controlType: TypeFields.TEXT,
+        order: 1,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'pais', // Identificador único
+        type: TypeFields.SELECT,
+        label: 'País',
+        placeholder: 'Selecciona un país',
+        options: [
+          { key: 'ar', value: 'Argentina' },
+          { key: 'cl', value: 'Chile' },
+          { key: 'mx', value: 'México' },
+          { key: 'es', value: 'España' },
+        ],
+        hint: 'Usa el menú para elegir',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        value: '',
+        rules: [Validators.required],
+        controlType: TypeFields.SELECT,
+        order: 2,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'numero', // Identificador único
+        type: TypeFields.NUMBER,
+        label: 'Numero',
+        placeholder: 'Ingresa un valor',
+        options: [],
+        hint: 'Usa el menú para elegir',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        value: 0,
+        rules: [Validators.required],
+        controlType: TypeFields.NUMBER,
+        order: 3,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'numero', // Identificador único
+        type: TypeFields.CHECKBOX,
+        label: 'Checkbox',
+        placeholder: 'Ingresa un valor',
+        options: [],
+        hint: 'Usa el menú para elegir',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        value: 0,
+        rules: [Validators.required],
+        controlType: TypeFields.CHECKBOX,
+        order: 4,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'numero', // Identificador único
+        type: TypeFields.RADIO,
+        label: 'Radio',
+        placeholder: 'Ingresa un valor',
+        options: [
+          { key: 'ar', value: 'Argentina' },
+          { key: 'cl', value: 'Chile' },
+        ],
+        hint: 'Usa el menú para elegir',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        value: 0,
+        rules: [Validators.required],
+        controlType: TypeFields.RADIO,
+        order: 5,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'numero', // Identificador único
+        type: TypeFields.TOGGLE,
+        label: 'Toggle',
+        placeholder: 'Ingresa un valor',
+        options: [],
+        hint: 'Usa el menú para elegir',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        value: 0,
+        rules: [Validators.required],
+        controlType: TypeFields.TOGGLE,
+        order: 6,
+      },
+    ],
+  },
+};

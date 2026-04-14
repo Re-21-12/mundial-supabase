@@ -1,0 +1,9 @@
+@if (field() && shouldShow() && getErrors().length) {
+  <div class="mt-2 space-y-1 text-xs">
+    @for (error of getErrors(); track error.key) {
+      <p-message severity="error" size="small" variant="simple">
+        {{ error.message }}
+      </p-message>
+    }
+  </div>
+}

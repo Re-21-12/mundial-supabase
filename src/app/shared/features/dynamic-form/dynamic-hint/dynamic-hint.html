@@ -1,0 +1,10 @@
+@if (hint() || (currentLength() !== null && maxLength() !== null)) {
+  <div class="mt-1 flex items-center justify-between text-sm font-semibold text-gray-500 animate-fade-in">
+    @if (hint()) {
+      <span>{{ hint() }}</span>
+    }
+    @if (currentLength() !== null && maxLength() !== null) {
+      <span>{{ currentLength() }} / {{ maxLength() }}</span>
+    }
+  </div>
+}

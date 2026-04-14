@@ -1,0 +1,15 @@
+/* Estilos para componentes PrimeNG */
+:host ::ng-deep {
+  /* Asegurar que los inputs de PrimeNG heredan estilos correctamente */
+  .p-inputnumber .p-inputnumber-input,
+  .p-password .p-password-input,
+  .p-datepicker .p-datepicker-input,
+  .p-select,
+  .p-multiselect {
+    width: 100% !important;
+  }
+}
+::ng-deep .tooltip-warning .p-tooltip-text {
+  background-color: #ff0000;
+  color: white;
+}
