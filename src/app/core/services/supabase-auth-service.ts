@@ -6,9 +6,9 @@ import {
   SupabaseClient,
   User,
 } from '@supabase/supabase-js';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { Profile } from '../interfaces/profile-interface';
-import { Database } from '../../../types/database.types';
+import { Database } from '../../types/database.types';
 import { SupabaseService } from './supabase-service';
 import { Subscription } from 'rxjs';
 

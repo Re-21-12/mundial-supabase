@@ -11,13 +11,12 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { JsonPipe, NgClass } from '@angular/common';
+
 import { FormGroup } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { createWorker, TesseractWorker } from 'tesseract.js';
 
 export interface FormField {
   key: string;
@@ -29,12 +28,15 @@ export interface FormField {
   standalone: true,
   templateUrl: './camera.html',
   styleUrls: ['./camera.css'],
-  imports: [NgClass, ButtonModule, DialogModule, MessageModule, ProgressSpinnerModule, JsonPipe],
+  imports: [ButtonModule, DialogModule, MessageModule, ProgressSpinnerModule],
 })
 export class CameraComponent implements AfterViewInit, OnDestroy {
   @Input() field: FormField | null = null;
   @Input() form: FormGroup | null = null;
-  @Output() imageCaptured = new EventEmitter<string | null>();
+  @Output() imageCaptured = new EventEmitter<{
+    base64: string | null;
+    formData: FormData | null;
+  }>();
 
   private readonly WIDTH = 640;
   private readonly HEIGHT = 480;
@@ -43,13 +45,11 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
   cameraActive: WritableSignal<boolean> = signal(false);
   cameraVisible: WritableSignal<boolean> = signal(true);
   isCaptured: WritableSignal<boolean> = signal(false);
-  isProcessingOCR: WritableSignal<boolean> = signal(false);
   error: WritableSignal<string | null> = signal(null);
   captures: WritableSignal<string[]> = signal([]);
   currentBase64Image: WritableSignal<string | null> = signal(null);
   enlargedImageVisible: WritableSignal<boolean> = signal(false);
   enlargedImageSrc: WritableSignal<string | null> = signal(null);
-  ocrResult: WritableSignal<string | null> = signal(null);
 
   private stream: MediaStream | null = null;
   @ViewChild('video', { static: false }) video?: ElementRef<HTMLVideoElement>;
@@ -61,26 +61,14 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
   private readonly FIXED_WIDTH = 400;
   private readonly FIXED_HEIGHT = 300;
 
-  private worker: TesseractWorker | null = null;
-
   constructor(private http: HttpClient) {
     this.setupResizeListener();
-    this.initializeOcr();
   }
 
   private setupResizeListener() {
     const handleResize = () => this.updateFixedDimensions();
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
-  }
-
-  private async initializeOcr() {
-    try {
-      this.worker = await createWorker('eng');
-    } catch (err) {
-      console.error('Failed to initialize OCR worker:', err);
-      this.error.set('No se pudo inicializar el servicio de OCR.');
-    }
   }
 
   private updateFixedDimensions() {
@@ -106,9 +94,8 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  async ngOnDestroy() {
+  ngOnDestroy() {
     this.stopCamera();
-    await this.worker?.terminate();
   }
 
   async activateCamera() {
@@ -118,7 +105,6 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
     this.cameraVisible.set(true);
     this.isCaptured.set(false);
     this.currentBase64Image.set(null);
-    this.ocrResult.set(null);
 
     try {
       await this.setupDevices();
@@ -207,10 +193,25 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private setCurrentImage(base64Image: string | null) {
+  private async setCurrentImage(base64Image: string | null) {
     this.currentBase64Image.set(base64Image);
-    this.imageCaptured.emit(base64Image);
-    this.ocrResult.set(null);
+
+    if (!base64Image) {
+      this.imageCaptured.emit({ base64: null, formData: null });
+      return;
+    }
+
+    const blob = await this.getImageBlob();
+    if (blob) {
+      const formData = new FormData();
+      const fileName = this.field?.key
+        ? `${this.field.key}-${Date.now()}.jpg`
+        : `capture-${Date.now()}.jpg`;
+      formData.append('image', blob, fileName);
+      this.imageCaptured.emit({ base64: base64Image, formData });
+    } else {
+      this.imageCaptured.emit({ base64: base64Image, formData: null });
+    }
   }
 
   removeCurrent() {
@@ -293,28 +294,5 @@ export class CameraComponent implements AfterViewInit, OnDestroy {
   handleThumbnailClick(src: string, index: number) {
     this.setPhoto(index);
     this.showEnlargedImage(src);
-  }
-
-  async performOCR() {
-    const base64 = this.currentBase64Image();
-    if (!base64 || !this.worker) {
-      this.ocrResult.set('El servicio de OCR no está disponible.');
-      return;
-    }
-
-    this.isProcessingOCR.set(true);
-    this.ocrResult.set(null);
-
-    try {
-      const {
-        data: { text },
-      } = await this.worker.recognize(base64);
-      this.ocrResult.set(text || 'No se encontró texto.');
-    } catch (error) {
-      console.error('OCR Error:', error);
-      this.ocrResult.set('Error durante el reconocimiento de texto. Inténtelo de nuevo.');
-    } finally {
-      this.isProcessingOCR.set(false);
-    }
   }
 }

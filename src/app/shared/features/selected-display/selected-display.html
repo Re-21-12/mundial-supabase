@@ -1,0 +1,5 @@
+@if(isDesktop())  {
+  <app-dynamic-table [tableProps]="tableProps()"></app-dynamic-table>
+} @else {
+  <app-dynamic-cards [tableProps]="tableProps()"></app-dynamic-cards>
+}

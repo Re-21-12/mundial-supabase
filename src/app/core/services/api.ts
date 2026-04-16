@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, throwError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { BaseApiService, Request } from './interfaces/base-api-interface';
+import { BaseApiService, Request } from '../interfaces/base-api-interface';
 
 @Injectable({
   providedIn: 'root',

@@ -1,0 +1,13 @@
+<div class="card-container">
+  @for (item of tableProps().data; track item) {
+    <p-card [header]="tableProps().header" styleClass="mb-4">
+      @for (col of tableProps().columns; track col) {
+        <div class="p-2">
+          <strong>{{ col.header }}:</strong> {{ item[col.field] }}
+        </div>
+      }
+    </p-card>
+  } @empty {
+    <p>No data found.</p>
+  }
+</div>

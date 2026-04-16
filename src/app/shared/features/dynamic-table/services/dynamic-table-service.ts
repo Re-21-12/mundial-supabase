@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { SupabaseService } from '../../../../core/api/services/supabase-service';
+import { SupabaseService } from '../../../../core/services/supabase-service';
 
 export interface PaginationState {
   page: number;

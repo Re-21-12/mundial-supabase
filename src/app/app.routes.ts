@@ -31,7 +31,17 @@ export const routes: Routes = [
           description: 'View our photo gallery',
           icon: 'lucideImage',
         },
-        loadComponent: () => import('./shared/features/photo/photo').then((m) => m.PhotoComponent),
+        loadComponent: () =>
+          import('./shared/features/camera/camera').then((m) => m.CameraComponent),
+      },
+      {
+        path: 'ocr',
+        title: 'OCR Scanner',
+        data: {
+          description: 'Scan and recognize text in images',
+          icon: 'lucideImage',
+        },
+        loadComponent: () => import('./shared/features/ocr/ocr').then((m) => m.Ocr),
       },
       {
         path: 'not-found',
@@ -40,6 +50,15 @@ export const routes: Routes = [
           description: 'Page not found',
         },
         loadComponent: () => import('./core/pages/not-found/not-found').then((m) => m.NotFound),
+      },
+      {
+        path: 'teams',
+        title: 'Teams',
+        data: {
+          description: 'List of teams',
+          icon: 'lucideUsers',
+        },
+        loadComponent: () => import('./core/pages/teams/teams').then((m) => m.Teams),
       },
     ],
   },

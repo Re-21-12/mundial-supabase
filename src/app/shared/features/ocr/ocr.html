@@ -1,7 +1,4 @@
-<div>
-  <label for="file-upload">Seleccionar imagen</label>
-  <input id="file-upload" type="file" (change)="recognizeImage($event)" accept="image/*" />
-</div>
+<app-camera (imageCaptured)="onImageCaptured($event)"></app-camera>
 
 @if (isRecognizing()) {
 <div>

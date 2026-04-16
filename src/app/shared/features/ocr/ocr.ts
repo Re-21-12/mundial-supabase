@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { createWorker, Worker } from 'tesseract.js';
+import { CameraComponent } from '../camera/camera';
 
 @Component({
   selector: 'app-ocr',
   standalone: true,
-  imports: [],
+  imports: [CameraComponent],
   templateUrl: './ocr.html',
   styleUrl: './ocr.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,11 +33,8 @@ export class Ocr {
     });
   }
 
-  async recognizeImage(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-
-    if (!file || !this.worker) {
+  async onImageCaptured(imageData: { base64: string | null; formData: FormData | null }) {
+    if (!imageData.base64 || !this.worker) {
       return;
     }
 
@@ -46,7 +44,7 @@ export class Ocr {
 
     const {
       data: { text },
-    } = await this.worker.recognize(file);
+    } = await this.worker.recognize(imageData.base64);
 
     this.recognizedText.set(text);
     this.isRecognizing.set(false);
