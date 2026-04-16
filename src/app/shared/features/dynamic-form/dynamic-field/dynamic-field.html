@@ -3,7 +3,7 @@
 
   <!--Label -->
   <ng-template #labelTemplate let-defaultLabel="defaultLabel">
-    <label [attr.for]="fieldProps().key" class="block text-sm font-medium text-gray-700 mb-2">
+    <p-float-label [attr.for]="fieldProps().key" class="block text-sm font-medium  mb-2">
       {{ fieldProps().label || defaultLabel }}
       @if (fieldProps().state.required) {
         <span
@@ -14,7 +14,7 @@
           >*</span
         >
       }
-    </label>
+    </p-float-label>
   </ng-template>
 
   <!-- Campos Dinámicos según el tipo -->
@@ -222,7 +222,7 @@
         <div
           class="flex items-center bg-white border border-gray-300 rounded-lg h-11 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition"
         >
-          <span class="px-3 py-2.5 text-gray-500 font-medium select-none">$</span>
+          <span class="px-3 py-2.5  font-medium select-none">$</span>
           <input
             type="text"
             pInputText
@@ -360,10 +360,9 @@
         <ng-container
           *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Aceptar' }"
         ></ng-container>
-
       </div>
-              <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
-        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+      <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
     }
 
     <!-- RADIO -->
@@ -426,7 +425,7 @@
     }
 
     @default {
-      <p class="text-gray-500 italic">Campo no configurado</p>
+      <p class=" italic">Campo no configurado</p>
     }
   }
 

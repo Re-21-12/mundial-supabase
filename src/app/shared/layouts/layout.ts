@@ -23,12 +23,15 @@ import {
   lucideHome,
   lucideHeart,
   lucideImage,
+  lucideUser,
+  lucideLogOut,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
 import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
 import { Title } from '@angular/platform-browser';
 import { filter, map } from 'rxjs/operators';
+import { Tooltip } from 'primeng/tooltip';
 
 const SPARTAN = [
   HlmSidebarImports,
@@ -40,7 +43,7 @@ const SPARTAN = [
 ];
 @Component({
   selector: 'app-layout',
-  imports: [...SPARTAN, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [...SPARTAN, RouterOutlet, RouterLink, RouterLinkActive, Tooltip],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
   providers: [
@@ -55,6 +58,8 @@ const SPARTAN = [
       lucideCircle,
       lucideCheck,
       lucideInfo,
+      lucideUser,
+      lucideLogOut,
     }),
   ],
 })

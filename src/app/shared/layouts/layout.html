@@ -1,12 +1,12 @@
 <div hlmSidebarWrapper class="bg-background text-foreground w-full min-h-screen">
-    <!-- Start Side bar -->
+  <!-- Start Side bar -->
   <hlm-sidebar variant="inset" collapsible="icon">
     <div hlmSidebarHeader class="flex items-center justify-between">
       <span class="text-sm font-semibold tracking-tight">{{ title() }}</span>
       <button hlmSidebarRail aria-label="Alternar sidebar"></button>
     </div>
 
-    <div hlmSidebarContent>
+    <sidebar hlmSidebarContent>
       <div hlmSidebarGroup>
         <div hlmSidebarGroupLabel>Menú</div>
         <ul hlmSidebarMenu>
@@ -27,14 +27,14 @@
           }
         </ul>
       </div>
-    </div>
+    </sidebar>
   </hlm-sidebar>
-    <!-- End Side bar -->
+  <!-- End Side bar -->
 
   <main hlmSidebarInset class="flex flex-col min-h-screen">
     <header class="flex h-12 items-center justify-between px-4 border-b">
       <div class="flex items-center gap-2">
-       <!-- Toggle -->
+        <!-- Toggle -->
         <button hlmSidebarTrigger>
           <span class="sr-only">Alternar menú</span>
         </button>
@@ -48,13 +48,31 @@
         </nav>
       </div>
 
-      <button hlmBtn variant="ghost" size="icon" (click)="themeService.toggleTheme()">
-        @if(themeService.darkMode()) {
-          <ng-icon hlm size="sm" name="lucideSun" />
-        } @else {
-          <ng-icon hlm size="sm" name="lucideMoon" />
-        }
-      </button>
+      <div class="flex flex-row gap-4">
+        <button hlmBtn variant="ghost" size="icon" pTooltip="Profile" tooltipPosition="bottom">
+          Account
+          <ng-icon hlm size="sm" name="lucideUser" />
+        </button>
+
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          pTooltip="Toggle theme"
+          tooltipPosition="bottom"
+          (click)="themeService.toggleTheme()"
+        >
+          @if (themeService.darkMode()) {
+            <ng-icon hlm size="sm" name="lucideSun" />
+          } @else {
+            <ng-icon hlm size="sm" name="lucideMoon" />
+          }
+        </button>
+
+        <button hlmBtn variant="ghost" size="icon" pTooltip="Exit" tooltipPosition="bottom">
+          <ng-icon hlm size="sm" name="lucideLogOut" />
+        </button>
+      </div>
     </header>
 
     <div class="flex-1 flex items-center justify-center overflow-auto p-4">

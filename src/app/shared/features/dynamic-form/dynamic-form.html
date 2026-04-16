@@ -1,5 +1,5 @@
-<form >
-  <div [class]="gridClasses()">
+<form class="border rounded p-2 gap-4 w-full ">
+  <div [class]="gridClasses()" >
   @for (field of fields(); track field.key) {
     @if (isRepeatableField(field)) {
       <!-- Campo Repetible -->
@@ -46,20 +46,22 @@
   }
 
   </div>
-    <div class="flex flex-col items-center gap-2">
-    <p-button
-      [raised]="true"
-      severity="success"
-      label="Enviar"
-      (click)="onSubmit()"
-      [disabled]="!form().valid"
-    />
-    <p-button
-      [raised]="true"
+    <div class="flex justify-center gap-2 w-full">
+          <p-button
+      [rounded]="true"
       severity="secondary"
       label="Limpiar"
       (click)="onClear()"
       [disabled]="!hasData()"
     />
+    <p-button
+      severity="success"
+      label="Guardar"
+      (click)="onSubmit()"
+      [disabled]="!form().valid"
+      [loading]="loading()"
+      [rounded]="true"
+    />
+
   </div>
 </form>

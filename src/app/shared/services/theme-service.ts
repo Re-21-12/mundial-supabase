@@ -9,8 +9,8 @@ export class ThemeService {
   darkMode = signal<boolean>(
     JSON.parse(
       localStorage.getItem('darkMode') ??
-        window.matchMedia('(prefers-color-scheme: dark)').matches.toString()
-    )
+        window.matchMedia('(prefers-color-scheme: dark)').matches.toString(),
+    ),
   );
 
   constructor() {
@@ -23,6 +23,8 @@ export class ThemeService {
   }
 
   toggleTheme() {
+    const element = document.querySelector('html');
+    element!.classList.toggle('dark');
     this.darkMode.update((dark) => !dark);
   }
 }

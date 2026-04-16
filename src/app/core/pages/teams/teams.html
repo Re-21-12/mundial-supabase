@@ -1,1 +1,5 @@
-<app-selected-display [tableProps]="tableProps()"></app-selected-display>
+<app-overlay [tableProps]="tableProps()">
+  <ng-content #form>
+    <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
+  </ng-content>
+</app-overlay>

@@ -6,10 +6,13 @@
   [value]="tableProps().data"
   [rows]="tableProps().rows"
   [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
+  [tableStyle]="{ 'min-width': '50rem' , 'background-color': 'white' } "
+  [size]="'small'"
+
 >
   <ng-template #caption>
     <div class="text-end pb-4">
-      <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" />
+      <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" [disabled]="tableProps().data.length === 0" />
     </div>
   </ng-template>
 

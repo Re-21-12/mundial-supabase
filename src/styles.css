@@ -6,7 +6,10 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import '@spartan-ng/brain/hlm-tailwind-preset.css';
-
+::selection {
+  background-color: #f6af3c; /* El color de fondo (ej. amarillo) */
+  color: #000;              /* El color del texto al ser seleccionado */
+}
 :root .neutral-theme {
   color-scheme: light;
 

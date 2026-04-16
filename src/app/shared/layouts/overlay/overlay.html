@@ -1,0 +1,11 @@
+<div class="w-full flex flex-col">
+  <p-button (click)="visible.set(true)" icon="pi pi-plus" class="self-end"/>
+
+  <p-drawer header="{{ 'Add ' + tableProps().header }}" [(visible)]="visible" position="right" styleClass="!w-full md:!w-80 lg:!w-[40rem]">
+    <ng-content #form>
+
+    </ng-content>
+  </p-drawer>
+
+  <app-selected-display [tableProps]="tableProps()"></app-selected-display>
+</div>

@@ -6,14 +6,16 @@ import { DynamicField } from './dynamic-field/dynamic-field';
 import { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilderService } from './services/form-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
+import { RouterLinkActive } from "@angular/router";
 @Component({
   selector: 'app-dynamic-form',
-  imports: [DynamicField, Button, TooltipModule],
+  imports: [DynamicField, Button, TooltipModule, RouterLinkActive],
   templateUrl: './dynamic-form.html',
   styleUrls: ['./dynamic-form.css'],
 })
 export class DynamicForm {
   data = output<string>();
+  loading = signal(false);
 
   private readonly fb = inject(FormBuilderService);
 
@@ -79,5 +81,13 @@ export class DynamicForm {
 
   isRepeatableField(field: FieldBase<string>): boolean {
     return field.state.repeatible.repeat === true;
+  }
+
+  load() {
+    this.loading.set(true);
+
+    setTimeout(() => {
+      this.loading.set(false);
+    }, 2000);
   }
 }

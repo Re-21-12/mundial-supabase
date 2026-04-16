@@ -1,16 +1,21 @@
 import { Database } from './../../../types/database.types';
-import { Component, inject, signal, WritableSignal } from '@angular/core';
+import { Component, inject, model, signal, WritableSignal } from '@angular/core';
 import { DynamicService } from '../../services/dynamic-service';
 import { TableTemplateModel } from '../../../shared/features/dynamic-table/interfaces/table-interface';
 import { PostgrestError } from '@supabase/supabase-js';
-import { SelectedDisplay } from '../../../shared/features/selected-display/selected-display';
+import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
+import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
+import { Overlay } from '../../../shared/layouts/overlay/overlay';
+const COMPONENTS = [DynamicForm];
 @Component({
   selector: 'app-teams',
-  imports: [SelectedDisplay],
+  imports: [COMPONENTS, Overlay],
   templateUrl: './teams.html',
   styleUrl: './teams.css',
 })
 export class Teams {
+  visible = model(false);
+
   items: Database['public']['Tables']['TEAM'][] = [];
 
   tableProps: WritableSignal<TableTemplateModel> = signal({
@@ -31,11 +36,17 @@ export class Teams {
     rowsPerPageOptions: [5, 10, 20],
     data: [],
   });
+  fields = formFields['teamForm'].fields;
   readonly dynamicService = inject(DynamicService);
 
   ngOnInit() {
     this.getData();
   }
+  submitData = ($event: string) => {
+    const parsedData = JSON.parse($event);
+    console.log('Data to submit:', $event);
+    console.log('Data to submit:', parsedData);
+  };
   getData = async () => {
     const response = await this.dynamicService.fetchData({
       table: 'TEAM',
