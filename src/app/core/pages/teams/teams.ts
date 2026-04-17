@@ -53,6 +53,7 @@ export class Teams {
       order: 'asc',
       limit: 10,
       page: 0,
+      columns: '*',
     });
     if (response instanceof PostgrestError) {
       console.error('Error fetching teams:', response);
