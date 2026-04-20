@@ -60,6 +60,15 @@ export const routes: Routes = [
         },
         loadComponent: () => import('./core/pages/teams/teams').then((m) => m.Teams),
       },
+      {
+        path: 'catalog',
+        title: 'Catalog',
+        data: {
+          description: 'List of catalogs',
+          icon: 'lucideDatabase',
+        },
+        loadComponent: () => import('./core/pages/catalog/catalog').then((m) => m.Catalog),
+      },
     ],
   },
 ];
