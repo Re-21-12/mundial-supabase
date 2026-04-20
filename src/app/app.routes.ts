@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './shared/layouts/layout';
+import { authGuard } from './core/utils/guards/auth-guard-guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
           icon: 'lucideHome',
         },
         loadComponent: () => import('./core/pages/home/home').then((m) => m.Home),
+        canActivate: [authGuard],
       },
       {
         path: 'taste',
@@ -23,6 +25,7 @@ export const routes: Routes = [
           icon: 'lucideHeart',
         },
         loadComponent: () => import('./core/pages/taste/taste').then((m) => m.Taste),
+        canActivate: [authGuard],
       },
       {
         path: 'photo',
@@ -33,6 +36,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/camera/camera').then((m) => m.CameraComponent),
+        canActivate: [authGuard],
       },
       {
         path: 'ocr',
@@ -42,6 +46,7 @@ export const routes: Routes = [
           icon: 'lucideImage',
         },
         loadComponent: () => import('./shared/features/ocr/ocr').then((m) => m.Ocr),
+        canActivate: [authGuard],
       },
       {
         path: 'page-error',
@@ -51,6 +56,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/page-error/page-error').then((m) => m.PageError),
+        canActivate: [authGuard],
       },
       {
         path: 'teams',
@@ -60,6 +66,7 @@ export const routes: Routes = [
           icon: 'lucideUsers',
         },
         loadComponent: () => import('./core/pages/teams/teams').then((m) => m.Teams),
+        canActivate: [authGuard],
       },
       {
         path: 'catalog',
@@ -69,6 +76,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
         },
         loadComponent: () => import('./core/pages/catalog/catalog').then((m) => m.Catalog),
+        canActivate: [authGuard],
       },
       {
         path: 'auth',
@@ -78,6 +86,7 @@ export const routes: Routes = [
           icon: 'lucideUser',
         },
         loadComponent: () => import('./core/components/auth/auth').then((m) => m.Auth),
+        canActivate: [authGuard],
       },
     ],
   },

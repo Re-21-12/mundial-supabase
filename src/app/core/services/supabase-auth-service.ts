@@ -59,10 +59,10 @@ export class SupabaseAuthService {
     }
   }
 
-  async signInWithPassword() {
+  async signInWithPassword(email: string = '', password: string = '') {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
-      email: '',
-      password: '',
+      email: email,
+      password: password,
     });
     if (error) {
       console.error('Error sending OTP:', error);
@@ -134,6 +134,46 @@ export class SupabaseAuthService {
   }
   //#endregion
 
+  private async handleSession(session: any) {
+    const metadata = session.user.user_metadata;
+
+    // Si es primera vez (no tiene password seteado)
+    if (metadata?.['force_password_change']) {
+      this.router.navigate(['/set-password']);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
+  async inviteUser(email: string) {
+    const { data, error } = await this.supabaseService.client.auth.admin.inviteUserByEmail(email, {
+      data: {
+        role: 'cliente',
+        force_password_change: true,
+      },
+    });
+    return { data, error };
+  }
+  async sendMagicLink(email: string) {
+    const { error } = await this.supabaseService.client.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false, // ← NO crea usuario nuevo, solo válida existente
+      },
+    });
+    return { error };
+  }
+  async setNewPassword(newPassword: string) {
+    const { data, error } = await this.supabaseService.client.auth.updateUser({
+      password: newPassword,
+      data: { force_password_change: false }, // ya no es primera vez
+    });
+
+    if (!error) {
+      this.router.navigate(['/dashboard']);
+    }
+
+    return { data, error };
+  }
   get client() {
     return this.supabaseService.client;
   }
