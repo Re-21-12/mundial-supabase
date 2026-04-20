@@ -44,12 +44,13 @@ export const routes: Routes = [
         loadComponent: () => import('./shared/features/ocr/ocr').then((m) => m.Ocr),
       },
       {
-        path: 'not-found',
-        title: 'Page Not Found',
+        path: 'page-error',
+        title: 'Page Error',
         data: {
-          description: 'Page not found',
+          description: 'An error occurred',
         },
-        loadComponent: () => import('./core/pages/not-found/not-found').then((m) => m.NotFound),
+        loadComponent: () =>
+          import('./shared/features/page-error/page-error').then((m) => m.PageError),
       },
       {
         path: 'teams',
@@ -68,6 +69,15 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
         },
         loadComponent: () => import('./core/pages/catalog/catalog').then((m) => m.Catalog),
+      },
+      {
+        path: 'auth',
+        title: 'Authentication',
+        data: {
+          description: 'User authentication',
+          icon: 'lucideUser',
+        },
+        loadComponent: () => import('./core/components/auth/auth').then((m) => m.Auth),
       },
     ],
   },

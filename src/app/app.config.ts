@@ -3,9 +3,13 @@ import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { errorInterceptor } from './core/utils/interceptors/error-interceptor';
+import { MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService,
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     providePrimeNG({
@@ -16,5 +20,6 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    provideHttpClient(withInterceptors([errorInterceptor])),
   ],
 };

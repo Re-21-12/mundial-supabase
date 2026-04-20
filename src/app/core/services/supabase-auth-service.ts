@@ -11,12 +11,14 @@ import { Profile } from '../interfaces/profile-interface';
 import { Database } from '../../types/database.types';
 import { SupabaseService } from './supabase-service';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SupabaseAuthService {
   supabaseService = inject(SupabaseService);
+  router = inject(Router);
   private authSubscription: Subscription | any;
   //#region profiles
   profile(user: User) {
@@ -44,17 +46,41 @@ export class SupabaseAuthService {
       },
     });
   }
+
+  async signInWithEmail(email: string) {
+    const { data, error } = await this.supabaseService.client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: environment.redirect_email },
+    });
+    if (error) {
+      console.error('Error sending OTP:', error);
+    } else {
+      console.log('OTP sent successfully:', data);
+    }
+  }
+
   async signInWithPassword() {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
       email: '',
       password: '',
     });
+    if (error) {
+      console.error('Error sending OTP:', error);
+    } else {
+      console.log('OTP sent successfully:', data);
+    }
   }
+
   async signInWithPhone() {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
       phone: '',
       password: '',
     });
+    if (error) {
+      console.error('Error sending OTP:', error);
+    } else {
+      console.log('OTP sent successfully:', data);
+    }
   }
 
   stateAuthChanges() {
@@ -68,7 +94,8 @@ export class SupabaseAuthService {
           // Útil para saber si el usuario ya estaba logueado al cargar la app
           break;
         case 'SIGNED_IN':
-          // Aquí podrías redirigir al usuario: this.router.navigate(['/dashboard']);
+          console.log('Usuario autenticado:', session?.user);
+          this.router.navigate(['/home']);
           break;
         case 'SIGNED_OUT':
           console.log('Sesión cerrada correctamente');
@@ -90,10 +117,6 @@ export class SupabaseAuthService {
     this.authSubscription = subscription;
   }
 
-  async signIn(email: string) {
-    return this.supabaseService.client.auth.signInWithOtp({ email });
-  }
-  //lanza el evento
   async signOut() {
     return this.supabaseService.client.auth.signOut();
   }

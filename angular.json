@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "forms": {
+    "mundial": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -57,10 +57,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "forms:build:production"
+              "buildTarget": "mundial:build:production"
             },
             "development": {
-              "buildTarget": "forms:build:development"
+              "buildTarget": "mundial:build:development"
             }
           },
           "defaultConfiguration": "development"
