@@ -1,1 +1,14 @@
-  <router-outlet />
+<router-outlet />
+<p-toast [breakpoints]="{ '920px': { width: '50%' } }"></p-toast>
+
+@if (loadingService.isLoading()) {
+  <div class="http-loading-overlay" aria-live="polite" aria-busy="true" role="status">
+    <p-progress-spinner
+      strokeWidth="4"
+      fill="transparent"
+      animationDuration="0.8s"
+      styleClass="http-loading-spinner"
+      ariaLabel="Cargando"
+    />
+  </div>
+}

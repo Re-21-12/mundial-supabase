@@ -1,0 +1,55 @@
+<section class="auth-shell" aria-label="Autenticacion">
+  <div class="auth-panel auth-panel-brand">
+    <h1>{{ title() }}</h1>
+    <p>{{ subtitle() }}</p>
+
+    <ul class="provider-list" role="list" aria-label="Proveedores SSO y OAuth2">
+      @for (provider of providers(); track provider.id) {
+      <li>
+        <button
+          type="button"
+          class="provider-button"
+          (click)="onSelectProvider(provider.id)"
+          [attr.aria-label]="'Continuar con ' + provider.label"
+        >
+          <span class="provider-title">Continuar con {{ provider.label }}</span>
+          <span class="provider-description">{{ provider.description }}</span>
+        </button>
+      </li>
+      }
+    </ul>
+  </div>
+
+  <div class="auth-panel auth-panel-form">
+    <div class="mode-switch" role="group" aria-label="Acciones de autenticacion">
+      <button
+        type="button"
+        class="mode-button"
+        [class.mode-button-active]="mode() === 'login'"
+        (click)="onSelectMode('login')"
+      >
+        Iniciar sesion
+      </button>
+      <button
+        type="button"
+        class="mode-button"
+        [class.mode-button-active]="mode() === 'register'"
+        (click)="onSelectMode('register')"
+      >
+        Registrar
+      </button>
+      <button
+        type="button"
+        class="mode-button"
+        [class.mode-button-active]="mode() === 'change-password'"
+        (click)="onSelectMode('change-password')"
+      >
+        Cambiar password
+      </button>
+    </div>
+
+    <h2>{{ modeTitle() }}</h2>
+    <p class="form-helper">{{ modeDescription() }}</p>
+    <ng-content></ng-content>
+  </div>
+</section>

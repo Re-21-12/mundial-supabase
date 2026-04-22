@@ -1,0 +1,12 @@
+<app-auth-overlay
+  [title]="'Ingreso a la plataforma'"
+  [subtitle]="'Este layout admite SSO y OAuth2 para acceso rapido y seguro'"
+  [mode]="mode()"
+  [modeTitle]="modeTitle"
+  [modeDescription]="modeDescription"
+  [providers]="oauthProviders"
+  (providerSelected)="onOAuthProviderSelected($event)"
+  (modeSelected)="onModeSelected($event)"
+>
+  <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
+</app-auth-overlay>

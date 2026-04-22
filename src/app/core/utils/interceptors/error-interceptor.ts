@@ -14,21 +14,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         router.navigate(['/server-error']);
         return throwError(() => error);
       }
-
+      /* Destructurando  */
       const [message, route, type] = config;
 
-      switch (type) {
-        case 'Page':
-          router.navigate([route]);
-          break;
-        case 'Toast':
-          notifier.notify('error', 'Atención', message);
-          break;
-        case 'Dialog':
-          // Aquí podrías llamar a un DialogService si lo implementas luego
-          console.warn('Lógica de Diálogo pendiente para:', message);
-          break;
+      /* Dispatch table */
+      const handlers: Record<deployType, () => void> = {
+        Page: () => router.navigate([route]),
+        Toast: () => notifier.notify('error', 'Atención', message),
+        Dialog: () => console.warn('Lógica de Diálogo pendiente para:', message),
+      };
+
+      /* Aqui es donde ejecuta  */
+      handlers[type]?.();
+
+      if (error.status === 0 || error.status >= 500) {
+        console.error('Error crítico:', error);
       }
+
       console.error('Error Interceptor:', error);
       return throwError(() => error);
     }),

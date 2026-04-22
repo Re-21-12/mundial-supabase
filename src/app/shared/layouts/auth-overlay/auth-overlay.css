@@ -1,0 +1,123 @@
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: calc(100vh - 7rem);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e1;
+}
+
+.auth-panel {
+  padding: 2rem 1.25rem;
+}
+
+.auth-panel-brand {
+  background: radial-gradient(circle at top right, #dbeafe 0%, #eff6ff 42%, #f8fafc 100%);
+}
+
+.auth-panel-brand h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.auth-panel-brand p {
+  margin: 0.75rem 0 1.5rem;
+  color: #334155;
+}
+
+.provider-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.provider-button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.provider-button:hover {
+  transform: translateY(-1px);
+  border-color: #3b82f6;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.16);
+}
+
+.provider-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.provider-title {
+  display: block;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.provider-description {
+  display: block;
+  margin-top: 0.2rem;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.auth-panel-form {
+  background: #ffffff;
+}
+
+.mode-switch {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.mode-button {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.65rem;
+  background: #f8fafc;
+  color: #334155;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mode-button:hover {
+  border-color: #3b82f6;
+}
+
+.mode-button-active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.auth-panel-form h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.form-helper {
+  margin: 0.55rem 0 1.5rem;
+  color: #475569;
+}
+
+@media (min-width: 960px) {
+  .auth-shell {
+    grid-template-columns: minmax(280px, 42%) 1fr;
+  }
+
+  .auth-panel {
+    padding: 2.5rem;
+  }
+}

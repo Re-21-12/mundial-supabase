@@ -1,14 +1,25 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './shared/layouts/layout';
-import { authGuard } from './core/utils/guards/auth-guard-guard';
+import { authGuard } from './shared/features/auth/guard/auth-guard';
 
 export const routes: Routes = [
+  {
+    path: 'auth/callback',
+    title: 'Auth Callback',
+    loadComponent: () =>
+      import('./shared/features/auth/callback/auth-callback').then((m) => m.AuthCallback),
+  },
+  {
+    path: 'login',
+    pathMatch: 'full',
+    redirectTo: 'auth',
+  },
   {
     path: '',
     component: LayoutComponent,
     children: [
       {
-        path: '',
+        path: 'home',
         title: 'Home',
         data: {
           description: 'Welcome to the home page',
@@ -25,7 +36,7 @@ export const routes: Routes = [
           icon: 'lucideHeart',
         },
         loadComponent: () => import('./core/pages/taste/taste').then((m) => m.Taste),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'photo',
@@ -36,7 +47,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/camera/camera').then((m) => m.CameraComponent),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'ocr',
@@ -46,7 +57,7 @@ export const routes: Routes = [
           icon: 'lucideImage',
         },
         loadComponent: () => import('./shared/features/ocr/ocr').then((m) => m.Ocr),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'page-error',
@@ -56,7 +67,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/page-error/page-error').then((m) => m.PageError),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'teams',
@@ -66,7 +77,7 @@ export const routes: Routes = [
           icon: 'lucideUsers',
         },
         loadComponent: () => import('./core/pages/teams/teams').then((m) => m.Teams),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'catalog',
@@ -76,7 +87,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
         },
         loadComponent: () => import('./core/pages/catalog/catalog').then((m) => m.Catalog),
-        canActivate: [authGuard],
+        canActivate: [],
       },
       {
         path: 'auth',
@@ -85,8 +96,8 @@ export const routes: Routes = [
           description: 'User authentication',
           icon: 'lucideUser',
         },
-        loadComponent: () => import('./core/components/auth/auth').then((m) => m.Auth),
-        canActivate: [authGuard],
+        loadComponent: () => import('./shared/features/auth/auth').then((m) => m.Auth),
+        canActivate: [],
       },
     ],
   },

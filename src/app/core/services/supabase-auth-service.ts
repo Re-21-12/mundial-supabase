@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import {
   AuthChangeEvent,
+  Provider,
   createClient,
   Session,
   SupabaseClient,
@@ -71,6 +72,32 @@ export class SupabaseAuthService {
     }
   }
 
+  async signUpWithPassword(email: string, password: string) {
+    const { data, error } = await this.supabaseService.client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: environment.redirect_email },
+    });
+
+    if (error) {
+      console.error('Error sign up:', error);
+    }
+
+    return { data, error };
+  }
+
+  async requestPasswordReset(email: string) {
+    const { data, error } = await this.supabaseService.client.auth.resetPasswordForEmail(email, {
+      redirectTo: environment.redirect_email,
+    });
+
+    if (error) {
+      console.error('Error password reset:', error);
+    }
+
+    return { data, error };
+  }
+
   async signInWithPhone() {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
       phone: '',
@@ -81,6 +108,21 @@ export class SupabaseAuthService {
     } else {
       console.log('OTP sent successfully:', data);
     }
+  }
+
+  async signInWithOAuth(provider: Provider) {
+    const { data, error } = await this.supabaseService.client.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: environment.redirect_email,
+      },
+    });
+
+    if (error) {
+      console.error('Error OAuth sign in:', error);
+    }
+
+    return { data, error };
   }
 
   stateAuthChanges() {
