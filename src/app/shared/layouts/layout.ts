@@ -32,6 +32,9 @@ import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
 import { Title } from '@angular/platform-browser';
 import { filter, map } from 'rxjs/operators';
 import { Tooltip } from 'primeng/tooltip';
+import { AuthFacade } from '../features/auth/auth.facade';
+
+const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
 
 const SPARTAN = [
   HlmSidebarImports,
@@ -66,6 +69,7 @@ const SPARTAN = [
 export class LayoutComponent implements OnInit {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
+  readonly authFacade = inject(AuthFacade);
 
   protected readonly menuItems = signal<Route[]>([]);
   protected readonly title = signal('');
@@ -79,9 +83,40 @@ export class LayoutComponent implements OnInit {
     return typeof title === 'string' ? title : '';
   }
 
-  ngOnInit() {
+  private canSeeRoute(route: Route, userPermissions: string[]): boolean {
+    const routePath = route.path ?? '';
+    const isPublicRoute = Boolean(route.data?.['publicRoute']) || PUBLIC_MENU_PATHS.has(routePath);
+
+    if (isPublicRoute) {
+      return true;
+    }
+
+    const requiredPermission =
+      typeof route.data?.['requiredPermission'] === 'string'
+        ? route.data['requiredPermission']
+        : null;
+
+    if (requiredPermission) {
+      return userPermissions.includes(requiredPermission);
+    }
+
+    return userPermissions.length > 0;
+  }
+
+  async ngOnInit() {
     const layoutRoute = this.router.config.find((r) => r.component === LayoutComponent);
-    this.menuItems.set(layoutRoute?.children?.filter((r) => r.path !== 'not-found') ?? []);
+    await this.authFacade.getSession();
+    const userPermissions = this.authFacade.permissions();
+
+    this.menuItems.set(
+      layoutRoute?.children?.filter((route) => {
+        if (route.path === 'not-found') {
+          return false;
+        }
+
+        return this.canSeeRoute(route, userPermissions);
+      }) ?? [],
+    );
 
     this.router.events
       .pipe(

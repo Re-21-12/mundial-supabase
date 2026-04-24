@@ -1,11 +1,14 @@
 .auth-shell {
   display: grid;
   grid-template-columns: 1fr;
-  min-height: calc(100vh - 7rem);
+  min-height: min(860px, calc(100vh - 4rem));
   border-radius: 1rem;
   overflow: hidden;
-  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(98, 131, 171, 0.34);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.94) 8%, rgba(242, 248, 255, 0.9) 100%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 48px rgba(22, 45, 83, 0.2);
 }
 
 .auth-panel {
@@ -13,19 +16,22 @@
 }
 
 .auth-panel-brand {
-  background: radial-gradient(circle at top right, #dbeafe 0%, #eff6ff 42%, #f8fafc 100%);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(77, 128, 195, 0.18), transparent 52%),
+    linear-gradient(180deg, rgba(243, 248, 255, 0.88), rgba(238, 246, 255, 0.7));
+  border-bottom: 1px solid var(--border);
 }
 
 .auth-panel-brand h1 {
   margin: 0;
   font-size: 1.8rem;
   line-height: 1.1;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
 .auth-panel-brand p {
   margin: 0.75rem 0 1.5rem;
-  color: #334155;
+  color: #4a6388;
 }
 
 .provider-list {
@@ -39,77 +45,124 @@
 .provider-button {
   width: 100%;
   text-align: left;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(95, 129, 171, 0.36);
   border-radius: 0.75rem;
-  background: #ffffff;
   padding: 0.9rem 1rem;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.88);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .provider-button:hover {
   transform: translateY(-1px);
-  border-color: #3b82f6;
-  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.16);
+  border-color: var(--ring);
+  box-shadow: 0 8px 18px rgba(44, 166, 134, 0.28);
 }
 
 .provider-button:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
 .provider-title {
   display: block;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
 .provider-description {
   display: block;
   margin-top: 0.2rem;
-  color: #475569;
+  color: #455f84;
   font-size: 0.92rem;
 }
 
 .auth-panel-form {
-  background: #ffffff;
+  background: linear-gradient(180deg, rgba(250, 253, 255, 0.88), rgba(241, 248, 255, 0.8));
 }
 
 .mode-switch {
   display: grid;
-  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
   margin-bottom: 1rem;
+  background: rgba(226, 236, 250, 0.95);
+  border-radius: 0.75rem;
+  padding: 0.2rem;
 }
 
 .mode-button {
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(38, 72, 120, 0.18);
   border-radius: 0.65rem;
-  background: #f8fafc;
-  color: #334155;
+  color: #24314a;
+  background: transparent;
   padding: 0.55rem 0.75rem;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
   cursor: pointer;
 }
 
 .mode-button:hover {
-  border-color: #3b82f6;
+  border-color: rgba(36, 65, 109, 0.45);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.mode-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
 }
 
 .mode-button-active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
+  border-color: rgba(42, 76, 125, 0.45);
+  background: #ffffff;
+  color: #102748;
+  box-shadow: 0 4px 10px rgba(17, 27, 42, 0.18);
 }
 
 .auth-panel-form h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
 .form-helper {
   margin: 0.55rem 0 1.5rem;
-  color: #475569;
+  color: #415b80;
+}
+
+.dark .auth-shell {
+  background: linear-gradient(160deg, rgba(15, 34, 61, 0.72) 8%, rgba(8, 24, 44, 0.9) 100%);
+  box-shadow: 0 24px 60px rgba(4, 14, 31, 0.45);
+}
+
+.dark .auth-panel-brand {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(38, 87, 155, 0.26), transparent 52%),
+    linear-gradient(180deg, rgba(12, 33, 61, 0.78), rgba(12, 33, 61, 0.45));
+}
+
+.dark .provider-button {
+  background: rgba(11, 32, 57, 0.72);
+}
+
+.dark .provider-button:hover {
+  box-shadow: 0 8px 20px rgba(41, 211, 163, 0.22);
+}
+
+.dark .auth-panel-form {
+  background: linear-gradient(180deg, rgba(10, 27, 50, 0.52), rgba(10, 27, 50, 0.82));
+}
+
+.dark .mode-switch {
+  background: rgba(219, 231, 249, 0.9);
+}
+
+.dark .mode-button {
+  color: #17233a;
+}
+
+.dark .mode-button:hover {
+  border-color: rgba(32, 59, 102, 0.58);
+  background: rgba(255, 255, 255, 0.78);
 }
 
 @media (min-width: 960px) {
@@ -119,5 +172,10 @@
 
   .auth-panel {
     padding: 2.5rem;
+  }
+
+  .auth-panel-brand {
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
   }
 }

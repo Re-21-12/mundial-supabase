@@ -1,0 +1,73 @@
+<section class="profile-shell" aria-labelledby="profile-title">
+  <div class="profile-card">
+    <h1 id="profile-title">Mi Perfil</h1>
+
+
+      @if (tokenClaims()?.user_metadata?.avatar_url) {
+        <div class="avatar-row">
+          <img
+            class="profile-avatar"
+            [src]="tokenClaims()?.user_metadata?.avatar_url"
+            [alt]="'Avatar de ' + (tokenClaims()?.user_metadata?.full_name ?? 'usuario')"
+            title="Avatar de usuario"
+            referrerpolicy="no-referrer"
+          />
+        </div>
+      }
+
+      <h2 class="section-title">Perfil base</h2>
+      <dl>
+        <div class="row">
+          <dt>ID</dt>
+          <dd>{{ profile()?.id }}</dd>
+        </div>
+
+        <div class="row">
+          <dt>Email</dt>
+          <dd>{{ profile()?.email }}</dd>
+        </div>
+
+        <div class="row">
+          <dt>Rol</dt>
+          <dd>{{ role() }}</dd>
+        </div>
+      </dl>
+
+      <div class="permissions-block">
+        <h2>Permisos</h2>
+        @if (permissions().length === 0) {
+          <p>No tienes permisos asignados.</p>
+        } @else {
+          <div class="permissions-list" role="list">
+            @for (permission of permissions(); track permission) {
+              <p role="listitem">{{ permission }}</p>
+            }
+          </div>
+        }
+      </div>
+
+      @if (tokenClaims()) {
+        <div class="token-block">
+          <h2 class="section-title">Claims del access token</h2>
+          <dl>
+            <div class="row">
+              <dt>is_anonymous</dt>
+              <dd>{{ tokenClaims()?.is_anonymous ? 'true' : 'false' }}</dd>
+            </div>
+          </dl>
+
+          <h3 class="subsection-title">User metadata</h3>
+          <dl>
+            <div class="row">
+              <dt>name</dt>
+              <dd>{{ tokenClaims()?.user_metadata?.name ?? 'N/A' }}</dd>
+            </div>
+            <div class="row">
+              <dt>email_verified</dt>
+              <dd>{{ tokenClaims()?.user_metadata?.email_verified ? 'true' : 'false' }}</dd>
+            </div>
+          </dl>
+        </div>
+      }
+  </div>
+</section>

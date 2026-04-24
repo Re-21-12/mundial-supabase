@@ -662,6 +662,7 @@ export type Database = {
           stadium_id: number;
           updated_at: string | null;
           updated_by: number | null;
+          name: string | null;
         };
         Insert: {
           catalog_id: number;

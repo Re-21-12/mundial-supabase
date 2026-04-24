@@ -7,7 +7,6 @@ import {
   User,
 } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
-import { Profile } from '../interfaces/profile-interface';
 import { Database } from '../../types/database.types';
 import { HttpLoadingService } from './http-loading-service';
 import { NotificationService } from '../../shared/services/notification-service';

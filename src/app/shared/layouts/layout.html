@@ -49,8 +49,16 @@
       </div>
 
       <div class="flex flex-row gap-4">
-        <button hlmBtn variant="ghost" size="icon" pTooltip="Profile" tooltipPosition="bottom">
-          Account
+        <button
+        title="toggle"
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          pTooltip="Profile"
+          tooltipPosition="bottom"
+          type="button"
+          routerLink="/profile"
+        >
           <ng-icon hlm size="sm" name="lucideUser" />
         </button>
 
@@ -69,7 +77,7 @@
           }
         </button>
 
-        <button hlmBtn variant="ghost" size="icon" pTooltip="Exit" tooltipPosition="bottom">
+        <button hlmBtn variant="ghost" size="icon" pTooltip="Exit" tooltipPosition="bottom" (click)="authFacade.signOut()">
           <ng-icon hlm size="sm" name="lucideLogOut" />
         </button>
       </div>

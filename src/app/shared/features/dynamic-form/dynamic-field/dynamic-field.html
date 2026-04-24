@@ -38,7 +38,7 @@
               (paste)="validarLetrasPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
-              class=" bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+              class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -50,7 +50,7 @@
             (paste)="validarLetrasPaste($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
-            class=" bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
           />
         }
         <app-dynamic-hint
@@ -82,7 +82,7 @@
               (keypress)="onKeypressEmail($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
-              class=" bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+              class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -94,7 +94,7 @@
             (keypress)="onKeypressEmail($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
-            class=" bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
           />
         }
         <app-dynamic-hint
@@ -123,7 +123,7 @@
               [useGrouping]="false"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
               class="w-full"
-              inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+              inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -132,7 +132,7 @@
             [useGrouping]="false"
             [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
             class="w-full"
-            inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+            inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
           />
         }
         <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
@@ -159,7 +159,7 @@
               (paste)="validarEnteroPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número entero'"
-              class=" bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+              class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -250,12 +250,12 @@
               (paste)="validarMonedaPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || '0.00'"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+              class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
           <div
-            class="flex items-center bg-white border border-gray-300 rounded-lg h-11 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition"
+            class="flex items-center  border border-gray-300 rounded-lg h-11 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition"
           >
             <span class="px-3 py-2.5 font-medium select-none">$</span>
             <input
@@ -297,7 +297,7 @@
               [showIcon]="true"
               iconDisplay="input"
               class="w-full"
-              inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+              inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -307,7 +307,7 @@
             [showIcon]="true"
             iconDisplay="input"
             class="w-full"
-            inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+            inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
           />
         }
         <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
@@ -332,7 +332,7 @@
               [placeholder]="fieldProps().placeholder || 'Ingresa tu texto aquí...'"
               [attr.maxlength]="getMaxLength() ?? null"
               rows="4"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
+              class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
             ></textarea>
           </p-inputgroup>
         } @else {
@@ -342,7 +342,7 @@
             [placeholder]="fieldProps().placeholder || 'Ingresa tu texto aquí...'"
             [attr.maxlength]="getMaxLength() ?? null"
             rows="4"
-            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
+            class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
           ></textarea>
         }
         <app-dynamic-hint
@@ -371,7 +371,7 @@
               [placeholder]="fieldProps().placeholder || 'Ingresa tu contraseña'"
               [toggleMask]="true"
               [attr.maxlength]="getMaxLength() ?? null"
-              inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+              inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
@@ -380,7 +380,7 @@
             [placeholder]="fieldProps().placeholder || 'Ingresa tu contraseña'"
             [toggleMask]="true"
             [attr.maxlength]="getMaxLength() ?? null"
-            inputStyleClass="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+            inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
           />
         }
         <app-dynamic-hint

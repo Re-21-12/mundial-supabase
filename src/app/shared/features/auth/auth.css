@@ -1,0 +1,26 @@
+:host {
+	display: block;
+	min-height: 100vh;
+}
+
+.auth-page-shell {
+	min-height: 100vh;
+	padding: clamp(1rem, 2vw, 2rem);
+	display: grid;
+	place-items: center;
+	background:
+		radial-gradient(circle at 16% 12%, rgba(66, 122, 199, 0.18), transparent 44%),
+		radial-gradient(circle at 88% 84%, rgba(24, 171, 139, 0.22), transparent 42%),
+		linear-gradient(130deg, #f2f7ff 8%, #e8f1fd 56%, #e7fbf4 100%);
+}
+
+.auth-page-content {
+	width: min(1040px, 100%);
+}
+
+.dark .auth-page-shell {
+	background:
+		radial-gradient(circle at 14% 8%, rgba(44, 81, 146, 0.34), transparent 42%),
+		radial-gradient(circle at 90% 88%, rgba(17, 139, 112, 0.38), transparent 40%),
+		linear-gradient(130deg, #07152b 8%, #0b2242 54%, #0f394d 100%);
+}

@@ -22,8 +22,18 @@ export class SupabaseAuthService {
   router = inject(Router);
   private authSubscription: Subscription | any;
   //#region profiles
-  profile(user: User) {
-    return this.supabaseService.client.from('USER').select(`id, email `).eq('id', user.id).single();
+  async profile(userEmail: string) {
+    const { data, error } = await this.supabaseService.client
+      .from('user_with_auth') // Nombre de la vista que creaste
+      .select('*')
+      .eq('email', userEmail)
+      .single();
+
+    if (error) {
+      console.error('Error al obtener perfil:', error);
+    }
+
+    return { data, error };
   }
   updateProfile(user: User) {
     const update = {
@@ -47,7 +57,17 @@ export class SupabaseAuthService {
       },
     });
   }
-
+  async signInWithOtp(email: string, createUser = true) {
+    const { data, error } = await this.supabaseService.client.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: environment.redirect_email,
+        shouldCreateUser: createUser,
+      },
+    });
+    if (error) throw error;
+    return data;
+  }
   async signInWithEmail(email: string) {
     const { data, error } = await this.supabaseService.client.auth.signInWithOtp({
       email,
@@ -59,7 +79,17 @@ export class SupabaseAuthService {
       console.log('OTP sent successfully:', data);
     }
   }
+  // Traer usuario con permisos desde la vista
+  async getUserWithPermissions(userId: string) {
+    const { data, error } = await this.supabaseService.client
+      .from('USER_ROLE')
+      .select('user_id, role_id')
+      .eq('user_id', userId)
+      .single();
 
+    if (error) throw error;
+    return data;
+  }
   async signInWithPassword(email: string = '', password: string = '') {
     const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
       email: email,
@@ -125,33 +155,48 @@ export class SupabaseAuthService {
     return { data, error };
   }
 
+  // supabase-auth.service.ts
   stateAuthChanges() {
     const {
       data: { subscription },
     } = this.supabaseService.client.auth.onAuthStateChange((event, session) => {
-      console.log(`🔔 Evento de Auth: ${event}`, session);
-
+      console.log(`🔔 Evento de Auth: ${event}`);
+      // console.log('Sesión actual:', session?.access_token);
       switch (event) {
         case 'INITIAL_SESSION':
-          // Útil para saber si el usuario ya estaba logueado al cargar la app
+          if (session) {
+            this.handleSession(session);
+          }
           break;
+
         case 'SIGNED_IN':
-          console.log('Usuario autenticado:', session?.user);
+          if (session?.provider_token) {
+            localStorage.setItem('oauth_provider_token', session.provider_token);
+          }
+          if (session?.provider_refresh_token) {
+            localStorage.setItem('oauth_provider_refresh_token', session.provider_refresh_token);
+          }
+
           this.router.navigate(['/home']);
           break;
+
         case 'SIGNED_OUT':
-          console.log('Sesión cerrada correctamente');
-          // Si necesitas limpiar algo específico que NO sea de Supabase:
-          // localStorage.removeItem('mi_variable_personalizada');
+          localStorage.removeItem('oauth_provider_token');
+          localStorage.removeItem('oauth_provider_refresh_token');
+          this.router.navigate(['/login']);
           break;
+
         case 'PASSWORD_RECOVERY':
-          // Aquí podrías abrir un modal para cambiar la contraseña
+          this.router.navigate(['/set-password']);
           break;
+
         case 'TOKEN_REFRESHED':
-          // Silencioso, pero útil para saber que la sesión se extendió
+          if (session?.provider_token) {
+            localStorage.setItem('oauth_provider_token', session.provider_token);
+          }
           break;
+
         case 'USER_UPDATED':
-          // Cuando el usuario cambia su email o meta-data
           break;
       }
     });
@@ -179,7 +224,6 @@ export class SupabaseAuthService {
   private async handleSession(session: any) {
     const metadata = session.user.user_metadata;
 
-    // Si es primera vez (no tiene password seteado)
     if (metadata?.['force_password_change']) {
       this.router.navigate(['/set-password']);
     } else {

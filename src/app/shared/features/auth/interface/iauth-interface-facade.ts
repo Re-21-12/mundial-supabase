@@ -9,10 +9,12 @@ export interface IAuthFacade {
   readonly currentUser: Signal<AuthUser | null>;
 
   // Acciones
-  profile(user: User): any;
+  profile(email: string): Promise<{ data: any; error: any }>;
   updateProfile(user: User): any;
   authChanges(callback: (event: AuthChangeEvent, session: Session | null) => void): any;
+  stateAuthChanges(): void;
   singInAnonymously(): Promise<void>;
+  signInWithOtp(email: string, createUser?: boolean): Promise<unknown>;
   signInWithEmail(email: string): Promise<void>;
   signInWithPassword(email: string, password?: string): Promise<void>;
   signUpWithPassword(email: string, password: string): Promise<{ data: any; error: any }>;
