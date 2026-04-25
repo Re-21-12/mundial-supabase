@@ -1,5 +1,5 @@
 @if(isDesktop())  {
-  <app-dynamic-table [tableProps]="tableProps()"></app-dynamic-table>
+  <app-dynamic-table [tableProps]="tableProps()" (delete)="deletedFn($event)"></app-dynamic-table>
 } @else {
-  <app-dynamic-cards [tableProps]="tableProps()"></app-dynamic-cards>
+  <app-dynamic-cards [tableProps]="tableProps()" (delete)="deletedFn($event)"></app-dynamic-cards>
 }

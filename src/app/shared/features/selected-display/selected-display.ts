@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit, WritableSignal, signal } from '@angular/core';
+import { Component, inject, input, OnInit, WritableSignal, signal, output } from '@angular/core';
 import { DynamicTable } from '../dynamic-table/dynamic-table';
 import { DynamicCards } from '../dynamic-cards/dynamic-cards';
 import { TableTemplateModel } from '../dynamic-table/interfaces/table-interface';
@@ -22,4 +22,9 @@ export class SelectedDisplay implements OnInit {
   }
   selectedDeviceService = inject(DeviceInfoService);
   tableProps = input.required<TableTemplateModel>();
+  delete = output<string>();
+  deletedFn($event: any){
+    console.log("Eliminado desde overlay");
+    this.delete.emit($event);
+  }
 }

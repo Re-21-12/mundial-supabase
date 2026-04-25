@@ -1,4 +1,99 @@
-<div class="home-container">
-    <h1>Bienvenido</h1>
-    <p>Home works!</p>
+<div class="home-page" role="main">
+
+  <!-- ═══ HERO CAROUSEL ═══ -->
+  <section class="home-section home-section--hero" aria-label="Partidos destacados">
+    @if (carouselMatches().length > 0) {
+      <app-hero-banner [matches]="carouselMatches()" />
+    } @else {
+      <div class="hero-placeholder">
+        <i class="pi pi-inbox hero-placeholder__icon" aria-hidden="true"></i>
+        <p>Sin partidos próximos por el momento...</p>
+      </div>
+    }
+  </section>
+
+  <!-- ═══ STATS BAR ═══ -->
+  <section class="home-section" aria-label="Estadísticas del torneo">
+    <app-stats-bar />
+  </section>
+
+  <!-- ═══ FEATURED MATCHES GRID ═══ -->
+  <section  aria-label="Partidos del torneo">
+    <h2 class="section-title">
+      <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+      Partidos del Torneo
+    </h2>
+
+    @if (featuredMatches().length > 0) {
+      <div class="matches-grid">
+        @for (card of featuredMatches(); track card.match.match_id) {
+          <article class="match-card" [class.match-card--live]="card.isLive">
+            <!-- Status badge -->
+            <div class="match-card__header">
+              <p-tag
+                [severity]="getLiveSeverity(card)"
+                [value]="getLiveLabel(card)"
+                styleClass="match-status-tag"
+              />
+              <span class="match-date">
+                @if (!card.isLive) { {{ formatMatchDate(card.match.start_time) }} }
+              </span>
+            </div>
+
+            <!-- Teams and score -->
+            <div class="match-card__body">
+              <div class="match-team">
+                <span class="match-team__emoji">🏟️</span>
+                <span class="match-team__name">{{ card.homeTeam.name }}</span>
+              </div>
+
+              <div class="match-card__score">{{ getScore(card) }}</div>
+
+              <div class="match-team match-team--away">
+                <span class="match-team__name">{{ card.awayTeam.name }}</span>
+                <span class="match-team__emoji">✈️</span>
+              </div>
+            </div>
+
+            <!-- User prediction chip -->
+            @if (card.prediction) {
+              <div class="match-card__prediction">
+                <i class="pi pi-check-circle" aria-hidden="true"></i>
+                Tu predicción: {{ card.prediction.first_team_score }} – {{ card.prediction.second_team_score }}
+              </div>
+            }
+
+            <!-- CTA -->
+            <div class="match-card__footer">
+              <p-button
+                label="Predecir resultado"
+                icon="pi pi-bolt"
+                severity="contrast"
+                size="small"
+                styleClass="w-full predict-btn"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
+        <p>No hay partidos programados por el momento.</p>
+      </div>
+    }
+  </section>
+
+  <!-- ═══ CTA BANNER ═══ -->
+  <section class="home-section home-section--cta" aria-label="Únete al torneo">
+    <div class="cta-content">
+      <h2 class="cta-title">¿Listo para demostrar tu instinto futbolero?</h2>
+      <p class="cta-subtitle">Crea tu liga, invita a tus amigos y predice cada resultado.</p>
+      <div class="cta-actions">
+        <p-button label="Crear liga" icon="pi pi-plus" size="large" />
+        <p-button label="Unirse con código" icon="pi pi-link" severity="secondary" size="large" />
+      </div>
+    </div>
+  </section>
+
 </div>

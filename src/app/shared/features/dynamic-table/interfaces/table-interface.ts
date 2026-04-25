@@ -5,6 +5,9 @@ export interface TableTemplateModel {
   rowsPerPageOptions: number[];
   data: any[];
   customExportHeader?: string;
+  actions?: TypeOption[];
+  routeBase?: string;
+  rowIdField?: string;
 }
 export interface TableColumnTemplateModel {
   field: string;

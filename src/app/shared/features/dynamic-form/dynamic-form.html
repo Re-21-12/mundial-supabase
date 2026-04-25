@@ -44,24 +44,27 @@
       <app-dynamic-field [fieldControl]="field" [form]="form()"> </app-dynamic-field>
     }
   }
-
-  </div>
+  
+</div>
+@if (!readonlyMode()) {
     <div class="flex justify-center gap-2 w-full">
           <p-button
       [rounded]="true"
       severity="secondary"
       label="Limpiar"
       (click)="onClear()"
-      [disabled]="!hasData()"
+      [disabled]="form().pristine"
     />
     <p-button
       severity="success"
       label="Guardar"
       (click)="onSubmit()"
       [disabled]="!form().valid"
-      [loading]="loading()"
+      [loading]="loadingService.isLoading()"
       [rounded]="true"
     />
 
   </div>
+}
+
 </form>

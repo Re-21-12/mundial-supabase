@@ -1,0 +1,52 @@
+<p-carousel
+  [value]="matches()"
+  [numVisible]="1"
+  [numScroll]="1"
+  [circular]="true"
+  [autoplayInterval]="5000"
+  [responsiveOptions]="responsiveOptions"
+  styleClass="hero-carousel"
+>
+  <ng-template pTemplate="item" let-card>
+    <div class="hero-slide">
+      <!-- Badge -->
+      <div class="hero-slide__badges">
+        <p-tag
+          [severity]="getLiveStatus(card)"
+          [value]="getLiveLabel(card)"
+          styleClass="live-badge"
+        />
+      </div>
+
+      <!-- Teams row -->
+      <div class="hero-slide__match">
+        <div class="hero-slide__team hero-slide__team--home">
+          <div class="team-flag">🏟️</div>
+          <span class="team-name">{{ card.homeTeam.name }}</span>
+        </div>
+
+        <div class="hero-slide__score">
+          <span class="score-display">{{ getScore(card) }}</span>
+          <span class="score-label">
+            @if (card.isLive) { Marcador en vivo } @else { {{ formatDate(card.match.start_time) }} }
+          </span>
+        </div>
+
+        <div class="hero-slide__team hero-slide__team--away">
+          <div class="team-flag">✈️</div>
+          <span class="team-name">{{ card.awayTeam.name }}</span>
+        </div>
+      </div>
+
+      <!-- User prediction if exists -->
+      @if (card.prediction) {
+        <div class="hero-slide__prediction">
+          <span class="prediction-label">Tu predicción:</span>
+          <span class="prediction-score">
+            {{ card.prediction.first_team_score }} - {{ card.prediction.second_team_score }}
+          </span>
+        </div>
+      }
+    </div>
+  </ng-template>
+</p-carousel>

@@ -54,7 +54,7 @@ export const routes: Routes = [
           icon: 'lucideUser',
           // requiredPermission: PERMISSIONS.USER.READ,
         },
-        loadComponent: () => import('./core/pages/profile/profile').then((m) => m.ProfilePage),
+        loadChildren: () => import('./core/pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
       },
       {
         path: 'home',
@@ -64,7 +64,7 @@ export const routes: Routes = [
           icon: 'lucideHome',
           publicRoute: true,
         },
-        loadComponent: () => import('./core/pages/home/home').then((m) => m.Home),
+        loadChildren: () => import('./core/pages/home/home.routes').then((m) => m.HOME_ROUTES),
       },
       {
         path: 'taste',
@@ -74,7 +74,7 @@ export const routes: Routes = [
           icon: 'lucideHeart',
           requiredPermission: PERMISSIONS.LEAGUE.READ,
         },
-        loadComponent: () => import('./core/pages/taste/taste').then((m) => m.Taste),
+        loadChildren: () => import('./core/pages/taste/taste.routes').then((m) => m.TASTE_ROUTES),
       },
       {
         path: 'photo',
@@ -114,7 +114,7 @@ export const routes: Routes = [
           icon: 'lucideUsers',
           requiredPermission: PERMISSIONS.TEAM.READ,
         },
-        loadComponent: () => import('./core/pages/teams/teams').then((m) => m.Teams),
+        loadChildren: () => import('./core/pages/teams/teams.routes').then((m) => m.TEAMS_ROUTES),
       },
       {
         path: 'catalog',
@@ -124,7 +124,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.CATALOG.READ,
         },
-        loadComponent: () => import('./core/pages/catalog/catalog').then((m) => m.Catalog),
+        loadChildren: () => import('./core/pages/catalog/catalog.routes').then((m) => m.CATALOG_ROUTES),
       },
       {
         path: 'stadium',
@@ -134,7 +134,7 @@ export const routes: Routes = [
           icon: 'lucideMapPin',
           requiredPermission: PERMISSIONS.STADIUM.READ,
         },
-        loadComponent: () => import('./core/pages/stadium/stadium').then((m) => m.Stadium),
+        loadChildren: () => import('./core/pages/stadium/stadium.routes').then((m) => m.STADIUM_ROUTES),
       },
       {
         path: 'audit-log',
@@ -144,7 +144,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.AUDIT_LOG.READ,
         },
-        loadComponent: () => import('./core/pages/audit-log/audit-log').then((m) => m.AuditLogPage),
+        loadChildren: () => import('./core/pages/audit-log/audit-log.routes').then((m) => m.AUDIT_LOG_ROUTES),
       },
       {
         path: 'invitation',
@@ -154,7 +154,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.INVITATION.READ,
         },
-        loadComponent: () => import('./core/pages/invitation/invitation').then((m) => m.InvitationPage),
+        loadChildren: () => import('./core/pages/invitation/invitation.routes').then((m) => m.INVITATION_ROUTES),
       },
       {
         path: 'league',
@@ -164,7 +164,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.LEAGUE.READ,
         },
-        loadComponent: () => import('./core/pages/league/league').then((m) => m.LeaguePage),
+        loadChildren: () => import('./core/pages/league/league.routes').then((m) => m.LEAGUE_ROUTES),
       },
       {
         path: 'league-reward',
@@ -174,7 +174,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.LEAGUE_REWARD.READ,
         },
-        loadComponent: () => import('./core/pages/league-reward/league-reward').then((m) => m.LeagueRewardPage),
+        loadChildren: () => import('./core/pages/league-reward/league-reward.routes').then((m) => m.LEAGUE_REWARD_ROUTES),
       },
       {
         path: 'match',
@@ -184,7 +184,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.MATCH.READ,
         },
-        loadComponent: () => import('./core/pages/match/match').then((m) => m.MatchPage),
+        loadChildren: () => import('./core/pages/match/match.routes').then((m) => m.MATCH_ROUTES),
       },
       {
         path: 'match-period',
@@ -194,7 +194,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.MATCH_PERIOD.READ,
         },
-        loadComponent: () => import('./core/pages/match-period/match-period').then((m) => m.MatchPeriodPage),
+        loadChildren: () => import('./core/pages/match-period/match-period.routes').then((m) => m.MATCH_PERIOD_ROUTES),
       },
       {
         path: 'permission',
@@ -204,7 +204,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.PERMISSION.READ,
         },
-        loadComponent: () => import('./core/pages/permission/permission').then((m) => m.PermissionPage),
+        loadChildren: () => import('./core/pages/permission/permission.routes').then((m) => m.PERMISSION_ROUTES),
       },
       {
         path: 'prediction',
@@ -214,7 +214,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.PREDICTION.READ,
         },
-        loadComponent: () => import('./core/pages/prediction/prediction').then((m) => m.PredictionPage),
+        loadChildren: () => import('./core/pages/prediction/prediction.routes').then((m) => m.PREDICTION_ROUTES),
       },
       {
         path: 'role',
@@ -224,7 +224,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.ROLE.READ,
         },
-        loadComponent: () => import('./core/pages/role/role').then((m) => m.RolePage),
+        loadChildren: () => import('./core/pages/role/role.routes').then((m) => m.ROLE_ROUTES),
       },
       {
         path: 'role-permission',
@@ -234,7 +234,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.ROLE_PERMISSION.READ,
         },
-        loadComponent: () => import('./core/pages/role-permission/role-permission').then((m) => m.RolePermissionPage),
+        loadChildren: () => import('./core/pages/role-permission/role-permission.routes').then((m) => m.ROLE_PERMISSION_ROUTES),
       },
       {
         path: 'rules-league',
@@ -244,7 +244,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.RULES_LEAGUE.READ,
         },
-        loadComponent: () => import('./core/pages/rules-league/rules-league').then((m) => m.RulesLeaguePage),
+        loadChildren: () => import('./core/pages/rules-league/rules-league.routes').then((m) => m.RULES_LEAGUE_ROUTES),
       },
       {
         path: 'transaction',
@@ -254,7 +254,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.TRANSACTION.READ,
         },
-        loadComponent: () => import('./core/pages/transaction/transaction').then((m) => m.TransactionPage),
+        loadChildren: () => import('./core/pages/transaction/transaction.routes').then((m) => m.TRANSACTION_ROUTES),
       },
       {
         path: 'user',
@@ -264,7 +264,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.USER.READ,
         },
-        loadComponent: () => import('./core/pages/user/user').then((m) => m.UserPage),
+        loadChildren: () => import('./core/pages/user/user.routes').then((m) => m.USER_ROUTES),
       },
       {
         path: 'user-league',
@@ -274,7 +274,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.USER_LEAGUE.READ,
         },
-        loadComponent: () => import('./core/pages/user-league/user-league').then((m) => m.UserLeaguePage),
+        loadChildren: () => import('./core/pages/user-league/user-league.routes').then((m) => m.USER_LEAGUE_ROUTES),
       },
       {
         path: 'user-league-reward',
@@ -284,7 +284,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.USER_LEAGUE_REWARD.READ,
         },
-        loadComponent: () => import('./core/pages/user-league-reward/user-league-reward').then((m) => m.UserLeagueRewardPage),
+        loadChildren: () => import('./core/pages/user-league-reward/user-league-reward.routes').then((m) => m.USER_LEAGUE_REWARD_ROUTES),
       },
       {
         path: 'user-role',
@@ -294,7 +294,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.USER_ROLE.READ,
         },
-        loadComponent: () => import('./core/pages/user-role/user-role').then((m) => m.UserRolePage),
+        loadChildren: () => import('./core/pages/user-role/user-role.routes').then((m) => m.USER_ROLE_ROUTES),
       },
       {
         path: 'user-session',
@@ -304,7 +304,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.USER_SESSION.READ,
         },
-        loadComponent: () => import('./core/pages/user-session/user-session').then((m) => m.UserSessionPage),
+        loadChildren: () => import('./core/pages/user-session/user-session.routes').then((m) => m.USER_SESSION_ROUTES),
       },
       {
         path: 'wallet',
@@ -314,7 +314,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.WALLET.READ,
         },
-        loadComponent: () => import('./core/pages/wallet/wallet').then((m) => m.WalletPage),
+        loadChildren: () => import('./core/pages/wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
       },
       {
         path: 'world-league',
@@ -324,7 +324,7 @@ export const routes: Routes = [
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.WORLD_LEAGUE.READ,
         },
-        loadComponent: () => import('./core/pages/world-league/world-league').then((m) => m.WorldLeaguePage),
+        loadChildren: () => import('./core/pages/world-league/world-league.routes').then((m) => m.WORLD_LEAGUE_ROUTES),
       },
     ],
   },

@@ -56,7 +56,7 @@ export const authGuard: CanActivateChildFn = async (childRoute) => {
 
   const userPermissions = authFacade.permissions();
 
-  console.log('User Permissions:', userPermissions);
+  // console.log('User Permissions:', userPermissions);
   // If route has an explicit required permission, enforce it.
   // Otherwise, require at least one permission for protected routes.
 

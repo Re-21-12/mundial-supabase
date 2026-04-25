@@ -160,7 +160,7 @@ export class SupabaseAuthService {
     const {
       data: { subscription },
     } = this.supabaseService.client.auth.onAuthStateChange((event, session) => {
-      console.log(`🔔 Evento de Auth: ${event}`);
+      // console.log(`🔔 Evento de Auth: ${event}`);
       // console.log('Sesión actual:', session?.access_token);
       switch (event) {
         case 'INITIAL_SESSION':

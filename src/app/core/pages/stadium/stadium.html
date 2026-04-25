@@ -1,5 +1,5 @@
-<app-overlay [tableProps]="tableProps()">
+<app-overlay [tableProps]="tableProps()" (delete)="deleteData($event)">
   <ng-content #form>
-    <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
+    <app-dynamic-form [fields]="fields" [initialData]="editData()" [readonlyMode]="readonlyMode()" (data)="submitData($event)"></app-dynamic-form>
   </ng-content>
 </app-overlay>

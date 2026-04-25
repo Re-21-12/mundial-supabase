@@ -1,21 +1,27 @@
 import { Database } from './../../../types/database.types';
-import { Component, inject, model, signal, WritableSignal } from '@angular/core';
+import { Component, inject, model, OnInit, signal, WritableSignal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DynamicService } from '../../services/dynamic-service';
 import { TableTemplateModel } from '../../../shared/features/dynamic-table/interfaces/table-interface';
 import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
+import { firstValueFrom } from 'rxjs';
 const COMPONENTS = [DynamicForm, Overlay];
 @Component({
   selector: 'app-stadium',
   imports: COMPONENTS,
   templateUrl: './stadium.html',
   styleUrl: './stadium.css',
+  providers: [DialogService],
 })
-export class Stadium {
+export class Stadium implements OnInit {
   visible = model(false);
-
+  id = signal<string | null>(null);
   items: Database['public']['Tables']['STADIUM'][] = [];
 
   tableProps: WritableSignal<TableTemplateModel> = signal({
@@ -37,34 +43,96 @@ export class Stadium {
     data: [],
   });
   fields = formFields['stadiumForm'].fields;
+  private readonly _route = inject(ActivatedRoute);
+  editData = signal<Record<string, any> | null>(null);
+  readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
+  private readonly dialogService = inject(DialogService);
 
   ngOnInit() {
     this.getData();
   }
-  submitData = ($event: string) => {
+  submitData = async ($event: string) => {
     const parsedData = JSON.parse($event);
-    console.log('Data to submit:', $event);
-    console.log('Data to submit:', parsedData);
+    await this.setData(parsedData);
+    // Resetear el id para que getData recargue la lista completa
+    this.id.set(null);
+    await this.getData();
   };
   getData = async () => {
-    const response = await this.dynamicService.fetchData({
-      table: 'STADIUM',
-      order: 'asc',
-      limit: 10,
-      page: 0,
-      columns: '*',
-    });
-    if (response instanceof PostgrestError) {
-      console.error('Error fetching stadiums:', response);
+    const id = this._route.snapshot.paramMap.get('id');
+    if(id){
+      this.id.set(id);
+    } 
+    const url = this._route.snapshot.url.map(s => s.path).join('/');
+    const isDetail = url.endsWith('detail');
+    const isEdit = url.endsWith('edit');
+
+    let response;
+    if (this.id()) {
+      response = await this.dynamicService.fetchData({
+        table: 'STADIUM',
+        order: 'asc',
+        limit: 10,
+        page: 0,
+        columns: '*',
+        filters: { field: 'stadium_id', value: this.id()! },
+      });
     } else {
-      console.log('Fetched stadiums:', response);
-      this.tableProps.update((props) => ({ ...props, data: response }));
+      response = await this.dynamicService.fetchData({
+        table: 'STADIUM',
+        order: 'asc',
+        limit: 10,
+        page: 0,
+        columns: '*',
+      });
     }
+
+    if (response instanceof PostgrestError) {
+      console.error('Error fetching stadium:', response);
+    } else {
+      console.log('User role data:', response);
+      this.tableProps.update((props) => ({ ...props, data: response }));
+      if ((isEdit || isDetail) && Array.isArray(response) && response.length > 0) {
+        this.editData.set(response[0] as Record<string, any>);
+      }
+      if (isDetail) this.readonlyMode.set(true);
+    }
+
     return response;
+  };
+  setData = async (data: any) => {
+    if (this.id()) {
+      console.log('Editing stadium:', this.id());
+      await this.updateData(data);
+    } else {
+      console.log('Inserting stadium');
+      await this.insertData(data);
+    }
   };
   insertData = async (data: Partial<Database['public']['Tables']['STADIUM']['Insert']>) => {
     const response = await this.dynamicService.insertData('STADIUM', data);
     return response;
+  };
+    updateData = async (data: Partial<Database['public']['Tables']['STADIUM']['Update']>) => {
+    const response = await this.dynamicService.updateData('STADIUM', data, {field: 'stadium_id', value: this.id()!});
+    return response;
+  };
+  deleteData = async (rowId: string) => {
+    const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
+      header: 'Confirmar eliminación',
+      width: '420px',
+      modal: true,
+      breakpoints: { '640px': '90vw' },
+      data: { label: `Estadio ID: ${rowId}` },
+    });
+
+    const confirmed = await firstValueFrom(ref!.onClose);
+    if (!confirmed) return;
+
+    const response = await this.dynamicService.deleteData('STADIUM', { field: 'stadium_id', value: rowId });
+    if (!(response instanceof PostgrestError)) {
+      await this.getData();
+    }
   };
 }

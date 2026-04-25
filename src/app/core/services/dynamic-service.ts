@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from './supabase-service';
-import { DynamicQuery } from '../interfaces/dynamic-query-interface';
+import { DynamicQuery, DynamicQueryFilter } from '../interfaces/dynamic-query-interface';
 import { PostgrestError } from '@supabase/supabase-js';
+import { AuthFacade } from '../../shared/features/auth/auth.facade';
 
 @Injectable({
   providedIn: 'root',
@@ -9,6 +10,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 export class DynamicService {
   items: any[] = [];
   supabaseService = inject(SupabaseService);
+  authFacade = inject(AuthFacade);
 
   async fetchData<T>(query: DynamicQuery): Promise<T[] | PostgrestError> {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
@@ -16,15 +18,28 @@ export class DynamicService {
 
     const from = query.page * query.limit;
     const to = from + query.limit - 1;
-    const { table, order } = query;
+    const { table, order, filters } = query;
+    let fetchedData: any[] | null = null;
+    let error: PostgrestError | null = null;
 
-    const { data: fetchedData, error } = await this.supabaseService.client
-      .from(`${table}`)
-      .select(query.columns) // Seleccionar las columnas especificadas
-      // .eq('country', 'Argentina') // Columna y valor a buscar
-      .order('created_by', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
-      // .limit(10); // Limitar a 10 resultados
-      .range(from, to);
+    if (filters) {
+      ({ data: fetchedData, error } = await this.supabaseService.client
+        .from(`${table}`)
+        .select(query.columns) // Seleccionar las columnas especificadas
+        .eq(filters.field, filters.value) // Columna y valor a buscar
+        .order('created_at', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
+        // .limit(10); // Limitar a 10 resultados
+        .range(from, to));
+    } else {
+      ({ data: fetchedData, error } = await this.supabaseService.client
+        .from(`${table}`)
+        .select(query.columns) // Seleccionar las columnas especificadas
+        // .eq('country', 'Argentina') // Columna y valor a buscar
+        .order('created_at', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
+        // .limit(10); // Limitar a 10 resultados
+        .range(from, to));
+    }
+
     if (error) {
       console.error('Error fetching teams:', error);
       return error;
@@ -42,9 +57,56 @@ export class DynamicService {
     if (error) {
       console.error('Error inserting data:', error);
       return error;
+    } else {
+      console.log('Data inserted successfully:', insertedRecord);
     }
 
     return insertedRecord as T;
+  }
+  async updateData<T>(
+    table: string,
+    data: Partial<T>,
+    filter: DynamicQueryFilter,
+  ): Promise<T | PostgrestError> {
+    const { field, value } = filter;
+    const { data: updatedRecord, error } = await this.supabaseService.client
+      .from(table) // No necesitas `${table}`, con la variable basta
+      .update(data)
+      .select()
+      .eq(field, value)
+      .single();
+
+    if (error) {
+      console.error('Error updating data:', error);
+      return error;
+    } else {
+      console.log('Data updated successfully:', updatedRecord);
+    }
+
+    return updatedRecord as T;
+  }
+
+  async deleteData<T>(table: string, filter: DynamicQueryFilter): Promise<T | PostgrestError> {
+    const { field, value } = filter;
+    const { data: deletedRecord, error } = await this.supabaseService.client
+      .from(table) // No necesitas `${table}`, con la variable basta
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: this.authFacade.internalUserId,
+      })
+      .select()
+      .eq(field, value)
+      .single();
+
+    if (error) {
+      console.error('Error deleting data:', error);
+      return error;
+    } else {
+      console.log('Data deleted successfully:', deletedRecord);
+    }
+
+    return deletedRecord as T;
   }
   /* Obtener CSV */
   async exportToCSV(): Promise<string | Error> {

@@ -14,6 +14,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           new_values: string | null;
           old_values: string | null;
@@ -21,13 +22,14 @@ export type Database = {
           table_name: string;
           updated_at: string | null;
           updated_by: number | null;
-          user_session_id: number;
+          user_session_id: number | null;
         };
         Insert: {
           audit_log_id?: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           new_values?: string | null;
           old_values?: string | null;
@@ -35,13 +37,14 @@ export type Database = {
           table_name: string;
           updated_at?: string | null;
           updated_by?: number | null;
-          user_session_id: number;
+          user_session_id?: number | null;
         };
         Update: {
           audit_log_id?: number;
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           new_values?: string | null;
           old_values?: string | null;
@@ -49,7 +52,7 @@ export type Database = {
           table_name?: string;
           updated_at?: string | null;
           updated_by?: number | null;
-          user_session_id?: number;
+          user_session_id?: number | null;
         };
         Relationships: [
           {
@@ -67,6 +70,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           description: string;
           is_deleted: boolean;
           neumonic: string;
@@ -78,9 +82,10 @@ export type Database = {
         };
         Insert: {
           catalog_id?: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description: string;
           is_deleted?: boolean;
           neumonic: string;
@@ -95,6 +100,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string;
           is_deleted?: boolean;
           neumonic?: string;
@@ -111,6 +117,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           expiration_date: string | null;
           invitation_id: number;
           is_deleted: boolean;
@@ -122,9 +129,10 @@ export type Database = {
           user_league_id: number;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           expiration_date?: string | null;
           invitation_id?: number;
           is_deleted?: boolean;
@@ -139,6 +147,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           expiration_date?: string | null;
           invitation_id?: number;
           is_deleted?: boolean;
@@ -165,6 +174,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           invitation_code: string | null;
           is_deleted: boolean;
           league_id: number;
@@ -177,9 +187,10 @@ export type Database = {
         };
         Insert: {
           catalog_id: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           invitation_code?: string | null;
           is_deleted?: boolean;
           league_id?: number;
@@ -195,6 +206,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           invitation_code?: string | null;
           is_deleted?: boolean;
           league_id?: number;
@@ -221,6 +233,13 @@ export type Database = {
             referencedColumns: ['user_id'];
           },
           {
+            foreignKeyName: 'LEAGUE_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_with_auth';
+            referencedColumns: ['internal_id'];
+          },
+          {
             foreignKeyName: 'LEAGUE_world_league_id_fkey';
             columns: ['world_league_id'];
             isOneToOne: false;
@@ -234,6 +253,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           global_prize_1pct: number | null;
           is_deleted: boolean;
           league_id: number;
@@ -245,9 +265,10 @@ export type Database = {
           updated_by: number | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           global_prize_1pct?: number | null;
           is_deleted?: boolean;
           league_id: number;
@@ -262,6 +283,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           global_prize_1pct?: number | null;
           is_deleted?: boolean;
           league_id?: number;
@@ -287,6 +309,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           first_team_id: number;
           first_team_total: number;
           is_deleted: boolean;
@@ -300,9 +323,10 @@ export type Database = {
           updated_by: number | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_id: number;
           first_team_total: number;
           is_deleted?: boolean;
@@ -319,6 +343,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_id?: number;
           first_team_total?: number;
           is_deleted?: boolean;
@@ -368,6 +393,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           first_team_score: number | null;
           is_deleted: boolean;
           match_id: number;
@@ -378,9 +404,10 @@ export type Database = {
         };
         Insert: {
           catalog_id: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_score?: number | null;
           is_deleted?: boolean;
           match_id: number;
@@ -394,6 +421,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_score?: number | null;
           is_deleted?: boolean;
           match_id?: number;
@@ -424,6 +452,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           description: string | null;
           is_deleted: boolean;
           name: string;
@@ -432,9 +461,10 @@ export type Database = {
           updated_by: number | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           name: string;
@@ -446,6 +476,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           name?: string;
@@ -460,6 +491,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           first_team_score: number;
           is_deleted: boolean;
           match_id: number;
@@ -471,9 +503,10 @@ export type Database = {
           user_league_id: number;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_score?: number;
           is_deleted?: boolean;
           match_id: number;
@@ -488,6 +521,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           first_team_score?: number;
           is_deleted?: boolean;
           match_id?: number;
@@ -520,6 +554,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           description: string | null;
           is_deleted: boolean;
           name: string;
@@ -528,9 +563,10 @@ export type Database = {
           updated_by: number | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           name: string;
@@ -542,6 +578,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           name?: string;
@@ -556,6 +593,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           permission_id: number;
           role_id: number;
@@ -564,9 +602,10 @@ export type Database = {
           updated_by: number | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           permission_id: number;
           role_id: number;
@@ -578,6 +617,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           permission_id?: number;
           role_id?: number;
@@ -607,6 +647,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           description: string;
           dimension: string;
           is_deleted: boolean;
@@ -617,9 +658,10 @@ export type Database = {
           value: string;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description: string;
           dimension: string;
           is_deleted?: boolean;
@@ -633,6 +675,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string;
           dimension?: string;
           is_deleted?: boolean;
@@ -658,18 +701,21 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
+          name: string | null;
           stadium_id: number;
           updated_at: string | null;
           updated_by: number | null;
-          name: string | null;
         };
         Insert: {
           catalog_id: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
+          name?: string | null;
           stadium_id?: number;
           updated_at?: string | null;
           updated_by?: number | null;
@@ -679,7 +725,9 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
+          name?: string | null;
           stadium_id?: number;
           updated_at?: string | null;
           updated_by?: number | null;
@@ -700,6 +748,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           name: string;
           team_id: number;
@@ -708,9 +757,10 @@ export type Database = {
         };
         Insert: {
           catalog_id: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           name: string;
           team_id?: number;
@@ -722,6 +772,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           name?: string;
           team_id?: number;
@@ -745,6 +796,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           description: string | null;
           is_deleted: boolean;
           transaction_date: string | null;
@@ -756,9 +808,10 @@ export type Database = {
         Insert: {
           amount: number;
           catalog_id: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           transaction_date?: string | null;
@@ -773,6 +826,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           description?: string | null;
           is_deleted?: boolean;
           transaction_date?: string | null;
@@ -803,6 +857,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           email: string;
           is_deleted: boolean;
           login: string | null;
@@ -813,12 +868,13 @@ export type Database = {
           updated_at: string | null;
           updated_by: number | null;
           user_id: number;
-          uuid: string;
+          uuid: string | null;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           email: string;
           is_deleted?: boolean;
           login?: string | null;
@@ -829,11 +885,13 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: number | null;
           user_id?: number;
+          uuid?: string | null;
         };
         Update: {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           email?: string;
           is_deleted?: boolean;
           login?: string | null;
@@ -844,16 +902,9 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: number | null;
           user_id?: number;
+          uuid?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'USER_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: true;
-            referencedRelation: 'WALLET';
-            referencedColumns: ['user_id'];
-          },
-        ];
+        Relationships: [];
       };
       USER_LEAGUE: {
         Row: {
@@ -861,6 +912,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           league_id: number;
           updated_at: string | null;
@@ -870,9 +922,10 @@ export type Database = {
         };
         Insert: {
           accumulated_points: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           league_id: number;
           updated_at?: string | null;
@@ -885,6 +938,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           league_id?: number;
           updated_at?: string | null;
@@ -907,6 +961,13 @@ export type Database = {
             referencedRelation: 'USER';
             referencedColumns: ['user_id'];
           },
+          {
+            foreignKeyName: 'USER_LEAGUE_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_with_auth';
+            referencedColumns: ['internal_id'];
+          },
         ];
       };
       USER_LEAGUE_REWARD: {
@@ -915,6 +976,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           league_user_reward_id: number;
           payment_date: string | null;
@@ -925,9 +987,10 @@ export type Database = {
         };
         Insert: {
           amount?: number | null;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           league_user_reward_id?: number;
           payment_date?: string | null;
@@ -941,6 +1004,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           league_user_reward_id?: number;
           payment_date?: string | null;
@@ -964,6 +1028,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           role_id: number;
           updated_at: string | null;
@@ -972,9 +1037,10 @@ export type Database = {
           user_role_id: number;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           role_id: number;
           updated_at?: string | null;
@@ -986,6 +1052,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           role_id?: number;
           updated_at?: string | null;
@@ -1008,6 +1075,13 @@ export type Database = {
             referencedRelation: 'USER';
             referencedColumns: ['user_id'];
           },
+          {
+            foreignKeyName: 'USER_ROLE_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_with_auth';
+            referencedColumns: ['internal_id'];
+          },
         ];
       };
       USER_SESSION: {
@@ -1015,6 +1089,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           ip_address: string;
           is_deleted: boolean;
           login: string;
@@ -1028,9 +1103,10 @@ export type Database = {
           user_session_id: number;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           ip_address: string;
           is_deleted?: boolean;
           login: string;
@@ -1047,6 +1123,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           ip_address?: string;
           is_deleted?: boolean;
           login?: string;
@@ -1067,6 +1144,13 @@ export type Database = {
             referencedRelation: 'USER';
             referencedColumns: ['user_id'];
           },
+          {
+            foreignKeyName: 'USER_SESSION_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_with_auth';
+            referencedColumns: ['internal_id'];
+          },
         ];
       };
       WALLET: {
@@ -1075,6 +1159,7 @@ export type Database = {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           status: string | null;
           updated_at: string | null;
@@ -1084,9 +1169,10 @@ export type Database = {
         };
         Insert: {
           balance: number;
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           status?: string | null;
           updated_at?: string | null;
@@ -1099,6 +1185,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           status?: string | null;
           updated_at?: string | null;
@@ -1106,13 +1193,29 @@ export type Database = {
           user_id?: number;
           wallet_id?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'WALLET_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'USER';
+            referencedColumns: ['user_id'];
+          },
+          {
+            foreignKeyName: 'WALLET_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'user_with_auth';
+            referencedColumns: ['internal_id'];
+          },
+        ];
       };
       WORLD_LEAGUE: {
         Row: {
           created_at: string;
           created_by: number | null;
           deleted_at: string | null;
+          deleted_by: number | null;
           is_deleted: boolean;
           name: string | null;
           updated_at: string | null;
@@ -1120,9 +1223,10 @@ export type Database = {
           world_league_id: number;
         };
         Insert: {
-          created_at: string;
+          created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           name?: string | null;
           updated_at?: string | null;
@@ -1133,6 +1237,7 @@ export type Database = {
           created_at?: string;
           created_by?: number | null;
           deleted_at?: string | null;
+          deleted_by?: number | null;
           is_deleted?: boolean;
           name?: string | null;
           updated_at?: string | null;
@@ -1143,10 +1248,23 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      user_with_auth: {
+        Row: {
+          auth_user_id: string | null;
+          created_at: string | null;
+          email: string | null;
+          internal_id: number | null;
+          last_sign_in_at: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
-      [_ in never]: never;
+      authorize: { Args: { requested_permission: string }; Returns: boolean };
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      drop_policies_for_table: { Args: { t_name: string }; Returns: undefined };
+      get_my_user_id: { Args: never; Returns: number };
+      has_permission: { Args: { p_name: string }; Returns: boolean };
     };
     Enums: {
       [_ in never]: never;

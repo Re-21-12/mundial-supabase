@@ -1,5 +1,5 @@
 import { Database } from './../../../types/database.types';
-import { Component, inject, input, model, signal, WritableSignal } from '@angular/core';
+import { Component, inject, input, model, output, signal, WritableSignal } from '@angular/core';
 import { TableTemplateModel } from '../../../shared/features/dynamic-table/interfaces/table-interface';
 import { PostgrestError } from '@supabase/supabase-js';
 import { SelectedDisplay } from '../../../shared/features/selected-display/selected-display';
@@ -18,4 +18,8 @@ export class Overlay {
   visible = model(false);
 
   tableProps = input.required<TableTemplateModel>();
+  delete = output<string>();
+  deletedFn($event: string){
+    this.delete.emit($event);
+  }
 }

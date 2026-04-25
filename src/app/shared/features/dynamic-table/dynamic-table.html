@@ -23,16 +23,58 @@
           {{ col.header }}
         </th>
       }
+      @if (actions.length > 0) {
+        <th class="text-center">Acciones</th>
+      }
     </tr>
   </ng-template>
   <ng-template #body let-rowData let-columns="columns">
     <tr>
       @for (col of columns; track col) {
         <td>
-          {{ rowData[col.field] }}
+          @let cellValue = rowData[col.field];
+          @if (shouldRenderAsBadge(cellValue)) {
+            <p-tag [value]="getBadgeLabel(cellValue)" [severity]="getBadgeSeverity(cellValue)" />
+          } @else {
+            {{ formatCellValue(cellValue) }}
+          }
         </td>
       } @empty {
         <td>No data found.</td>
+      }
+      @if (actions.length > 0) {
+        <td class="flex gap-2 justify-center">
+          @if (hasAction('view')) {
+            <p-button
+              icon="pi pi-eye"
+              size="small"
+              severity="secondary"
+              text="true"
+              (click)="goToDetail(rowData)"
+              title="Detalle"
+            />
+          }
+          @if (hasAction('update')) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              severity="info"
+              text="true"
+              (click)="goToEdit(rowData)"
+              title="Editar"
+            />
+          }
+          @if (hasAction('delete')) {
+            <p-button
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              text="true"
+              (click)="onDelete(rowData)"
+              title="Eliminar"
+            />
+          }
+        </td>
       }
     </tr>
   </ng-template>

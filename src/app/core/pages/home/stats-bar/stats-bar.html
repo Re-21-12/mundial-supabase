@@ -1,0 +1,13 @@
+<div class="stats-bar" role="region" aria-label="Estadísticas del torneo">
+  @for (stat of displayedStats(); track stat.label) {
+    <div class="stat-card" [class]="stat.colorClass">
+      <i [class]="stat.icon + ' stat-icon'" aria-hidden="true"></i>
+      <div class="stat-content">
+        <span class="stat-value">
+          @if (stat.prefix) { {{ stat.prefix }} }{{ stat.value | number }}@if (stat.suffix) { {{ stat.suffix }} }
+        </span>
+        <span class="stat-label">{{ stat.label }}</span>
+      </div>
+    </div>
+  }
+</div>

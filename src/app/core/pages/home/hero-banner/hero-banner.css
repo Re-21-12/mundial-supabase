@@ -1,0 +1,114 @@
+.hero-carousel {
+  width: 100%;
+}
+
+.hero-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 3rem;
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklch, var(--primary) 15%, var(--card)) 100%);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, color-mix(in oklch, var(--primary) 20%, transparent), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-slide__badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.live-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.hero-slide__match {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1;
+}
+
+.hero-slide__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.team-flag {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+.team-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.hero-slide__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.score-display {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation: scorePulse 2s ease-in-out infinite;
+}
+
+@keyframes scorePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.hero-slide__prediction {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: color-mix(in oklch, var(--primary) 15%, transparent);
+  border-radius: calc(var(--radius) / 2);
+  border: 1px solid color-mix(in oklch, var(--primary) 30%, transparent);
+  align-self: flex-start;
+}
+
+.prediction-label {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.prediction-score {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+}

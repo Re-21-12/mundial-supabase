@@ -1,4 +1,4 @@
-import { Component, input, computed, effect, signal, inject, output } from '@angular/core';
+import { Component, input, computed, effect, inject, output } from '@angular/core';
 import { Button } from 'primeng/button';
 import { formFields } from './utils/forms';
 import { FieldBase } from './interfaces/field-props';
@@ -7,6 +7,7 @@ import { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilderService } from './services/form-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { RouterLinkActive } from "@angular/router";
+import { HttpLoadingService } from '../../../core/services/http-loading-service';
 @Component({
   selector: 'app-dynamic-form',
   imports: [DynamicField, Button, TooltipModule, RouterLinkActive],
@@ -15,23 +16,38 @@ import { RouterLinkActive } from "@angular/router";
 })
 export class DynamicForm {
   data = output<string>();
-  loading = signal(false);
 
-  private readonly fb = inject(FormBuilderService);
+  private readonly _fb = inject(FormBuilderService);
+  readonly loadingService = inject(HttpLoadingService);
 
   readonly fields = input<FieldBase<string>[] | null>([]);
+  readonly initialData = input<Record<string, any> | null>(null);
+  readonly readonlyMode = input<boolean>(false);
+
   readonly form = computed<FormGroup>(() =>
-    this.fb.toFormGroup(this.fields() as FieldBase<string>[]),
+    this._fb.toFormGroup(this.fields() as FieldBase<string>[]),
   );
 
   payLoad = '';
 
-  // Computed para verificar si el formulario tiene datos
-  hasData = computed(() => {
-    const form = this.form();
-    // Verificar si hay al menos un campo con valor
-    return form.valid;
-  });
+  constructor() {
+    // Modo edición: parchea los valores del form cuando llega initialData
+    effect(() => {
+      const data = this.initialData();
+      if (data) {
+        this.form().patchValue(data);
+      }
+    });
+
+    // Modo consulta: deshabilita o habilita todos los controles
+    effect(() => {
+      const isReadonly = this.readonlyMode();
+      const form = this.form();
+      Object.values(form.controls).forEach(ctrl =>
+        isReadonly ? ctrl.disable({ emitEvent: false }) : ctrl.enable({ emitEvent: false })
+      );
+    });
+  }
 
   // Función para determinar las clases de grid según el número de campos
   gridClasses = computed(() => {
@@ -71,23 +87,16 @@ export class DynamicForm {
   addField(key: string): void {
     const field = this.fields()?.find((f) => f.key === key);
     if (field) {
-      this.fb.addItem(this.getFormArray(key), field.value || '', field.rules || []);
+      this._fb.addItem(this.getFormArray(key), field.value || '', field.rules || []);
     }
   }
 
   removeField(key: string, index: number): void {
-    this.fb.removeItem(this.getFormArray(key), index);
+    this._fb.removeItem(this.getFormArray(key), index);
   }
 
   isRepeatableField(field: FieldBase<string>): boolean {
     return field.state.repeatible.repeat === true;
   }
 
-  load() {
-    this.loading.set(true);
-
-    setTimeout(() => {
-      this.loading.set(false);
-    }, 2000);
-  }
 }

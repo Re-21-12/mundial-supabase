@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
@@ -8,6 +8,7 @@ import { loadingInterceptor } from './core/utils/interceptors/loading-intercepto
 import { MessageService } from 'primeng/api';
 import { authInterceptor } from './shared/features/auth/interceptor/auth-interceptor';
 import MundialPreset from './theme/mundial-preset';
+import { GlobalErrorHandler } from './core/utils/handlers/global-error-handler';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,5 +28,6 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor])),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 };

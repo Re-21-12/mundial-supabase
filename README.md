@@ -58,3 +58,42 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 # dynamic-repetible-signal-forms
+
+Como cargan los datos a el formulario dinamico si no conoce la estructura
+```
+# Componente page (papa)
+      if (id && Array.isArray(response) && response.length > 0) {
+        this.editData.set(response[0] as Record<string, any>);
+      }
+# el dinamico (hijo)
+  readonly initialData = input<Record<string, any> | null>(null);
+
+  readonly form = computed<FormGroup>(() =>
+    this._fb.toFormGroup(this.fields() as FieldBase<string>[]),
+  );
+
+  payLoad = '';
+
+  constructor() {
+    // Cuando llega initialData (modo edición), parchea el formulario
+    effect(() => {
+      const data = this.initialData();
+      if (data) {
+        // form() es computed, se re-evalúa si fields cambia
+        this.form().patchValue(data);
+      }
+    });
+  }
+# la magia ? patchValue recorre en base a los keys  
+
+// Simplificación del código fuente de Angular (AbstractControl)
+patchValue(value: {[key: string]: any}) {
+  Object.keys(value).forEach(key => {
+    const control = this.controls[key]; // busca si existe ese control
+    if (control) {
+      control.patchValue(value[key]); // solo parchea si el control existe
+    }
+    // si la key NO existe en el form → la ignora silenciosamente
+  });
+}
+```
