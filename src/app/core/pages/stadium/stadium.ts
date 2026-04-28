@@ -61,10 +61,10 @@ export class Stadium implements OnInit {
   };
   getData = async () => {
     const id = this._route.snapshot.paramMap.get('id');
-    if(id){
+    if (id) {
       this.id.set(id);
-    } 
-    const url = this._route.snapshot.url.map(s => s.path).join('/');
+    }
+    const url = this._route.snapshot.url.map((s) => s.path).join('/');
     const isDetail = url.endsWith('detail');
     const isEdit = url.endsWith('edit');
 
@@ -114,8 +114,11 @@ export class Stadium implements OnInit {
     const response = await this.dynamicService.insertData('STADIUM', data);
     return response;
   };
-    updateData = async (data: Partial<Database['public']['Tables']['STADIUM']['Update']>) => {
-    const response = await this.dynamicService.updateData('STADIUM', data, {field: 'stadium_id', value: this.id()!});
+  updateData = async (data: Partial<Database['public']['Tables']['STADIUM']['Update']>) => {
+    const response = await this.dynamicService.updateData('STADIUM', data, {
+      field: 'stadium_id',
+      value: this.id()!,
+    });
     return response;
   };
   deleteData = async (rowId: string) => {
@@ -130,7 +133,10 @@ export class Stadium implements OnInit {
     const confirmed = await firstValueFrom(ref!.onClose);
     if (!confirmed) return;
 
-    const response = await this.dynamicService.deleteData('STADIUM', { field: 'stadium_id', value: rowId });
+    const response = await this.dynamicService.deleteData('STADIUM', {
+      field: 'stadium_id',
+      value: rowId,
+    });
     if (!(response instanceof PostgrestError)) {
       await this.getData();
     }

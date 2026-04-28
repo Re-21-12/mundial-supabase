@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { SupabaseService } from './supabase-service';
 import { DynamicQuery, DynamicQueryFilter } from '../interfaces/dynamic-query-interface';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -10,7 +10,7 @@ import { AuthFacade } from '../../shared/features/auth/auth.facade';
 export class DynamicService {
   items: any[] = [];
   supabaseService = inject(SupabaseService);
-  authFacade = inject(AuthFacade);
+  private injector = inject(Injector);
 
   async fetchData<T>(query: DynamicQuery): Promise<T[] | PostgrestError> {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
@@ -86,15 +86,21 @@ export class DynamicService {
     return updatedRecord as T;
   }
 
-  async deleteData<T>(table: string, filter: DynamicQueryFilter): Promise<T | PostgrestError> {
+  async deleteData<T>(
+    table: string,
+    filter: DynamicQueryFilter,
+    deletedBy?: string | number,
+  ): Promise<T | PostgrestError> {
     const { field, value } = filter;
+    const payload: any = {
+      is_deleted: true,
+      deleted_at: new Date().toISOString(),
+    };
+    if (deletedBy !== undefined && deletedBy !== null) payload.deleted_by = deletedBy;
+
     const { data: deletedRecord, error } = await this.supabaseService.client
       .from(table) // No necesitas `${table}`, con la variable basta
-      .update({
-        is_deleted: true,
-        deleted_at: new Date().toISOString(),
-        deleted_by: this.authFacade.internalUserId,
-      })
+      .update(payload)
       .select()
       .eq(field, value)
       .single();

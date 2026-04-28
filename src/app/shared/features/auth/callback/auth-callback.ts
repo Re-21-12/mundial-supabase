@@ -53,8 +53,24 @@ export class AuthCallback implements OnInit {
   private async resolveSession(): Promise<void> {
     try {
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const queryParams = new URLSearchParams(window.location.search.replace(/^\?/, ''));
       const callbackType = hashParams.get('type');
+      const error = hashParams.get('error') ?? queryParams.get('error');
+      const errorDescription =
+        hashParams.get('error_description') ?? queryParams.get('error_description') ?? '';
       const { data } = await this.auth.getSession();
+
+      if (error === 'access_denied') {
+        await this.router.navigate(['/auth'], {
+          queryParams: {
+            error: 'access_denied',
+            error_description: errorDescription,
+          },
+          fragment: 'error=access_denied&sb=',
+          replaceUrl: true,
+        });
+        return;
+      }
 
       if (callbackType === 'recovery' && data.session) {
         await this.router.navigate(['/auth'], {
