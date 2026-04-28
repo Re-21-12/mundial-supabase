@@ -8,7 +8,7 @@
   [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
   [tableStyle]="{ 'min-width': '50rem' , 'background-color': 'white' } "
   [size]="'small'"
-
+  (onPage)="onPageChange($event)"
 >
   <ng-template #caption>
     <div class="text-end pb-4">

@@ -1,12 +1,10 @@
-import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners, APP_INITIALIZER, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { errorInterceptor } from './core/utils/interceptors/error-interceptor';
 import { loadingInterceptor } from './core/utils/interceptors/loading-interceptor';
 import { MessageService } from 'primeng/api';
-import { authInterceptor } from './shared/features/auth/interceptor/auth-interceptor';
 import MundialPreset from './theme/mundial-preset';
 import { GlobalErrorHandler } from './core/utils/handlers/global-error-handler';
 
@@ -14,6 +12,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     MessageService,
     provideBrowserGlobalErrorListeners(),
+/*     {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuth,
+      multi: true,
+    }, */
     provideRouter(routes),
     providePrimeNG({
       theme: {
@@ -27,7 +30,8 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor])),
+    // provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor])),
+    provideHttpClient(withInterceptors([loadingInterceptor])),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 };

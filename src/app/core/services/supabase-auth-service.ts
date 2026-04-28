@@ -8,12 +8,29 @@ import { UserAgentService } from './user-agent-service';
 import { Router } from '@angular/router';
 import { AuthFacade } from '../../shared/features/auth/auth.facade';
 import { jwtDecode } from 'jwt-decode';
+import { v4 as uuidv4 } from 'uuid';
 
 export type AccessTokenClaims = {
   user_role?: string;
   user_permissions?: string[];
   internal_user_id?: string | number;
 };
+
+type ApiResult<T> = Promise<{ data: T | null; error: unknown | null }>;
+
+// Helper to normalize results from Supabase client calls and catch unexpected exceptions
+async function _normalize<T>(
+  promise: Promise<any>,
+): Promise<{ data: T | null; error: unknown | null }> {
+  try {
+    const res = await promise;
+    const data = res?.data ?? null;
+    const error = res?.error ?? null;
+    return { data: data as T | null, error };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
 
 @Injectable({
   providedIn: 'root',
@@ -27,7 +44,7 @@ export class SupabaseAuthService {
   private readonly _injector = inject(Injector);
   //#endregion
 
-  //#region Signals - State Management
+  //#region Signals - Single Source of Truth
   readonly session = signal<Session | null>(null);
   readonly role = signal<string | null>(null);
   readonly permissions = signal<string[]>([]);
@@ -35,9 +52,29 @@ export class SupabaseAuthService {
   readonly isLoggedIn = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly currentUser = signal<User | null>(null);
+  readonly authReady = signal<boolean>(false); // Marks when initial auth is resolved
   //#endregion
 
   private authSubscription: { unsubscribe: () => void } | null = null;
+  private authReadyPromise!: Promise<void>;
+  private authReadyResolve!: () => void;
+
+  constructor() {
+    // Initialize readiness promise
+    this.authReadyPromise = new Promise((resolve) => {
+      this.authReadyResolve = resolve;
+    });
+  }
+
+  /**
+   * Wait for initial auth to resolve.
+   * Guards and resolvers should call this before proceeding.
+   */
+  async waitForAuthReady(): Promise<void> {
+    if (this.authReady()) return; // Already ready
+    await this.authReadyPromise;
+  }
+
   //#region Profile Management
   async profile(userEmail: string) {
     const { data, error } = await this._supabaseService.client
@@ -50,6 +87,11 @@ export class SupabaseAuthService {
       console.error('Error obtaining profile:', error);
     }
 
+    return { data, error };
+  }
+
+    async getUser() {
+    const { data, error } = await this._supabaseService.client.auth.getUser();
     return { data, error };
   }
 
@@ -78,16 +120,25 @@ export class SupabaseAuthService {
   }
 
   private async _handleAuthStateChange(event: AuthChangeEvent, session: Session | null) {
+    console.log(`[Auth] Event: ${event}, has session: ${!!session}`);
+
     switch (event) {
       case 'INITIAL_SESSION':
+        console.log('[Auth] INITIAL_SESSION - initializing state');
         if (session) {
           this._applySessionState(session);
           await this._handleSessionMetadata(session);
+        } else {
+          this._clearSessionState();
         }
+        // Mark auth as ready after initial session resolution
+        this.authReady.set(true);
+        this.authReadyResolve();
         break;
 
       case 'SIGNED_IN':
         if (session) {
+          console.log('[Auth] SIGNED_IN - updating state');
           this._applySessionState(session);
           this._storeOAuthTokens(session);
           await this.logSessionStart();
@@ -96,6 +147,7 @@ export class SupabaseAuthService {
         break;
 
       case 'SIGNED_OUT':
+        console.log('[Auth] SIGNED_OUT - clearing state');
         this._clearSessionState();
         this._clearOAuthTokens();
         this._router.navigate(['/login']);
@@ -103,17 +155,20 @@ export class SupabaseAuthService {
         break;
 
       case 'PASSWORD_RECOVERY':
+        console.log('[Auth] PASSWORD_RECOVERY');
         this._router.navigate(['/set-password']);
         break;
 
       case 'TOKEN_REFRESHED':
         if (session?.provider_token) {
+          console.log('[Auth] TOKEN_REFRESHED');
           localStorage.setItem('oauth_provider_token', session.provider_token);
         }
         break;
 
       case 'USER_UPDATED':
         if (session) {
+          console.log('[Auth] USER_UPDATED - syncing state');
           this._applySessionState(session);
         }
         break;
@@ -131,6 +186,7 @@ export class SupabaseAuthService {
     this.currentUser.set(session.user);
 
     this._extractClaimsFromSession(session);
+    console.log(`[Auth] Session applied for user: ${session.user?.email}`);
   }
 
   private _clearSessionState(): void {
@@ -140,6 +196,7 @@ export class SupabaseAuthService {
     this.role.set(null);
     this.permissions.set([]);
     this.internalUserId.set(null);
+    console.log('[Auth] Session cleared');
   }
 
   private _extractClaimsFromSession(session: Session): void {
@@ -157,8 +214,11 @@ export class SupabaseAuthService {
           ? String(claims.internal_user_id)
           : null,
       );
+      console.log(
+        `[Auth] Claims extracted - role: ${claims.user_role}, permissions: ${claims.user_permissions?.length ?? 0}`,
+      );
     } catch (error) {
-      console.error('Error extracting claims from session:', error);
+      console.error('[Auth] Error extracting claims:', error);
     }
   }
 
@@ -201,7 +261,7 @@ export class SupabaseAuthService {
     const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: environment.redirect_email,
+        emailRedirectTo: environment.authRedirect,
         shouldCreateUser: createUser,
       },
     });
@@ -212,7 +272,7 @@ export class SupabaseAuthService {
   async signInWithEmail(email: string) {
     const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: environment.redirect_email },
+      options: { emailRedirectTo: environment.authRedirect },
     });
     if (error) {
       console.error('Error sending OTP:', error);
@@ -235,7 +295,7 @@ export class SupabaseAuthService {
     const { data, error } = await this._supabaseService.client.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: environment.redirect_email,
+        redirectTo: environment.authRedirect,
       },
     });
 
@@ -252,7 +312,7 @@ export class SupabaseAuthService {
     const { data, error } = await this._supabaseService.client.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: environment.redirect_email },
+      options: { emailRedirectTo: environment.authRedirect },
     });
 
     if (error) {
@@ -264,7 +324,7 @@ export class SupabaseAuthService {
 
   async requestPasswordReset(email: string) {
     const { data, error } = await this._supabaseService.client.auth.resetPasswordForEmail(email, {
-      redirectTo: environment.redirect_email,
+      redirectTo: environment.authRedirect,
     });
 
     if (error) {
@@ -290,12 +350,51 @@ export class SupabaseAuthService {
 
   //#region Sign Out & Session
   async signOut() {
-    await this.logSessionEnd();
-    return this._supabaseService.client.auth.signOut();
+    try {
+      await this.logSessionEnd();
+      await this._supabaseService.client.auth.signOut();
+    } catch (err) {
+      console.error('[Auth] signOut error:', err);
+    }
   }
 
-  getSession() {
-    return this._supabaseService.client.auth.getSession();
+  /**
+   * Get current session from cache (single source of truth).
+   * Wait for authReady first if this is the first call.
+   */
+  async getSession() {
+    // Return cached session (single source of truth)
+    const session = this.session();
+    console.log('[Auth] getSession called - returning cached session');
+    return {
+      data: { session },
+      error: null,
+    };
+  }
+
+  /**
+   * Refresh session from Supabase (e.g., for token refresh or manual refresh).
+   * Use this sparingly; prefer getSession() for most cases.
+   */
+  async refreshSession(): Promise<{ data: { session: Session | null }; error: unknown | null }> {
+    try {
+      console.log('[Auth] Refreshing session from Supabase');
+      const { data, error } = await this._supabaseService.client.auth.getSession();
+      if (error) {
+        console.error('[Auth] Error refreshing session:', error);
+        return { data: { session: null }, error };
+      }
+      if (data?.session) {
+        this._applySessionState(data.session);
+      } else {
+        this._clearSessionState();
+      }
+      console.log('[Auth] Session refreshed successfully');
+      return { data: { session: data?.session ?? null }, error: null };
+    } catch (err) {
+      console.error('[Auth] Exception refreshing session:', err);
+      return { data: { session: null }, error: err };
+    }
   }
   //#endregion
 
@@ -341,22 +440,22 @@ export class SupabaseAuthService {
       const email = authFacade.getEmail();
 
       if (!internalUserId) {
-        console.warn('No internal user ID available. Session will not be logged.');
+        console.warn('[Auth] No internal user ID available. Session will not be logged.');
         return;
       }
-
-      const sessionData: Partial<Database['public']['Tables']['USER_SESSION']['Insert']> = {
+      const userSessionData: Partial<Database['public']['Tables']['USER_SESSION']['Insert']> = {
         user_id: internalUserId,
         ip_address: ip,
         user_agent: userAgent,
         sign_in: new Date().toISOString(),
         sign_out: null,
         login: email ?? undefined,
+        session_id: uuidv4(),
       };
 
-      await this._insertSessionData(sessionData);
+      await this._insertSessionData(userSessionData);
     } catch (error) {
-      console.error('Error logging session start:', error);
+      console.error('[Auth] Error logging session start:', error);
     }
   }
 
@@ -368,7 +467,7 @@ export class SupabaseAuthService {
       const internalUserId = Number(authFacade.getInternalUserId());
 
       if (!internalUserId) {
-        console.warn('No internal user ID available. Session end will not be logged.');
+        console.warn('[Auth] No internal user ID available. Session end will not be logged.');
         return;
       }
 
@@ -378,12 +477,12 @@ export class SupabaseAuthService {
         user_agent: userAgent,
         sign_in: null,
         sign_out: new Date().toISOString(),
-        session_id: this.session()?.user.id ?? undefined,
+        session_id: uuidv4(),
       };
 
       await this._insertSessionData(sessionData);
     } catch (error) {
-      console.error('Error logging session end:', error);
+      console.error('[Auth] Error logging session end:', error);
     }
   }
 

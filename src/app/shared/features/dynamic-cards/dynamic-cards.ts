@@ -1,27 +1,33 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TableTemplateModel } from '../dynamic-table/interfaces/table-interface';
 import { CardModule } from 'primeng/card';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
+import { DynamicTableService } from '../dynamic-table/services/dynamic-table.service';
+import { TypeOption } from '../dynamic-table/interfaces/table-interface';
 
-const PRIME_NG = [CardModule, CommonModule, ButtonModule];
 @Component({
   selector: 'app-dynamic-cards',
-  imports: [PRIME_NG],
+  imports: [CardModule, CommonModule, ButtonModule],
   templateUrl: './dynamic-cards.html',
   styleUrl: './dynamic-cards.css',
 })
 export class DynamicCards {
-  tableProps = input.required<TableTemplateModel>();
+  tableService = inject(DynamicTableService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  delete = output<string>();
+  pageChange = output<{ first: number; rows: number }>();
+
+  get tableProps() {
+    return this.tableService.tableProps;
+  }
 
   get actions() {
     return this.tableProps().actions ?? ['view', 'update', 'delete'];
   }
 
-  hasAction(action: 'view' | 'update' | 'delete') {
+  hasAction(action: TypeOption) {
     return this.actions.includes(action);
   }
 

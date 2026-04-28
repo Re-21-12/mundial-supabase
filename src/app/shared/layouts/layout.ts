@@ -36,19 +36,22 @@ import { AuthFacade } from '../features/auth/auth.facade';
 
 const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
 
-const SPARTAN = [
-  HlmSidebarImports,
-  HlmButtonImports,
-  NgIcon,
-  HlmIcon,
-  BrnNavigationMenuImports,
-  HlmNavigationMenuImports,
-];
 @Component({
   selector: 'app-layout',
-  imports: [...SPARTAN, RouterOutlet, RouterLink, RouterLinkActive, Tooltip],
+  imports: [
+    HlmSidebarImports,
+    HlmButtonImports,
+    NgIcon,
+    HlmIcon,
+    BrnNavigationMenuImports,
+    HlmNavigationMenuImports,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    Tooltip,
+  ],
   templateUrl: './layout.html',
-  styleUrl: './layout.css',
+  styleUrls: ['./layout.css'],
   providers: [
     provideIcons({
       lucideSun,
@@ -78,7 +81,9 @@ export class LayoutComponent implements OnInit {
   themeService = inject(ThemeService);
 
   titleService = inject(Title);
-
+  constructor() {
+    console.log('LayoutComponent constructor');
+  }
   protected getTooltipText(title: any): string {
     return typeof title === 'string' ? title : '';
   }

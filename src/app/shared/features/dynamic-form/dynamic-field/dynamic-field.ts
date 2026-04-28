@@ -46,29 +46,30 @@ import { DynamicHint } from '../dynamic-hint/dynamic-hint';
 import { TooltipModule } from 'primeng/tooltip';
 import { TypeFields } from '../enums/type-fields';
 
-const PRIMENG = [
-  AutoCompleteModule,
-  InputTextModule,
-  TextareaModule,
-  CheckboxModule,
-  RadioButtonModule,
-  DatePickerModule,
-  InputNumberModule,
-  MultiSelectModule,
-  ToggleSwitchModule,
-  PasswordModule,
-  FloatLabelModule,
-  IftaLabelModule,
-  InputGroupModule,
-  InputGroupAddonModule,
-  SelectModule,
-  TooltipModule,
-];
-const ANGULAR_FORMS = [ReactiveFormsModule];
-
 @Component({
   selector: 'app-dynamic-field',
-  imports: [...PRIMENG, ...ANGULAR_FORMS, NgTemplateOutlet, DynamicErrors, DynamicHint],
+  imports: [
+    AutoCompleteModule,
+    InputTextModule,
+    TextareaModule,
+    CheckboxModule,
+    RadioButtonModule,
+    DatePickerModule,
+    InputNumberModule,
+    MultiSelectModule,
+    ToggleSwitchModule,
+    PasswordModule,
+    FloatLabelModule,
+    IftaLabelModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    SelectModule,
+    TooltipModule,
+    ReactiveFormsModule,
+    NgTemplateOutlet,
+    DynamicErrors,
+    DynamicHint,
+  ],
   templateUrl: './dynamic-field.html',
   styleUrl: './dynamic-field.css',
 })

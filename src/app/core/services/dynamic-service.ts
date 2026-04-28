@@ -13,8 +13,6 @@ export class DynamicService {
   private injector = inject(Injector);
 
   async fetchData<T>(query: DynamicQuery): Promise<T[] | PostgrestError> {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
 
     const from = query.page * query.limit;
     const to = from + query.limit - 1;

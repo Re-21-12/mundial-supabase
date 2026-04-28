@@ -7,14 +7,14 @@ import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 import { ActivatedRoute } from '@angular/router';
-
-const COMPONENTS = [DynamicForm, Overlay];
+import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
 
 @Component({
   selector: 'app-user-role',
-  imports: COMPONENTS,
+  imports: [DynamicForm, Overlay],
   templateUrl: './user-role.html',
   styleUrl: './user-role.css',
+  providers: [DynamicTableService],
 })
 export class UserRolePage implements OnInit {
   private readonly _route = inject(ActivatedRoute);
@@ -23,30 +23,28 @@ export class UserRolePage implements OnInit {
 
   items: Database['public']['Tables']['USER_ROLE'][] = [];
 
-  tableProps: WritableSignal<TableTemplateModel> = signal({
-    header: 'User Role',
-    columns: [
-      { field: 'created_at', header: 'Created At' },
-      { field: 'created_by', header: 'Created By' },
-      { field: 'deleted_at', header: 'Deleted At' },
-      { field: 'is_deleted', header: 'Is Deleted' },
-      { field: 'role_id', header: 'Role Id' },
-      { field: 'updated_at', header: 'Updated At' },
-      { field: 'updated_by', header: 'Updated By' },
-      { field: 'user_id', header: 'User Id' },
-      { field: 'user_role_id', header: 'User Role Id' },
-    ],
-    rows: 10,
-    rowsPerPageOptions: [5, 10, 20],
-    data: [],
-  });
-
   fields = formFields['userRoleForm'].fields;
   editData = signal<Record<string, any> | null>(null);
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
-
+  readonly tableService = inject(DynamicTableService);
   ngOnInit() {
+    this.tableService.initTable({
+      header: 'User Role',
+      columns: [
+        { field: 'created_at', header: 'Created At' },
+        { field: 'created_by', header: 'Created By' },
+        { field: 'deleted_at', header: 'Deleted At' },
+        { field: 'is_deleted', header: 'Is Deleted' },
+        { field: 'role_id', header: 'Role Id' },
+        { field: 'updated_at', header: 'Updated At' },
+        { field: 'updated_by', header: 'Updated By' },
+        { field: 'user_id', header: 'User Id' },
+        { field: 'user_role_id', header: 'User Role Id' },
+      ],
+      rows: 10,
+      rowsPerPageOptions: [5, 10, 20],
+    });
     this.getData();
   }
 
@@ -60,10 +58,10 @@ export class UserRolePage implements OnInit {
 
   getData = async () => {
     const id = this._route.snapshot.paramMap.get('id');
-    if(id){
+    if (id) {
       this.id.set(id);
-    } 
-    const url = this._route.snapshot.url.map(s => s.path).join('/');
+    }
+    const url = this._route.snapshot.url.map((s) => s.path).join('/');
     const isDetail = url.endsWith('detail');
     const isEdit = url.endsWith('edit');
 
@@ -90,8 +88,7 @@ export class UserRolePage implements OnInit {
     if (response instanceof PostgrestError) {
       console.error('Error fetching user_role:', response);
     } else {
-      console.log('User role data:', response);
-      this.tableProps.update((props) => ({ ...props, data: response }));
+      this.tableService.setData(response);
       if ((isEdit || isDetail) && Array.isArray(response) && response.length > 0) {
         this.editData.set(response[0] as Record<string, any>);
       }
@@ -113,7 +110,14 @@ export class UserRolePage implements OnInit {
     return response;
   };
   updateData = async (data: Partial<Database['public']['Tables']['USER_ROLE']['Update']>) => {
-    const response = await this.dynamicService.updateData('USER_ROLE', data, {field: 'user_role_id', value: this.id()!});
-    return response;
+    const response = await this.dynamicService.updateData('USER_ROLE', data, {
+      field: 'user_role_id',
+      value: this.id()!,
+    });
+  };
+
+  onPageChange = async (event: { first: number; rows: number }) => {
+    this.tableService.onPageChange(event);
+    await this.getData();
   };
 }

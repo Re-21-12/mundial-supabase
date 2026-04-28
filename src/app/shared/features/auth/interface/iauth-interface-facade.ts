@@ -11,6 +11,7 @@ export interface IAuthFacade {
   readonly isLoggedIn: Signal<boolean>;
   readonly isLoading: Signal<boolean>;
   readonly currentUser: Signal<User | null>;
+  readonly authReady: Signal<boolean>;
 
   // Acciones
   profile(email: string): Promise<{ data: any; error: any }>;

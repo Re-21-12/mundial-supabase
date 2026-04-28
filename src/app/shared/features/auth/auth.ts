@@ -134,11 +134,11 @@ export class Auth implements OnInit {
       label: 'GitHub',
       description: 'Ideal para equipos tecnicos',
     },
-    {
+    /*     {
       id: 'azure',
       label: 'Microsoft Entra ID',
       description: 'OAuth2 corporativo para organizaciones',
-    },
+    }, */
   ];
 
   get fields() {

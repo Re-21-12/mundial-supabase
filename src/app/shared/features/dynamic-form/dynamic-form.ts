@@ -6,11 +6,10 @@ import { DynamicField } from './dynamic-field/dynamic-field';
 import { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilderService } from './services/form-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
-import { RouterLinkActive } from "@angular/router";
 import { HttpLoadingService } from '../../../core/services/http-loading-service';
 @Component({
   selector: 'app-dynamic-form',
-  imports: [DynamicField, Button, TooltipModule, RouterLinkActive],
+  imports: [DynamicField, Button, TooltipModule],
   templateUrl: './dynamic-form.html',
   styleUrls: ['./dynamic-form.css'],
 })
@@ -43,8 +42,8 @@ export class DynamicForm {
     effect(() => {
       const isReadonly = this.readonlyMode();
       const form = this.form();
-      Object.values(form.controls).forEach(ctrl =>
-        isReadonly ? ctrl.disable({ emitEvent: false }) : ctrl.enable({ emitEvent: false })
+      Object.values(form.controls).forEach((ctrl) =>
+        isReadonly ? ctrl.disable({ emitEvent: false }) : ctrl.enable({ emitEvent: false }),
       );
     });
   }
@@ -98,5 +97,4 @@ export class DynamicForm {
   isRepeatableField(field: FieldBase<string>): boolean {
     return field.state.repeatible.repeat === true;
   }
-
 }

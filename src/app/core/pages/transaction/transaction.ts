@@ -1,47 +1,25 @@
 ﻿import { Database } from './../../../types/database.types';
-import { Component, inject, model, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
-import { TableTemplateModel } from '../../../shared/features/dynamic-table/interfaces/table-interface';
+import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
 import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 
-const COMPONENTS = [DynamicForm, Overlay];
-
 @Component({
   selector: 'app-transaction',
-  imports: COMPONENTS,
+  imports: [DynamicForm, Overlay],
   templateUrl: './transaction.html',
   styleUrl: './transaction.css',
+  providers: [DynamicTableService],
 })
 export class TransactionPage implements OnInit {
   visible = model(false);
 
   items: Database['public']['Tables']['TRANSACTION'][] = [];
-
-  tableProps: WritableSignal<TableTemplateModel> = signal({
-    header: 'Transaction',
-    columns: [
-      { field: 'amount', header: 'Amount' },
-      { field: 'catalog_id', header: 'Catalog Id' },
-      { field: 'created_at', header: 'Created At' },
-      { field: 'created_by', header: 'Created By' },
-      { field: 'deleted_at', header: 'Deleted At' },
-      { field: 'description', header: 'Description' },
-      { field: 'is_deleted', header: 'Is Deleted' },
-      { field: 'transaction_date', header: 'Transaction Date' },
-      { field: 'transaction_id', header: 'Transaction Id' },
-      { field: 'updated_at', header: 'Updated At' },
-      { field: 'updated_by', header: 'Updated By' },
-      { field: 'wallet_id', header: 'Wallet Id' },
-    ],
-    rows: 10,
-    rowsPerPageOptions: [5, 10, 20],
-    data: [],
-  });
 
   fields = formFields['transactionForm'].fields;
   private readonly _route = inject(ActivatedRoute);
@@ -49,8 +27,28 @@ export class TransactionPage implements OnInit {
   editData = signal<Record<string, any> | null>(null);
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
+  readonly tableService = inject(DynamicTableService);
 
   ngOnInit() {
+    this.tableService.initTable({
+      header: 'Transaction',
+      columns: [
+        { field: 'amount', header: 'Amount' },
+        { field: 'catalog_id', header: 'Catalog Id' },
+        { field: 'created_at', header: 'Created At' },
+        { field: 'created_by', header: 'Created By' },
+        { field: 'deleted_at', header: 'Deleted At' },
+        { field: 'description', header: 'Description' },
+        { field: 'is_deleted', header: 'Is Deleted' },
+        { field: 'transaction_date', header: 'Transaction Date' },
+        { field: 'transaction_id', header: 'Transaction Id' },
+        { field: 'updated_at', header: 'Updated At' },
+        { field: 'updated_by', header: 'Updated By' },
+        { field: 'wallet_id', header: 'Wallet Id' },
+      ],
+      rows: 10,
+      rowsPerPageOptions: [5, 10, 20],
+    });
     this.getData();
   }
 
@@ -63,8 +61,10 @@ export class TransactionPage implements OnInit {
 
   getData = async () => {
     const id = this._route.snapshot.paramMap.get('id');
-    if (id) { this.id.set(id); }
-    const url = this._route.snapshot.url.map(s => s.path).join('/');
+    if (id) {
+      this.id.set(id);
+    }
+    const url = this._route.snapshot.url.map((s) => s.path).join('/');
     const isDetail = url.endsWith('detail');
     const isEdit = url.endsWith('edit');
 
@@ -73,8 +73,8 @@ export class TransactionPage implements OnInit {
       response = await this.dynamicService.fetchData({
         table: 'TRANSACTION',
         order: 'asc',
-        limit: 10,
-        page: 0,
+        limit: this.tableService.getPageSize(),
+        page: this.tableService.getCurrentPage(),
         columns: '*',
         filters: { field: 'transaction_id', value: this.id()! },
       });
@@ -82,8 +82,8 @@ export class TransactionPage implements OnInit {
       response = await this.dynamicService.fetchData({
         table: 'TRANSACTION',
         order: 'asc',
-        limit: 10,
-        page: 0,
+        limit: this.tableService.getPageSize(),
+        page: this.tableService.getCurrentPage(),
         columns: '*',
       });
     }
@@ -91,7 +91,7 @@ export class TransactionPage implements OnInit {
     if (response instanceof PostgrestError) {
       console.error('Error fetching transaction:', response);
     } else {
-      this.tableProps.update((props) => ({ ...props, data: response }));
+      this.tableService.setData(response);
       if ((isEdit || isDetail) && Array.isArray(response) && response.length > 0) {
         this.editData.set(response[0] as Record<string, any>);
       }
@@ -115,7 +115,14 @@ export class TransactionPage implements OnInit {
   };
 
   updateData = async (data: Partial<Database['public']['Tables']['TRANSACTION']['Update']>) => {
-    const response = await this.dynamicService.updateData('TRANSACTION', data, { field: 'transaction_id', value: this.id()! });
+    const response = await this.dynamicService.updateData('TRANSACTION', data, {
+      field: 'transaction_id',
+      value: this.id()!,
+    });
     return response;
+  };
+  onPageChange = async (event: { first: number; rows: number }) => {
+    this.tableService.onPageChange(event);
+    await this.getData();
   };
 }

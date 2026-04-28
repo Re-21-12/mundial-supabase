@@ -17,6 +17,7 @@ export class AuthFacade implements IAuthFacade {
   readonly isLoggedIn: Signal<boolean> = this._supabaseAuthService.isLoggedIn;
   readonly isLoading: Signal<boolean> = this._supabaseAuthService.isLoading;
   readonly currentUser: Signal<User | null> = this._supabaseAuthService.currentUser;
+  readonly authReady: Signal<boolean> = this._supabaseAuthService.authReady;
   //#endregion
 
   constructor() {
@@ -27,6 +28,7 @@ export class AuthFacade implements IAuthFacade {
     // SupabaseAuthService handles all state initialization
     this._supabaseAuthService.stateAuthChanges();
   }
+
 
   uploadAvatar(
     filePath: string,
@@ -89,8 +91,14 @@ export class AuthFacade implements IAuthFacade {
     return this._supabaseAuthService.signOut();
   }
 
-  getSession() {
-    return this._supabaseAuthService.getSession();
+  async getSession() {
+    const { data, error } = await this._supabaseAuthService.getSession();
+    if (error) {
+      console.error('Error fetching session:', error);
+    } else {
+      console.log('Session data:', data);
+    }
+    return { data, error };
   }
 
   downLoadImage(path: string) {

@@ -2,12 +2,12 @@ import { Component, inject, input, output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { PaginatorModule } from 'primeng/paginator';
-import { TableTemplateModel } from './interfaces/table-interface';
+import { TableTemplateModel, TypeOption } from './interfaces/table-interface';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { DynamicTableService } from './services/dynamic-table.service';
 
-const PRIME_NG = [TableModule, PaginatorModule, SkeletonModule, ButtonModule, TagModule];
 type BadgeSeverity =
   | 'success'
   | 'secondary'
@@ -19,21 +19,26 @@ type BadgeSeverity =
   | undefined;
 @Component({
   selector: 'app-dynamic-table',
-  imports: PRIME_NG,
+  imports: [TableModule, PaginatorModule, SkeletonModule, ButtonModule, TagModule],
   templateUrl: './dynamic-table.html',
   styleUrl: './dynamic-table.css',
 })
 export class DynamicTable {
-  tableProps = input.required<TableTemplateModel>();
+  tableService = inject(DynamicTableService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   delete = output<string>(); /* Para eliminar registros */
+  pageChange = output<{ first: number; rows: number }>(); /* Para cambios de página */
+
+  get tableProps() {
+    return this.tableService.tableProps;
+  }
 
   get actions() {
     return this.tableProps().actions ?? ['view', 'update', 'delete'];
   }
 
-  hasAction(action: 'view' | 'update' | 'delete') {
+  hasAction(action: TypeOption) {
     return this.actions.includes(action);
   }
 
@@ -176,7 +181,9 @@ export class DynamicTable {
     if (this.isBoolean(val)) {
       return val ? 'Si' : 'No';
     }
-
+    if (typeof val === 'object' && val !== null && JSON.stringify(val) === '{}') {
+      return '-';
+    }
     return String(val);
   }
 
@@ -244,5 +251,10 @@ export class DynamicTable {
     this.delete.emit(rowId!);
     // Placeholder: la eliminacion real debe quedar en la pagina/servicio correspondiente.
     console.log('Delete action requested:', rowData);
+  }
+
+  onPageChange(event: { first: number; rows: number }) {
+    this.tableService.onPageChange(event);
+    this.pageChange.emit(event);
   }
 }

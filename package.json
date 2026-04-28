@@ -4,7 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:dev": "ng serve --configuration development",
+    "start:prod": "ng serve --configuration production",
     "build": "ng build",
+    "build:dev": "ng build --configuration development",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -47,7 +51,8 @@
     "supabase": "^2.95.2",
     "tailwind-merge": "^3.3.1",
     "tesseract.js": "^7.0.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@angular/build": "^21.0.4",

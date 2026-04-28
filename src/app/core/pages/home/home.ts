@@ -16,18 +16,16 @@ import { HomeRealtimeService } from './services/home-realtime.service';
 import type { MatchCard, MatchPeriodRow } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
 
-const COMPONENTS = [
-  HeroBannerComponent,
-  StatsBarComponent,
-  ButtonModule,
-  CardModule,
-  TagModule,
-  CommonModule,
-];
-
 @Component({
   selector: 'app-home',
-  imports: COMPONENTS,
+  imports: [
+    HeroBannerComponent,
+    StatsBarComponent,
+    ButtonModule,
+    CardModule,
+    TagModule,
+    CommonModule,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

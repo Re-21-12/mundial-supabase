@@ -7,5 +7,5 @@
     </ng-content>
   </p-drawer>
 
-  <app-selected-display [tableProps]="tableProps()" (delete)="deletedFn($event)"></app-selected-display>
+  <app-selected-display (delete)="deletedFn($event)" (pageChange)="onPageChange($event)"></app-selected-display>
 </div>

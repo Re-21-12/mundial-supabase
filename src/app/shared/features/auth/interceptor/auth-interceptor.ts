@@ -9,7 +9,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // getSession() es async, lo convertimos a observable con from()
   return from(authFacade.getSession()).pipe(
     switchMap(({ data }) => {
-      const token = data.session?.access_token;
+      if (!data) return next(req);
+
+      const token = data!.session?.access_token;
 
       if (!token) return next(req); // no hay sesión, pasa sin token
 

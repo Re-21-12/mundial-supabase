@@ -1,84 +1,44 @@
-// auth.guard.ts
+// auth.guard.ts - Centralized, waits for authReady
 import { inject } from '@angular/core';
-import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthFacade } from '../auth.facade';
+import { SupabaseAuthService } from '../../../../core/services/supabase-auth-service';
 
-const PUBLIC_CHILD_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
-
-function extractPermissionsFromMetadata(metadata: unknown): string[] {
-  if (!metadata || typeof metadata !== 'object') {
-    return [];
-  }
-
-  const metadataRecord = metadata as Record<string, unknown>;
-  const directPermissions = metadataRecord['permissions'];
-
-  if (Array.isArray(directPermissions)) {
-    return directPermissions.filter(
-      (permission): permission is string => typeof permission === 'string',
-    );
-  }
-
-  if (directPermissions && typeof directPermissions === 'object') {
-    return Object.keys(directPermissions as Record<string, unknown>);
-  }
-
-  return [];
-}
-
-export const authGuard: CanActivateChildFn = async (childRoute) => {
-  const authFacade = inject(AuthFacade);
+export const authGuard: CanActivateFn = async (route, state) => {
+  const supabaseAuthService = inject(SupabaseAuthService);
   const router = inject(Router);
-  const routePath = childRoute.routeConfig?.path ?? '';
-  const isPublicChildRoute =
-    Boolean(childRoute.data?.['publicRoute']) || PUBLIC_CHILD_PATHS.has(routePath);
 
-  const {
-    data: { session },
-  } = await authFacade.getSession();
-
-  if (!session && !isPublicChildRoute) {
-    return router.createUrlTree(['/login']);
+  const { data } = await supabaseAuthService.getUser();
+  const user = data?.user;
+  if (!user) {
+    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
   }
-
-  if (!session) {
-    return true;
-  }
-
-  if (isPublicChildRoute) {
-    return true;
-  }
-
-  const requiredPermission =
-    typeof childRoute.data?.['requiredPermission'] === 'string'
-      ? childRoute.data['requiredPermission']
-      : null;
-
-  const userPermissions = authFacade.permissions();
-
-  // console.log('User Permissions:', userPermissions);
-  // If route has an explicit required permission, enforce it.
-  // Otherwise, require at least one permission for protected routes.
-
-  /* console.log('Has Route Access:', hasRouteAccess);
-  if (!hasRouteAccess) {
-    return router.createUrlTree(['/home']);
-  } */
-
   return true;
 };
+
 
 export const adminGuard: CanActivateFn = async () => {
   const authFacade = inject(AuthFacade);
   const router = inject(Router);
 
-  const {
-    data: { session },
-  } = await authFacade.getSession();
-  const role = session?.user?.user_metadata?.['role'];
+  try {
+    console.log('[AdminGuard] Waiting for authReady');
 
-  if (role !== 'admin') {
-    return router.createUrlTree(['/home']);
+    const session = authFacade.session();
+    const role = session?.user?.user_metadata?.['role'];
+
+    console.log(`[AdminGuard] User role: ${role}`);
+
+    if (role !== 'admin') {
+      console.log('[AdminGuard] Not admin, redirecting to login');
+      return router.createUrlTree(['/login']);
+    }
+
+    console.log('[AdminGuard] Admin confirmed, allowing access');
+    return true;
+  } catch (err) {
+    console.error('[AdminGuard] Error:', err);
+    return router.createUrlTree(['/login']);
   }
-  return true;
 };

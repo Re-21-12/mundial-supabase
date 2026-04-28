@@ -4,10 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { SampleModalComponent } from './sample-modal.component';
 
-const COMPONENTS = [ButtonModule];
 @Component({
   selector: 'app-dynamic-modal',
-  imports: COMPONENTS,
+  imports: [ButtonModule],
   templateUrl: './dynamic-modal.html',
   styleUrl: './dynamic-modal.css',
   providers: [DialogService],
@@ -29,20 +28,18 @@ export class DynamicModal implements OnDestroy {
       modal: true,
       breakpoints: {
         '960px': '75vw',
-        '640px': '90vw'
+        '640px': '90vw',
       },
     });
 
-    this.ref?.onClose
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data: any) => {
-        if (data !== undefined) {
-          this.onAction.emit(data);
-          console.log('Evento emitido:', data);
-        } else {
-          console.log('Dialogo cerrado sin emitir evento');
-        }
-      });
+    this.ref?.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: any) => {
+      if (data !== undefined) {
+        this.onAction.emit(data);
+        console.log('Evento emitido:', data);
+      } else {
+        console.log('Dialogo cerrado sin emitir evento');
+      }
+    });
   }
 
   ngOnDestroy() {
