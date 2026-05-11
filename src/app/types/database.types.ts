@@ -168,6 +168,299 @@ export type Database = {
           },
         ];
       };
+      MAGIC_LINK: {
+        Row: {
+          created_at: string;
+          created_by: number | null;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          email: string;
+          expiration_date: string;
+          invitation_type: string | null;
+          is_deleted: boolean;
+          league_id: number;
+          magic_link_id: number;
+          status: string;
+          token: string;
+          updated_at: string | null;
+          updated_by: number | null;
+          used_at: string | null;
+          used_by: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          email: string;
+          expiration_date: string;
+          invitation_type?: string | null;
+          is_deleted?: boolean;
+          league_id: number;
+          magic_link_id?: number;
+          status?: string;
+          token: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          used_at?: string | null;
+          used_by?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          email?: string;
+          expiration_date?: string;
+          invitation_type?: string | null;
+          is_deleted?: boolean;
+          league_id?: number;
+          magic_link_id?: number;
+          status?: string;
+          token?: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          used_at?: string | null;
+          used_by?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'MAGIC_LINK_league_id_fkey';
+            columns: ['league_id'];
+            isOneToOne: false;
+            referencedRelation: 'LEAGUE';
+            referencedColumns: ['league_id'];
+          },
+        ];
+      };
+      NOTIFICATION_INBOX: {
+        Row: {
+          action_url: string | null;
+          body: string;
+          browser_notification_at: string | null;
+          browser_notification_sent: boolean;
+          created_at: string;
+          created_by: number;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          icon: string | null;
+          is_deleted: boolean;
+          is_read: boolean;
+          league_id: number | null;
+          match_id: number | null;
+          notification_id: number;
+          notification_type: string;
+          payload: Json | null;
+          priority: string;
+          read_at: string | null;
+          read_by: number | null;
+          title: string;
+          updated_at: string | null;
+          updated_by: number | null;
+          user_id: number;
+        };
+        Insert: {
+          action_url?: string | null;
+          body: string;
+          browser_notification_at?: string | null;
+          browser_notification_sent?: boolean;
+          created_at?: string;
+          created_by: number;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          icon?: string | null;
+          is_deleted?: boolean;
+          is_read?: boolean;
+          league_id?: number | null;
+          match_id?: number | null;
+          notification_id?: number;
+          notification_type: string;
+          payload?: Json | null;
+          priority?: string;
+          read_at?: string | null;
+          read_by?: number | null;
+          title: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id: number;
+        };
+        Update: {
+          action_url?: string | null;
+          body?: string;
+          browser_notification_at?: string | null;
+          browser_notification_sent?: boolean;
+          created_at?: string;
+          created_by?: number;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          icon?: string | null;
+          is_deleted?: boolean;
+          is_read?: boolean;
+          league_id?: number | null;
+          match_id?: number | null;
+          notification_id?: number;
+          notification_type?: string;
+          payload?: Json | null;
+          priority?: string;
+          read_at?: string | null;
+          read_by?: number | null;
+          title?: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'NOTIFICATION_INBOX_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'USER';
+            referencedColumns: ['user_id'];
+          },
+          {
+            foreignKeyName: 'NOTIFICATION_INBOX_league_id_fkey';
+            columns: ['league_id'];
+            isOneToOne: false;
+            referencedRelation: 'LEAGUE';
+            referencedColumns: ['league_id'];
+          },
+          {
+            foreignKeyName: 'NOTIFICATION_INBOX_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'MATCH';
+            referencedColumns: ['match_id'];
+          },
+        ];
+      };
+      BROWSER_NOTIFICATION_LOG: {
+        Row: {
+          browser_badge: string | null;
+          browser_body: string;
+          browser_icon: string | null;
+          browser_notif_log_id: number;
+          browser_tag: string | null;
+          created_at: string;
+          created_by: number;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          error_message: string | null;
+          is_deleted: boolean;
+          notification_id: number;
+          sent_at: string;
+          success: boolean;
+          updated_at: string | null;
+          updated_by: number | null;
+          user_id: number;
+        };
+        Insert: {
+          browser_badge?: string | null;
+          browser_body: string;
+          browser_icon?: string | null;
+          browser_notif_log_id?: number;
+          browser_tag?: string | null;
+          created_at?: string;
+          created_by: number;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          error_message?: string | null;
+          is_deleted?: boolean;
+          notification_id: number;
+          sent_at?: string;
+          success?: boolean;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id: number;
+        };
+        Update: {
+          browser_badge?: string | null;
+          browser_body?: string;
+          browser_icon?: string | null;
+          browser_notif_log_id?: number;
+          browser_tag?: string | null;
+          created_at?: string;
+          created_by?: number;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          error_message?: string | null;
+          is_deleted?: boolean;
+          notification_id?: number;
+          sent_at?: string;
+          success?: boolean;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'BROWSER_NOTIFICATION_LOG_notification_id_fkey';
+            columns: ['notification_id'];
+            isOneToOne: false;
+            referencedRelation: 'NOTIFICATION_INBOX';
+            referencedColumns: ['notification_id'];
+          },
+          {
+            foreignKeyName: 'BROWSER_NOTIFICATION_LOG_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'USER';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
+      PREDICTION_LOCK: {
+        Row: {
+          created_at: string;
+          created_by: number | null;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          is_deleted: boolean;
+          lock_reason: string;
+          locked_at: string;
+          locked_by: number | null;
+          match_id: number;
+          prediction_lock_id: number;
+          updated_at: string | null;
+          updated_by: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          is_deleted?: boolean;
+          lock_reason?: string;
+          locked_at?: string;
+          locked_by?: number | null;
+          match_id: number;
+          prediction_lock_id?: number;
+          updated_at?: string | null;
+          updated_by?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          is_deleted?: boolean;
+          lock_reason?: string;
+          locked_at?: string;
+          locked_by?: number | null;
+          match_id?: number;
+          prediction_lock_id?: number;
+          updated_at?: string | null;
+          updated_by?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'PREDICTION_LOCK_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'MATCH';
+            referencedColumns: ['match_id'];
+          },
+        ];
+      };
       LEAGUE: {
         Row: {
           catalog_id: number;
