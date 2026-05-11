@@ -19,9 +19,9 @@ export class FormBuilderService {
 
       // Si el campo es repetible, crear un FormArray
       if (field.state.repeatible.repeat) {
-        group[field.key] = new FormArray(this.createRepeatableItems(field.value || '', validators));
+        group[field.key] = new FormArray(this.createRepeatableItems(field.value ?? '', validators));
       } else {
-        group[field.key] = new FormControl(field.value || '', validators);
+        group[field.key] = new FormControl(field.value ?? '', validators);
       }
     });
     return new FormGroup(group);

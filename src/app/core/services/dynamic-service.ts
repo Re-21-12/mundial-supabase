@@ -12,26 +12,36 @@ export class DynamicService {
   supabaseService = inject(SupabaseService);
   private injector = inject(Injector);
 
-  async fetchData<T>(query: DynamicQuery): Promise<T[] | PostgrestError> {
-
+  async fetchData<T>(
+    query: DynamicQuery,
+  ): Promise<(T[] & { totalRecords?: number }) | PostgrestError> {
     const from = query.page * query.limit;
     const to = from + query.limit - 1;
     const { table, order, filters } = query;
     let fetchedData: any[] | null = null;
     let error: PostgrestError | null = null;
+    let totalRecords: number | null = null;
 
     if (filters) {
-      ({ data: fetchedData, error } = await this.supabaseService.client
+      ({
+        data: fetchedData,
+        error,
+        count: totalRecords,
+      } = await this.supabaseService.client
         .from(`${table}`)
-        .select(query.columns) // Seleccionar las columnas especificadas
+        .select(query.columns, { count: 'exact' }) // Seleccionar las columnas especificadas
         .eq(filters.field, filters.value) // Columna y valor a buscar
         .order('created_at', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
         // .limit(10); // Limitar a 10 resultados
         .range(from, to));
     } else {
-      ({ data: fetchedData, error } = await this.supabaseService.client
+      ({
+        data: fetchedData,
+        error,
+        count: totalRecords,
+      } = await this.supabaseService.client
         .from(`${table}`)
-        .select(query.columns) // Seleccionar las columnas especificadas
+        .select(query.columns, { count: 'exact' }) // Seleccionar las columnas especificadas
         // .eq('country', 'Argentina') // Columna y valor a buscar
         .order('created_at', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
         // .limit(10); // Limitar a 10 resultados
@@ -42,7 +52,11 @@ export class DynamicService {
       console.error('Error fetching teams:', error);
       return error;
     } else {
-      return (fetchedData as T[]) || [];
+      const result = (fetchedData as T[]) || [];
+      if (totalRecords !== null) {
+        Object.assign(result, { totalRecords });
+      }
+      return result as T[] & { totalRecords?: number };
     }
   }
   async insertData<T>(table: string, data: Partial<T>): Promise<T | PostgrestError> {

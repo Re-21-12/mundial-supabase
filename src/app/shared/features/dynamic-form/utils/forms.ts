@@ -1,9 +1,9 @@
 import { TypeFields } from '../enums/type-fields';
-import { FieldBase } from '../interfaces/field-props';
+import { FieldBase, FormFields } from '../interfaces/field-props';
 import { Validators } from '@angular/forms';
 
 // Mapa de campos usando Record y FieldProps
-export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
+export const formFields: FormFields = {
   proofForm: {
     fields: [
       {
@@ -156,50 +156,7 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
       },
     ],
   },
-  teamForm: {
-    fields: [
-      {
-        icon: 'pi pi-users',
-        key: 'name',
-        type: TypeFields.TEXT,
-        label: 'Nombre del Equipo',
-        placeholder: 'Ingresa el nombre del equipo',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'Nombre oficial del equipo',
-        value: '',
-        rules: [Validators.required, Validators.minLength(3)],
-        options: [],
-        controlType: TypeFields.TEXT,
-        order: 1,
-      },
-      {
-        icon: 'pi pi-globe',
-        key: 'catalog_id',
-        type: TypeFields.NUMBER,
-        label: 'ID de Catálogo',
-        placeholder: 'Ingresa el ID de catálogo',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'ID del catálogo de países',
-        value: 0,
-        rules: [Validators.required],
-        options: [],
-        controlType: TypeFields.NUMBER,
-        order: 2,
-      },
-    ],
-  },
+
   stadiumForm: {
     fields: [
       {
@@ -225,7 +182,7 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
       {
         icon: 'pi pi-globe',
         key: 'catalog_id',
-        type: TypeFields.NUMBER,
+        type: TypeFields.SELECT,
         label: 'ID de Catálogo',
         placeholder: 'Ingresa el ID de catálogo',
         state: {
@@ -239,7 +196,17 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
         value: 0,
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.NUMBER,
+        optionsSource: {
+          table: 'CATALOG',
+          filterField: 'table_name',
+          filterValue: 'country',
+          valueField: 'catalog_id',
+          labelField: 'description',
+          orderBy: 'description',
+          order: 'asc',
+          includeDeleted: false,
+        },
+        controlType: TypeFields.SELECT,
         order: 2,
       },
     ],
@@ -536,150 +503,7 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
       },
     ],
   },
-  leagueForm: {
-    fields: [
-      {
-        icon: 'pi pi-database',
-        key: 'catalog_id',
-        type: TypeFields.NUMBER,
-        label: 'Catalog Id',
-        placeholder: 'Ingresa catalog id',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'Catalog Id',
-        value: 0,
-        rules: [Validators.required],
-        options: [],
-        controlType: TypeFields.NUMBER,
-        order: 1,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'invitation_code',
-        type: TypeFields.TEXT,
-        label: 'Invitation Code',
-        placeholder: 'Ingresa invitation code',
-        state: {
-          required: false,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'Invitation Code',
-        value: '',
-        rules: [],
-        options: [],
-        controlType: TypeFields.TEXT,
-        order: 2,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'league_id',
-        type: TypeFields.NUMBER,
-        label: 'League Id',
-        placeholder: 'Ingresa league id',
-        state: {
-          required: false,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'League Id',
-        value: 0,
-        rules: [],
-        options: [],
-        controlType: TypeFields.NUMBER,
-        order: 3,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'name',
-        type: TypeFields.TEXT,
-        label: 'Name',
-        placeholder: 'Ingresa name',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'Name',
-        value: '',
-        rules: [Validators.required, Validators.minLength(2)],
-        options: [],
-        controlType: TypeFields.TEXT,
-        order: 4,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'status',
-        type: TypeFields.TEXT,
-        label: 'Status',
-        placeholder: 'Ingresa status',
-        state: {
-          required: false,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'Status',
-        value: '',
-        rules: [],
-        options: [],
-        controlType: TypeFields.TEXT,
-        order: 5,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'user_id',
-        type: TypeFields.NUMBER,
-        label: 'User Id',
-        placeholder: 'Ingresa user id',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'User Id',
-        value: 0,
-        rules: [Validators.required],
-        options: [],
-        controlType: TypeFields.NUMBER,
-        order: 6,
-      },
-      {
-        icon: 'pi pi-database',
-        key: 'world_league_id',
-        type: TypeFields.NUMBER,
-        label: 'World League Id',
-        placeholder: 'Ingresa world league id',
-        state: {
-          required: true,
-          disabled: false,
-          hidden: false,
-          readonly: false,
-          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
-        },
-        hint: 'World League Id',
-        value: 0,
-        rules: [Validators.required],
-        options: [],
-        controlType: TypeFields.NUMBER,
-        order: 7,
-      },
-    ],
-  },
+
   leagueRewardForm: {
     fields: [
       {
@@ -893,7 +717,7 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
       {
         icon: 'pi pi-database',
         key: 'catalog_id',
-        type: TypeFields.NUMBER,
+        type: TypeFields.SELECT,
         label: 'Catalog Id',
         placeholder: 'Ingresa catalog id',
         state: {
@@ -907,7 +731,15 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
         value: 0,
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.NUMBER,
+        optionsSource: {
+          table: 'CATALOG',
+          valueField: 'catalog_id',
+          labelField: 'description',
+          orderBy: 'description',
+          order: 'asc',
+          includeDeleted: false,
+        },
+        controlType: TypeFields.SELECT,
         order: 1,
       },
       {
@@ -1357,7 +1189,7 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
       {
         icon: 'pi pi-database',
         key: 'catalog_id',
-        type: TypeFields.NUMBER,
+        type: TypeFields.SELECT,
         label: 'Catalog Id',
         placeholder: 'Ingresa catalog id',
         state: {
@@ -1371,7 +1203,15 @@ export const formFields: Record<string, { fields: FieldBase<any>[] }> = {
         value: 0,
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.NUMBER,
+        optionsSource: {
+          table: 'CATALOG',
+          valueField: 'catalog_id',
+          labelField: 'description',
+          orderBy: 'description',
+          order: 'asc',
+          includeDeleted: false,
+        },
+        controlType: TypeFields.SELECT,
         order: 2,
       },
       {

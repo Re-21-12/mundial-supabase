@@ -3,18 +3,21 @@ import { Component, inject, model, OnInit, signal, WritableSignal } from '@angul
 import { DynamicService } from '../../services/dynamic-service';
 import { TableTemplateModel } from '../../../shared/features/dynamic-table/interfaces/table-interface';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
+import { formFields } from './user-role-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 import { ActivatedRoute } from '@angular/router';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-user-role',
   imports: [DynamicForm, Overlay],
   templateUrl: './user-role.html',
   styleUrl: './user-role.css',
-  providers: [DynamicTableService],
+  providers: [DialogService, DynamicTableService],
 })
 export class UserRolePage implements OnInit {
   private readonly _route = inject(ActivatedRoute);
@@ -28,6 +31,7 @@ export class UserRolePage implements OnInit {
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
+  private readonly dialogService = inject(DialogService);
   ngOnInit() {
     this.tableService.initTable({
       header: 'User Role',
@@ -115,9 +119,32 @@ export class UserRolePage implements OnInit {
       value: this.id()!,
     });
   };
+  deleteData = async (rowId: string) => {
+    const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
+      header: 'Confirmar eliminación',
+      width: '420px',
+      modal: true,
+      breakpoints: { '640px': '90vw' },
+      data: { label: `Registro ID: ${rowId}` },
+    });
 
+    const confirmed = await firstValueFrom(ref!.onClose);
+    if (!confirmed) return;
+
+    const response = await this.dynamicService.deleteData('USER_ROLE', {
+      field: 'user_role_id',
+      value: rowId,
+    });
+
+    if (!(response instanceof PostgrestError)) {
+      await this.getData();
+    }
+  };
   onPageChange = async (event: { first: number; rows: number }) => {
     this.tableService.onPageChange(event);
     await this.getData();
   };
 }
+
+
+

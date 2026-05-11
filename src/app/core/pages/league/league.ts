@@ -1,20 +1,23 @@
-﻿import { Database } from './../../../types/database.types';
+import { Database } from './../../../types/database.types';
 import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
+import { firstValueFrom } from 'rxjs';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { formFields } from './league-form';
 
 @Component({
   selector: 'app-league',
   imports: [DynamicForm, Overlay],
   templateUrl: './league.html',
   styleUrl: './league.css',
-  providers: [DynamicTableService],
+  providers: [DialogService, DynamicTableService],
 })
 export class LeaguePage implements OnInit {
   visible = model(false);
@@ -28,6 +31,7 @@ export class LeaguePage implements OnInit {
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
+  private readonly dialogService = inject(DialogService);
 
   ngOnInit() {
     this.tableService.initTable({
@@ -122,9 +126,31 @@ export class LeaguePage implements OnInit {
     });
     return response;
   };
+  deleteData = async (rowId: string) => {
+    const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
+      header: 'Confirmar eliminación',
+      width: '420px',
+      modal: true,
+      breakpoints: { '640px': '90vw' },
+      data: { label: `Registro ID: ${rowId}` },
+    });
 
+    const confirmed = await firstValueFrom(ref!.onClose);
+    if (!confirmed) return;
+
+    const response = await this.dynamicService.deleteData('LEAGUE', {
+      field: 'league_id',
+      value: rowId,
+    });
+
+    if (!(response instanceof PostgrestError)) {
+      await this.getData();
+    }
+  };
   onPageChange = async (event: { first: number; rows: number }) => {
     this.tableService.onPageChange(event);
     await this.getData();
   };
 }
+
+

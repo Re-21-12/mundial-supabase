@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, effect } from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -83,6 +83,23 @@ export class LayoutComponent implements OnInit {
   titleService = inject(Title);
   constructor() {
     console.log('LayoutComponent constructor');
+
+    // Create reactive effect in constructor (injection context) so it can
+    // subscribe to permission changes and update menuItems accordingly.
+    const layoutRoute = this.router.config.find((r) => r.component === LayoutComponent);
+    effect(() => {
+      const userPermissions = this.authFacade.permissions();
+
+      this.menuItems.set(
+        layoutRoute?.children?.filter((route) => {
+          if (route.path === 'not-found') {
+            return false;
+          }
+
+          return this.canSeeRoute(route, userPermissions);
+        }) ?? [],
+      );
+    });
   }
   protected getTooltipText(title: any): string {
     return typeof title === 'string' ? title : '';
@@ -109,19 +126,9 @@ export class LayoutComponent implements OnInit {
   }
 
   async ngOnInit() {
-    const layoutRoute = this.router.config.find((r) => r.component === LayoutComponent);
+    // Trigger session fetch (populates permissions). The reactive effect in
+    // the constructor will update `menuItems` when permissions change.
     await this.authFacade.getSession();
-    const userPermissions = this.authFacade.permissions();
-
-    this.menuItems.set(
-      layoutRoute?.children?.filter((route) => {
-        if (route.path === 'not-found') {
-          return false;
-        }
-
-        return this.canSeeRoute(route, userPermissions);
-      }) ?? [],
-    );
 
     this.router.events
       .pipe(

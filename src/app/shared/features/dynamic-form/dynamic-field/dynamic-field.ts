@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, resource } from '@angular/core';
+import { Component, input, signal, computed, resource, inject } from '@angular/core';
 import {
   FormGroup,
   FormsModule,
@@ -45,6 +45,7 @@ import { DynamicErrors } from '../dynamic-errors/dynamic-errors';
 import { DynamicHint } from '../dynamic-hint/dynamic-hint';
 import { TooltipModule } from 'primeng/tooltip';
 import { TypeFields } from '../enums/type-fields';
+import { CatalogOptionsService } from '../services/catalog-options.service';
 
 @Component({
   selector: 'app-dynamic-field',
@@ -97,9 +98,19 @@ export class DynamicField {
   readonly form = input.required<FormGroup>();
   readonly isArrayItem = input<boolean>(false);
   readonly arrayIndex = input<number | null>(null);
+  private readonly catalogOptionsService = inject(CatalogOptionsService);
 
   // Computed para acceder a las propiedades del campo
   fieldProps = computed(() => this.fieldControl());
+
+  resolvedOptions = computed(() => {
+    const field = this.fieldProps();
+    if (field.optionsSource) {
+      return this.catalogOptionsService.getOptions(field.key);
+    }
+
+    return field.options || [];
+  });
 
   // Computed para verificar si el campo tiene ícono
   hasIcon = computed(() => {

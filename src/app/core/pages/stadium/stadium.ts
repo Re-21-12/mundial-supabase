@@ -3,7 +3,7 @@ import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DynamicService } from '../../services/dynamic-service';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
+import { formFields } from './stadium-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
@@ -151,3 +151,4 @@ export class Stadium implements OnInit {
     }
   };
 }
+

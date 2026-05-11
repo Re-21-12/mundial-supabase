@@ -7,6 +7,7 @@ import { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilderService } from './services/form-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { HttpLoadingService } from '../../../core/services/http-loading-service';
+import { CatalogOptionsService } from './services/catalog-options.service';
 @Component({
   selector: 'app-dynamic-form',
   imports: [DynamicField, Button, TooltipModule],
@@ -18,6 +19,7 @@ export class DynamicForm {
 
   private readonly _fb = inject(FormBuilderService);
   readonly loadingService = inject(HttpLoadingService);
+  private readonly catalogOptionsService = inject(CatalogOptionsService);
 
   readonly fields = input<FieldBase<string>[] | null>([]);
   readonly initialData = input<Record<string, any> | null>(null);
@@ -45,6 +47,16 @@ export class DynamicForm {
       Object.values(form.controls).forEach((ctrl) =>
         isReadonly ? ctrl.disable({ emitEvent: false }) : ctrl.enable({ emitEvent: false }),
       );
+    });
+
+    effect(() => {
+      const fields = this.fields() ?? [];
+
+      fields.forEach((field) => {
+        if (field.optionsSource) {
+          void this.catalogOptionsService.loadOptions(field.key, field.optionsSource);
+        }
+      });
     });
   }
 

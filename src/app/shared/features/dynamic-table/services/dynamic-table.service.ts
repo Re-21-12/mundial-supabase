@@ -5,6 +5,7 @@ import { TableTemplateModel, TypeOption } from '../interfaces/table-interface';
 export class DynamicTableService {
   // Estado de la tabla
   private tableData = signal<any[]>([]);
+  private totalRecords = signal<number>(0);
   private currentPage = signal<number>(0);
   private pageSize = signal<number>(10);
   private rowsPerPageOptions = signal<number[]>([5, 10, 20]);
@@ -23,6 +24,7 @@ export class DynamicTableService {
         rows: this.pageSize(),
         rowsPerPageOptions: this.rowsPerPageOptions(),
         data: this.tableData(),
+        totalRecords: this.totalRecords(),
         routeBase: this.routeBase(),
         rowIdField: this.rowIdField(),
         actions: this.actions(),
@@ -40,6 +42,7 @@ export class DynamicTableService {
     if (props.rows) this.pageSize.set(props.rows);
     if (props.rowsPerPageOptions) this.rowsPerPageOptions.set(props.rowsPerPageOptions);
     if (props.data) this.tableData.set(props.data);
+    if (typeof props.totalRecords === 'number') this.totalRecords.set(props.totalRecords);
     if (props.routeBase) this.routeBase.set(props.routeBase);
     if (props.rowIdField) this.rowIdField.set(props.rowIdField);
     if (props.actions) this.actions.set(props.actions);
@@ -50,6 +53,13 @@ export class DynamicTableService {
    */
   setData(data: any[]) {
     this.tableData.set(data);
+    const totalRecords = (data as { totalRecords?: number }).totalRecords;
+    if (typeof totalRecords === 'number') {
+      this.totalRecords.set(totalRecords);
+      return;
+    }
+
+    this.totalRecords.set(data.length);
   }
 
   /**
@@ -87,6 +97,7 @@ export class DynamicTableService {
    */
   reset() {
     this.tableData.set([]);
+    this.totalRecords.set(0);
     this.currentPage.set(0);
     this.pageSize.set(10);
   }

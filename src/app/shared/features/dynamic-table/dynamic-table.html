@@ -1,10 +1,12 @@
 <p-table
   #data_table
   [paginator]="true"
+  [lazy]="true"
   [scrollable]="true"
   [columns]="tableProps().columns"
   [value]="tableProps().data"
   [rows]="tableProps().rows"
+  [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
   [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
   [tableStyle]="{ 'min-width': '50rem' , 'background-color': 'white' } "
   [size]="'small'"
@@ -80,7 +82,7 @@
   </ng-template>
   <ng-template #footer>
     <tr>
-      <td colspan="100%">In total there are {{ tableProps().data.length }} items.</td>
+      <td colspan="100%">In total there are {{ tableProps().totalRecords ?? tableProps().data.length }} items.</td>
     </tr>
   </ng-template>
 </p-table>

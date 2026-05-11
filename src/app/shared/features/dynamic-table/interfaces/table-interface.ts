@@ -4,6 +4,7 @@ export interface TableTemplateModel {
   rows: number;
   rowsPerPageOptions: number[];
   data: any[];
+  totalRecords?: number;
   customExportHeader?: string;
   actions?: TypeOption[];
   routeBase?: string;

@@ -90,7 +90,7 @@ export class SupabaseAuthService {
     return { data, error };
   }
 
-    async getUser() {
+  async getUser() {
     const { data, error } = await this._supabaseService.client.auth.getUser();
     return { data, error };
   }
@@ -505,6 +505,23 @@ export class SupabaseAuthService {
 
   getEmail(): string | null {
     return this.currentUser()?.email ?? null;
+  }
+
+  /**
+   * Check if current user has the given permission string.
+   */
+  hasPermission(permission: string): boolean {
+    if (!permission) return false;
+    return this.permissions().includes(permission);
+  }
+
+  /**
+   * Check if user has ANY of the given permissions.
+   */
+  hasAnyPermission(permissions: string[] = []): boolean {
+    if (!Array.isArray(permissions) || permissions.length === 0) return false;
+    const userPerms = this.permissions();
+    return permissions.some((p) => userPerms.includes(p));
   }
   //#endregion
 

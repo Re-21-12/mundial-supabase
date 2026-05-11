@@ -1,11 +1,14 @@
-﻿import { Database } from './../../../types/database.types';
+import { Database } from './../../../types/database.types';
 import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
+import { firstValueFrom } from 'rxjs';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
+import { formFields } from './user-league-reward-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 
@@ -14,7 +17,7 @@ import { Overlay } from '../../../shared/layouts/overlay/overlay';
   imports: [DynamicForm, Overlay],
   templateUrl: './user-league-reward.html',
   styleUrl: './user-league-reward.css',
-  providers: [DynamicTableService],
+  providers: [DialogService, DynamicTableService],
 })
 export class UserLeagueRewardPage implements OnInit {
   visible = model(false);
@@ -28,6 +31,7 @@ export class UserLeagueRewardPage implements OnInit {
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
+  private readonly dialogService = inject(DialogService);
 
   ngOnInit() {
     this.tableService.initTable({
@@ -124,8 +128,32 @@ export class UserLeagueRewardPage implements OnInit {
     });
     return response;
   };
+  deleteData = async (rowId: string) => {
+    const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
+      header: 'Confirmar eliminación',
+      width: '420px',
+      modal: true,
+      breakpoints: { '640px': '90vw' },
+      data: { label: `Registro ID: ${rowId}` },
+    });
+
+    const confirmed = await firstValueFrom(ref!.onClose);
+    if (!confirmed) return;
+
+    const response = await this.dynamicService.deleteData('USER_LEAGUE_REWARD', {
+      field: 'user_league_reward_id',
+      value: rowId,
+    });
+
+    if (!(response instanceof PostgrestError)) {
+      await this.getData();
+    }
+  };
   onPageChange = async (event: { first: number; rows: number }) => {
     this.tableService.onPageChange(event);
     await this.getData();
   };
 }
+
+
+

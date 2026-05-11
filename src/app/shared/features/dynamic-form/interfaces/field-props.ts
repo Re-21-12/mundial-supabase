@@ -2,6 +2,17 @@ import { Validators } from '@angular/forms';
 import { TypeFields } from '../enums/type-fields';
 import { StateProps } from './state-props';
 
+export interface FieldOptionSource {
+  table: 'CATALOG' | string;
+  filterField?: string;
+  filterValue?: string | number;
+  valueField?: string;
+  labelField?: string;
+  orderBy?: string;
+  order?: 'asc' | 'desc';
+  includeDeleted?: boolean;
+}
+export type FormFields = Record<string, { fields: FieldBase<any>[] }>;
 export class FieldBase<T> {
   value: T | undefined;
   icon: string;
@@ -13,7 +24,8 @@ export class FieldBase<T> {
   order: number;
   controlType: TypeFields | string;
   type: string;
-  options: { key: string; value: string }[];
+  options: { key: string | number; value: string }[];
+  optionsSource?: FieldOptionSource;
   rules: Validators[];
   constructor(
     options: {
@@ -28,7 +40,8 @@ export class FieldBase<T> {
       validators?: Validators[];
       controlType?: TypeFields | string;
       type?: string;
-      options?: { key: string; value: string }[];
+      options?: { key: string | number; value: string }[];
+      optionsSource?: FieldOptionSource;
     } = {},
   ) {
     this.value = options.value;
@@ -49,5 +62,6 @@ export class FieldBase<T> {
     this.controlType = options.controlType || '';
     this.type = options.type || '';
     this.options = options.options || [];
+    this.optionsSource = options.optionsSource;
   }
 }
