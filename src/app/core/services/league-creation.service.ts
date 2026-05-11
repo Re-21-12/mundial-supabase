@@ -207,7 +207,7 @@ export class LeagueCreationService {
             );
             if (magicLinkResult.success) {
               anonymousCount++;
-              // TODO: Send email with magic link and custom message
+              // Magic link is persisted for in-app retrieval and onboarding flow
             } else {
               failedCount++;
             }

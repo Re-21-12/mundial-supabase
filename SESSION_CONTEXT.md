@@ -74,7 +74,7 @@ Anonymous User Invited
     ↓
 Magic Link Generated (48h expiration)
     ↓
-Email Sent (TODO: implement email service)
+Notification stored in NOTIFICATION_INBOX
     ↓
 User Clicks Link
     ↓
@@ -92,7 +92,7 @@ Match 15 min before start
     ↓
 Auto-lock triggered
     ↓
-Push notification sent to all league members
+Notification stored in inbox + browser alert sent
     ↓
 Delivery status logged to PUSH_NOTIFICATION table
     ↓

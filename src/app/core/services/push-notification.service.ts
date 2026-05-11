@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { NotificationInboxService } from './notification-inbox.service';
 
 export type NotificationType =
   | 'match_reminder'
@@ -7,6 +7,7 @@ export type NotificationType =
   | 'prediction_locked'
   | 'result_posted'
   | 'invitation_received'
+  | 'invitation_accepted'
   | 'league_created';
 
 export interface PushSubscriptionPayload {
@@ -31,10 +32,10 @@ export interface PushNotificationPayload {
   providedIn: 'root',
 })
 export class PushNotificationService {
-  private supabaseService = inject(SupabaseService);
+  private notificationInboxService = inject(NotificationInboxService);
 
   /**
-   * Registers a browser push subscription for a user
+   * Compatibility no-op kept for callers that still try to register push subscriptions.
    */
   async registerPushSubscription(
     userId: number,
@@ -42,134 +43,53 @@ export class PushNotificationService {
     userAgent?: string,
     ipAddress?: string,
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) {
-        return { success: false, error: 'Supabase client not initialized' };
-      }
+    void userId;
+    void subscription;
+    void userAgent;
+    void ipAddress;
 
-      const { error } = await client
-        .from('PUSH_SUBSCRIPTION')
-        .insert({
-          user_id: userId,
-          endpoint: subscription.endpoint,
-          auth_key: subscription.keys.auth,
-          p256dh_key: subscription.keys.p256dh,
-          user_agent: userAgent || null,
-          ip_address: ipAddress || null,
-          status: 'active',
-          created_at: new Date().toISOString(),
-          created_by: userId,
-        } as any)
-        .select();
-
-      if (error) {
-        console.error('Error registering push subscription:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Push subscription registration error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    return { success: true };
   }
 
   /**
-   * Unregisters a push subscription
+   * Compatibility no-op kept for callers that still try to unregister push subscriptions.
    */
   async unregisterPushSubscription(
     endpoint: string,
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) {
-        return { success: false, error: 'Supabase client not initialized' };
-      }
-
-      const { error } = await client
-        .from('PUSH_SUBSCRIPTION')
-        .update({
-          status: 'inactive',
-          updated_at: new Date().toISOString(),
-        } as any)
-        .eq('endpoint', endpoint);
-
-      if (error) {
-        console.error('Error unregistering push subscription:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Push subscription unregistration error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    void endpoint;
+    return { success: true };
   }
 
   /**
-   * Sends a push notification to a user
-   * Note: Actual push delivery would require backend/service worker implementation
+   * Delegates to the in-app inbox service.
    */
   async sendPushNotification(
     payload: PushNotificationPayload,
     createdBy: number,
   ): Promise<{ success: boolean; notificationId?: number; error?: string }> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) {
-        return { success: false, error: 'Supabase client not initialized' };
-      }
+    const result = await this.notificationInboxService.sendNotification(
+      {
+        userId: payload.userId,
+        leagueId: payload.leagueId,
+        matchId: payload.matchId,
+        type: payload.type,
+        title: payload.title,
+        body: payload.body,
+        data: payload.data,
+      },
+      createdBy,
+    );
 
-      // Log the notification in database
-      const { data, error } = await client
-        .from('PUSH_NOTIFICATION')
-        .insert({
-          user_id: payload.userId,
-          league_id: payload.leagueId || null,
-          match_id: payload.matchId || null,
-          notification_type: payload.type,
-          title: payload.title,
-          body: payload.body,
-          payload: payload.data || {},
-          delivery_status: 'pending',
-          sent_at: new Date().toISOString(),
-          created_by: createdBy,
-          created_at: new Date().toISOString(),
-        } as any)
-        .select();
-
-      if (error) {
-        console.error('Error logging push notification:', error);
-        return { success: false, error: error.message };
-      }
-
-      // In production, you would:
-      // 1. Get user's active push subscriptions
-      // 2. Use web-push library to send to each endpoint
-      // 3. Update delivery_status based on response
-
-      return {
-        success: true,
-        notificationId: data?.[0]?.push_notification_id,
-      };
-    } catch (error) {
-      console.error('Push notification send error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    return {
+      success: result.success,
+      notificationId: result.notificationId,
+      error: result.error,
+    };
   }
 
   /**
-   * Sends bulk notifications to league members
+   * Delegates bulk sends to the in-app inbox service.
    */
   async sendBulkNotifications(
     leagueId: number,
@@ -177,143 +97,54 @@ export class PushNotificationService {
     notification: Omit<PushNotificationPayload, 'userId'>,
     createdBy: number,
   ): Promise<{ success: boolean; sentCount: number; failedCount: number; error?: string }> {
-    let sentCount = 0;
-    let failedCount = 0;
+    const result = await this.notificationInboxService.sendBulkNotifications(
+      leagueId,
+      userIds,
+      notification,
+      createdBy,
+    );
 
-    try {
-      for (const userId of userIds) {
-        const result = await this.sendPushNotification(
-          {
-            ...notification,
-            userId,
-          },
-          createdBy,
-        );
-
-        if (result.success) {
-          sentCount++;
-        } else {
-          failedCount++;
-        }
-      }
-
-      return { success: sentCount > 0, sentCount, failedCount };
-    } catch (error) {
-      console.error('Bulk notification send error:', error);
-      return {
-        success: false,
-        sentCount,
-        failedCount,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    return {
+      success: result.success,
+      sentCount: result.sentCount,
+      failedCount: result.failedCount,
+      error: result.error,
+    };
   }
 
   /**
-   * Gets notification history for a user
+   * Returns in-app notification history for compatibility.
    */
   async getUserNotificationHistory(
     userId: number,
     limit: number = 50,
     offset: number = 0,
   ): Promise<any[]> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) return [];
-
-      const { data, error } = await client
-        .from('PUSH_NOTIFICATION')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_deleted', false)
-        .order('sent_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (error) {
-        console.error('Error fetching notification history:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error in getUserNotificationHistory:', error);
-      return [];
-    }
+    return this.notificationInboxService.getUserNotifications(userId, limit, offset);
   }
 
   /**
-   * Updates notification delivery status
+   * Compatibility no-op. Delivery state is tracked in the inbox table instead.
    */
   async updateNotificationStatus(
     notificationId: number,
     status: 'sent' | 'failed',
     errorMessage?: string,
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) {
-        return { success: false, error: 'Supabase client not initialized' };
-      }
-
-      const updateData: any = {
-        delivery_status: status,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (errorMessage) {
-        updateData.error_message = errorMessage;
-      }
-
-      const { error } = await client
-        .from('PUSH_NOTIFICATION')
-        .update(updateData)
-        .eq('push_notification_id', notificationId);
-
-      if (error) {
-        console.error('Error updating notification status:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Error in updateNotificationStatus:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    void notificationId;
+    void status;
+    void errorMessage;
+    return { success: true };
   }
 
   /**
-   * Gets user's active push subscriptions
+   * Subscriptions are browser-native now, so there is no persisted subscription list.
    */
   async getUserSubscriptions(userId: number): Promise<any[]> {
-    try {
-      const client = this.supabaseService.getClient();
-      if (!client) return [];
-
-      const { data, error } = await client
-        .from('PUSH_SUBSCRIPTION')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .eq('is_deleted', false);
-
-      if (error) {
-        console.error('Error fetching user subscriptions:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error in getUserSubscriptions:', error);
-      return [];
-    }
+    void userId;
+    return [];
   }
 
-  /**
-   * Sends match reminder notifications 15 minutes before match start
-   */
   async sendMatchReminderNotifications(
     matchId: number,
     leagueId: number,
@@ -321,30 +152,15 @@ export class PushNotificationService {
     createdBy: number,
     userIds: number[],
   ): Promise<{ success: boolean; sentCount: number; error?: string }> {
-    const result = await this.sendBulkNotifications(
+    return this.notificationInboxService.sendMatchReminderNotification(
+      matchId,
       leagueId,
-      userIds,
-      {
-        leagueId,
-        matchId,
-        type: 'match_reminder',
-        title: '⚽ Partido por comenzar',
-        body: `${teamsInfo} en 15 minutos. ¡Haz tu predicción!`,
-        data: { matchId, leagueId, action: 'view_predictions' },
-      },
+      teamsInfo,
       createdBy,
+      userIds,
     );
-
-    return {
-      success: result.success,
-      sentCount: result.sentCount,
-      error: result.error,
-    };
   }
 
-  /**
-   * Sends prediction lock notification
-   */
   async sendPredictionLockedNotification(
     matchId: number,
     leagueId: number,
@@ -352,24 +168,12 @@ export class PushNotificationService {
     createdBy: number,
     userIds: number[],
   ): Promise<{ success: boolean; sentCount: number; error?: string }> {
-    const result = await this.sendBulkNotifications(
+    return this.notificationInboxService.sendPredictionLockedNotification(
+      matchId,
       leagueId,
-      userIds,
-      {
-        leagueId,
-        matchId,
-        type: 'prediction_locked',
-        title: '🔒 Predicciones cerradas',
-        body: `Las predicciones para ${teamsInfo} han sido bloqueadas`,
-        data: { matchId, leagueId, action: 'view_league' },
-      },
+      teamsInfo,
       createdBy,
+      userIds,
     );
-
-    return {
-      success: result.success,
-      sentCount: result.sentCount,
-      error: result.error,
-    };
   }
 }
