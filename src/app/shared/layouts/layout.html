@@ -49,6 +49,19 @@
       </div>
 
       <div class="flex flex-row gap-4 items-center">
+        <!-- Wallet -->
+        @if (walletBalance() !== null) {
+          <a
+            routerLink="/wallet"
+            class="wallet-chip"
+            pTooltip="Mi billetera"
+            tooltipPosition="bottom"
+          >
+            <ng-icon hlm size="sm" name="lucideWallet" />
+            <span class="wallet-amount">Q {{ walletBalance() }}</span>
+          </a>
+        }
+
         <!-- Notificaciones -->
         <div class="relative">
           <button

@@ -1,0 +1,28 @@
+<section class="approval-shell" aria-labelledby="approval-title">
+  <h2 id="approval-title" class="approval-title">Participantes pendientes de aprobación</h2>
+
+  @if (isLoading()) {
+    <p class="approval-empty">Cargando...</p>
+  } @else if (participants().length === 0) {
+    <p class="approval-empty">No hay participantes pendientes.</p>
+  } @else {
+    <ul class="approval-list" role="list">
+      @for (p of participants(); track p.user_league_id) {
+        <li class="approval-card" role="listitem">
+          <div class="participant-info">
+            <span class="participant-name">{{ p.user_name ?? 'Usuario #' + p.user_id }}</span>
+            <span class="participant-email">{{ p.user_email }}</span>
+            <span class="participant-date">Solicitó: {{ p.created_at | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="approval-actions">
+            <button class="btn-approve" (click)="approve(p.user_league_id)">Aprobar</button>
+            <button class="btn-reject" (click)="reject(p.user_league_id)">Rechazar</button>
+          </div>
+        </li>
+      }
+    </ul>
+    @if (actionError()) {
+      <p class="approval-error">{{ actionError() }}</p>
+    }
+  }
+</section>
