@@ -1,0 +1,117 @@
+<div class="ua-shell">
+  <header class="ua-header">
+    <div>
+      <h1 class="ua-title">Gestión de Usuarios</h1>
+      <p class="ua-subtitle">Backoffice — creación, restablecimiento y baja de cuentas</p>
+    </div>
+    <button class="ua-btn ua-btn--primary" (click)="openCreate()">+ Crear usuario</button>
+  </header>
+
+  <!-- ─── Panel lateral ─── -->
+  @if (panel() !== 'none') {
+    <div class="ua-overlay" (click)="closePanel()"></div>
+    <aside class="ua-panel">
+      <button class="ua-panel__close" (click)="closePanel()" aria-label="Cerrar">✕</button>
+
+      @if (panel() === 'create') {
+        <h2 class="ua-panel__title">Nuevo usuario</h2>
+        <form class="ua-form" (ngSubmit)="submitCreate()">
+          <label class="ua-form__label">Nombre completo
+            <input class="ua-form__input" type="text" [(ngModel)]="createName" name="name" placeholder="Ej. Juan García" />
+          </label>
+          <label class="ua-form__label">Login / Apodo
+            <input class="ua-form__input" type="text" [(ngModel)]="createLogin" name="login" placeholder="juang92" />
+          </label>
+          <label class="ua-form__label">Correo electrónico
+            <input class="ua-form__input" type="email" [(ngModel)]="createEmail" name="email" placeholder="usuario@correo.com" />
+          </label>
+          <label class="ua-form__label">Contraseña inicial
+            <input class="ua-form__input" type="password" [(ngModel)]="createPassword" name="password" placeholder="Mínimo 6 caracteres" />
+          </label>
+
+          @if (errorMsg()) { <p class="ua-form__error">{{ errorMsg() }}</p> }
+          @if (successMsg()) { <p class="ua-form__success">{{ successMsg() }}</p> }
+
+          <button class="ua-btn ua-btn--primary ua-form__submit" type="submit" [disabled]="working()">
+            {{ working() ? 'Creando…' : 'Crear usuario' }}
+          </button>
+        </form>
+      }
+
+      @if (panel() === 'reset') {
+        <h2 class="ua-panel__title">Restablecer contraseña</h2>
+        <p class="ua-panel__meta">
+          <strong>{{ selectedUser()?.name }}</strong><br>
+          <span class="ua-muted">{{ selectedUser()?.email }}</span>
+        </p>
+        <form class="ua-form" (ngSubmit)="submitReset()">
+          <label class="ua-form__label">Nueva contraseña
+            <input class="ua-form__input" type="password" [(ngModel)]="resetPassword" name="resetPassword" placeholder="Mínimo 6 caracteres" />
+          </label>
+
+          @if (errorMsg()) { <p class="ua-form__error">{{ errorMsg() }}</p> }
+          @if (successMsg()) { <p class="ua-form__success">{{ successMsg() }}</p> }
+
+          <button class="ua-btn ua-btn--primary ua-form__submit" type="submit" [disabled]="working()">
+            {{ working() ? 'Guardando…' : 'Guardar contraseña' }}
+          </button>
+        </form>
+      }
+    </aside>
+  }
+
+  <!-- ─── Tabla de usuarios ─── -->
+  @if (isLoading()) {
+    <div class="ua-loading" role="status">Cargando usuarios…</div>
+  } @else if (users().length === 0) {
+    <p class="ua-empty">No hay usuarios registrados.</p>
+  } @else {
+    <div class="ua-table-wrap">
+      <table class="ua-table" role="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Login</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Sesiones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users(); track u.user_id) {
+            <tr>
+              <td class="ua-id">{{ u.user_id }}</td>
+              <td>{{ u.name }}</td>
+              <td class="ua-muted">{{ u.login }}</td>
+              <td class="ua-muted">{{ u.email }}</td>
+              <td>
+                <span class="ua-status" [class.ua-status--active]="u.status === 'active'">
+                  {{ u.status }}
+                </span>
+              </td>
+              <td>
+                @if ((u.openSessions ?? 0) > 0) {
+                  <span class="ua-sessions-warn" title="Sesiones sin cerrar">
+                    ⚠ {{ u.openSessions }}
+                  </span>
+                } @else {
+                  <span class="ua-muted">0</span>
+                }
+              </td>
+              <td class="ua-actions">
+                <button class="ua-btn ua-btn--sm ua-btn--ghost" (click)="openReset(u)">
+                  🔑 Reset pwd
+                </button>
+                <button class="ua-btn ua-btn--sm ua-btn--danger" (click)="confirmDelete(u)" [disabled]="working()">
+                  🗑 Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

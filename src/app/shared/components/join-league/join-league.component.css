@@ -1,0 +1,98 @@
+:host {
+  display: contents;
+}
+
+.jl-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 60;
+}
+
+.jl-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 70;
+  width: min(420px, calc(100vw - 2rem));
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+
+.jl-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--muted-foreground);
+  line-height: 1;
+}
+
+.jl-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--foreground);
+}
+
+.jl-desc {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.jl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jl-input {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color 0.15s;
+}
+
+.jl-input:focus { border-color: var(--primary); }
+
+.jl-error {
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  margin: 0;
+}
+
+.jl-success {
+  font-size: 0.8125rem;
+  color: #15803d;
+  margin: 0;
+}
+
+.jl-submit {
+  padding: 0.6rem 1rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.jl-submit:disabled { opacity: 0.5; cursor: not-allowed; }
