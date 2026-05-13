@@ -59,6 +59,8 @@ export class SupabaseAuthService {
   private authListenerInitialized = false;
   private authReadyPromise!: Promise<void>;
   private authReadyResolve!: () => void;
+  /** Tracks the session_id of the active USER_SESSION row so sign-out can UPDATE it */
+  private activeSessionId: string | null = null;
 
   constructor() {
     // Initialize readiness promise
@@ -179,10 +181,11 @@ export class SupabaseAuthService {
 
       case 'SIGNED_OUT':
         console.log('[Auth] SIGNED_OUT - clearing state');
+        // logSessionEnd() was already called inside signOut() before clearing state.
+        // Calling it again here would fail because internalUserId is already null.
         this._clearSessionState();
         this._clearOAuthTokens();
         this._router.navigate(['/login']);
-        await this.logSessionEnd();
         break;
 
       case 'PASSWORD_RECOVERY':
@@ -473,6 +476,10 @@ export class SupabaseAuthService {
         console.warn('[Auth] No internal user ID available. Session will not be logged.');
         return;
       }
+
+      const sessionId = uuidv4();
+      this.activeSessionId = sessionId;
+
       const userSessionData: Partial<Database['public']['Tables']['USER_SESSION']['Insert']> = {
         user_id: internalUserId,
         ip_address: ip,
@@ -480,10 +487,10 @@ export class SupabaseAuthService {
         sign_in: new Date().toISOString(),
         sign_out: null,
         login: email ?? undefined,
-        session_id: uuidv4(),
+        session_id: sessionId,
       };
 
-      await this._insertSessionData(userSessionData);
+      await this._dynamicService.insertData('USER_SESSION', userSessionData);
     } catch (error) {
       console.error('[Auth] Error logging session start:', error);
     }
@@ -491,36 +498,24 @@ export class SupabaseAuthService {
 
   async logSessionEnd() {
     try {
-      const ip = await this._userAgentService.getIpAddress();
-      const userAgent = this._userAgentService.getUserAgent();
       const authFacade = this._injector.get(AuthFacade);
       const internalUserId = Number(authFacade.getInternalUserId());
 
-      if (!internalUserId) {
-        console.warn('[Auth] No internal user ID available. Session end will not be logged.');
+      if (!internalUserId || !this.activeSessionId) {
+        console.warn('[Auth] Cannot log session end: missing userId or activeSessionId.');
         return;
       }
 
-      const sessionData: Partial<Database['public']['Tables']['USER_SESSION']['Insert']> = {
-        user_id: internalUserId,
-        ip_address: ip,
-        user_agent: userAgent,
-        sign_in: null,
-        sign_out: new Date().toISOString(),
-        session_id: uuidv4(),
-      };
+      await this._supabaseService.client
+        .from('USER_SESSION')
+        .update({ sign_out: new Date().toISOString() })
+        .eq('session_id', this.activeSessionId)
+        .eq('user_id', internalUserId);
 
-      await this._insertSessionData(sessionData);
+      this.activeSessionId = null;
     } catch (error) {
       console.error('[Auth] Error logging session end:', error);
     }
-  }
-
-  private async _insertSessionData(
-    data: Partial<Database['public']['Tables']['USER_SESSION']['Insert']>,
-  ) {
-    const response = await this._dynamicService.insertData('USER_SESSION', data);
-    return response;
   }
   //#endregion
 
