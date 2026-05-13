@@ -374,10 +374,6 @@ export class SupabaseAuthService {
       data: { force_password_change: false },
     });
 
-    if (!error) {
-      this._router.navigate(['/dashboard']);
-    }
-
     return { data, error };
   }
   //#endregion

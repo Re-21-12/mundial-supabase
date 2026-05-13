@@ -8,7 +8,7 @@
 |---------|-------|--------|--------|
 | v3.2.1 | Fix trigger default role | ✅ Applied | — |
 | v3.3.0 | Migration versioning infrastructure | ✅ Applied | — |
-| v3.3.x | Auth Completeness | 🔄 In Progress | [#8](../../issues/8) [#9](../../issues/9) [#10](../../issues/10) |
+| v3.3.x | Auth Completeness | 🔄 In Progress — #8 ✅ #10 ✅ #9 pending | [#8](../../issues/8) [#9](../../issues/9) [#10](../../issues/10) |
 | v3.4.0 | Email Invitations | 📋 Planned | [#11](../../issues/11) |
 | v3.5.0 | Wallet navbar + Approval flow | 📋 Planned | [#12](../../issues/12) [#13](../../issues/13) |
 | v3.6.0 | Global Search | 📋 Planned | [#14](../../issues/14) |
@@ -35,6 +35,25 @@
 | ------------------------------------------- | ------------------------------------------------ |
 | `db/script/migration-user-registration.sql` | Role lookup changed from `'cliente'` to `'user'` |
 | `SESSION_CONTEXT_v3.3.md`                   | NEW — planning context for v3.3                  |
+
+---
+
+## Version 3.3.1 - 2026-05-13 — Password Recovery + Sessions Verified
+
+### Bug Fix
+
+- **`setNewPassword()` double navigation removed**: `SupabaseAuthService.setNewPassword` was calling `router.navigate(['/dashboard'])` (nonexistent route) before returning. Navigation is now exclusively handled by `SetPasswordPage` → `/home`. Closes #8.
+
+### Audit
+
+- **Password recovery flow** (`/change-password` → email → `/set-password`): fully functional — no code changes needed beyond the bug fix.
+- **USER_SESSION IP tracking** (#10): `ip_address` column already exists (VARCHAR NOT NULL). `logSessionStart()` already captures and stores it on every `SIGNED_IN` event. Issue closed.
+
+### Files Changed in v3.3.1
+
+| File                                             | Change                                                          |
+| ------------------------------------------------ | --------------------------------------------------------------- |
+| `src/app/core/services/supabase-auth-service.ts` | Removed `router.navigate(['/dashboard'])` from `setNewPassword` |
 
 ---
 
