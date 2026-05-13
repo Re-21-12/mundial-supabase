@@ -11,6 +11,7 @@ import {
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ThemeService } from '../services/theme-service';
+import { WalletService } from '../../core/services/wallet.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideSun,
@@ -26,6 +27,7 @@ import {
   lucideUser,
   lucideLogOut,
   lucideBell,
+  lucideWallet,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
@@ -79,6 +81,7 @@ interface SidebarMenuItem {
       lucideUser,
       lucideLogOut,
       lucideBell,
+      lucideWallet,
     }),
   ],
 })
@@ -86,6 +89,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private notificationService = inject(NotificationInboxService);
+  private walletService = inject(WalletService);
   private destroy$ = new Subject<void>();
   readonly authFacade = inject(AuthFacade);
 
@@ -93,6 +97,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   protected readonly title = signal('');
   protected readonly showNotifications = signal(false);
   protected readonly headerUnreadCount = signal(0);
+  protected readonly walletBalance = signal<number | null>(null);
 
   themeService = inject(ThemeService);
   titleService = inject(Title);
@@ -167,6 +172,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
     await this.authFacade.getSession();
 
     await this.refreshUnreadCount();
+
+    const uid = Number(this.authFacade.getInternalUserId());
+    if (uid) {
+      const balance = await this.walletService.getBalance(uid);
+      this.walletBalance.set(balance);
+    }
 
     interval(60000)
       .pipe(takeUntil(this.destroy$))
