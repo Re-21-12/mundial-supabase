@@ -51,6 +51,17 @@ export const routes: Routes = [
     },
     children: [
       {
+        path: 'admin/users',
+        title: 'Administrar Usuarios',
+        data: {
+          description: 'Backoffice de usuarios',
+          icon: 'lucideUserCog',
+          requiredPermission: 'ADMIN',
+        },
+        loadChildren: () =>
+          import('./core/pages/user-admin/user-admin.routes').then((m) => m.USER_ADMIN_ROUTES),
+      },
+      {
         path: 'profile',
         title: 'Profile',
         data: {

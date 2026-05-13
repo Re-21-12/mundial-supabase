@@ -1,0 +1,30 @@
+<div class="jl-backdrop" (click)="close()"></div>
+<div class="jl-dialog" role="dialog" aria-modal="true" aria-label="Unirse a liga">
+  <button class="jl-close" (click)="close()" aria-label="Cerrar">✕</button>
+
+  <h2 class="jl-title">Unirse con código</h2>
+  <p class="jl-desc">Ingresa el código de invitación que te compartió el administrador de la liga.</p>
+
+  <form class="jl-form" (ngSubmit)="submit()">
+    <input
+      class="jl-input"
+      type="text"
+      [(ngModel)]="code"
+      name="code"
+      placeholder="Ej. LIGA-2026-XZ9"
+      autocomplete="off"
+      autocapitalize="characters"
+    />
+
+    @if (errorMsg()) {
+      <p class="jl-error" role="alert">{{ errorMsg() }}</p>
+    }
+    @if (successMsg()) {
+      <p class="jl-success" role="status">{{ successMsg() }}</p>
+    }
+
+    <button class="jl-submit" type="submit" [disabled]="isWorking()">
+      {{ isWorking() ? 'Buscando liga…' : 'Unirse' }}
+    </button>
+  </form>
+</div>

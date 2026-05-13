@@ -91,10 +91,14 @@
       <h2 class="cta-title">¿Listo para demostrar tu instinto futbolero?</h2>
       <p class="cta-subtitle">Crea tu liga, invita a tus amigos y predice cada resultado.</p>
       <div class="cta-actions">
-        <p-button label="Crear liga" icon="pi pi-plus" size="large" />
-        <p-button label="Unirse con código" icon="pi pi-link" severity="secondary" size="large" />
+        <p-button label="Crear liga" icon="pi pi-plus" size="large" (click)="navigateToCreateLeague()" />
+        <p-button label="Unirse con código" icon="pi pi-link" severity="secondary" size="large" (click)="openJoinDialog()" />
       </div>
     </div>
   </section>
+
+  @if (showJoinDialog()) {
+    <app-join-league (closed)="closeJoinDialog()" />
+  }
 
 </div>

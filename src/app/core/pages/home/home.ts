@@ -5,6 +5,7 @@ import {
   inject,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -14,6 +15,7 @@ import { TagModule } from 'primeng/tag';
 import { HeroBannerComponent } from './hero-banner/hero-banner';
 import { StatsBarComponent } from './stats-bar/stats-bar';
 import { HomeRealtimeService } from './services/home-realtime.service';
+import { JoinLeagueComponent } from '../../../shared/components/join-league/join-league.component';
 import type { MatchCard, MatchPeriodRow } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
 
@@ -26,6 +28,7 @@ import type { MatchRow, TeamRow } from './models/home.models';
     CardModule,
     TagModule,
     CommonModule,
+    JoinLeagueComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -36,7 +39,8 @@ export class Home implements OnInit, OnDestroy {
   private readonly realtimeService = inject(HomeRealtimeService);
   private readonly router = inject(Router);
 
-  /** Builds MatchCard[] from realtime signals */
+  protected readonly showJoinDialog = signal(false);
+
   readonly carouselMatches = computed<MatchCard[]>(() => {
     return this.buildMatchCards(
       this.realtimeService.matches(),
@@ -57,6 +61,18 @@ export class Home implements OnInit, OnDestroy {
 
   navigateToPredict(card: MatchCard): void {
     this.router.navigate(['/prediction', card.match.match_id]);
+  }
+
+  navigateToCreateLeague(): void {
+    this.router.navigate(['/league']);
+  }
+
+  openJoinDialog(): void {
+    this.showJoinDialog.set(true);
+  }
+
+  closeJoinDialog(): void {
+    this.showJoinDialog.set(false);
   }
 
   private buildMatchCards(matches: MatchRow[], periods: MatchPeriodRow[], teams: TeamRow[]): MatchCard[] {
