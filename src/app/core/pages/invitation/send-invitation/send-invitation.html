@@ -1,0 +1,52 @@
+<section class="send-inv-shell" aria-labelledby="send-inv-title">
+  <h2 id="send-inv-title" class="send-inv-title">Enviar Invitación</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="send-inv-form">
+
+    <div class="field">
+      <label for="inv-email">Correo del invitado</label>
+      <input id="inv-email" type="email" formControlName="email" autocomplete="off" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="error-text">Ingresa un correo válido.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="inv-league">ID de Liga</label>
+      <input id="inv-league" type="number" formControlName="leagueId" min="1" />
+      @if (form.controls.leagueId.touched && form.controls.leagueId.errors?.['min']) {
+        <small class="error-text">Selecciona una liga válida.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label>Tipo de invitación</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" formControlName="type" value="existing" />
+          Usuario registrado
+        </label>
+        <label class="radio-label">
+          <input type="radio" formControlName="type" value="anonymous" />
+          Usuario anónimo (magic link)
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="send-btn" [disabled]="isSending() || form.invalid">
+      {{ isSending() ? 'Enviando...' : 'Enviar invitación' }}
+    </button>
+  </form>
+
+  @if (successToken()) {
+    <div class="success-block">
+      <p class="success-text">Invitación creada correctamente.</p>
+      <p class="token-label">Comparte este token con el invitado:</p>
+      <code class="token-code">{{ successToken() }}</code>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="error-text">{{ errorMessage() }}</p>
+  }
+</section>
