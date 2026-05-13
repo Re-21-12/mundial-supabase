@@ -50,7 +50,6 @@
   color-scheme: dark;
 
   --background: oklch(0.2 0.042 265.76);
-  --foreground: oklch(0.97 0.009 247.86);
   --card: oklch(0.27 0.04 260.03);
   --card-foreground: oklch(0.97 0.009 247.86);
   --popover: oklch(0.27 0.04 260.03);
@@ -80,8 +79,46 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Responsive tables: horizontal scroll on narrow viewports */
+  .table-scroll-wrapper {
+    overflow-x: auto;
+  }
+
+  /* Prevent images / media from overflowing their container */
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ── Mobile-first layout overrides ── */
+@media (max-width: 640px) {
+  /* Tighter header padding */
+  header.flex.h-12 {
+    padding-inline: 0.5rem;
+  }
+
+  /* Content area: less padding on small screens */
+  .flex-1.flex.items-center.justify-center {
+    padding: 0.75rem;
+    align-items: flex-start;
+  }
+
+  /* Make PrimeNG DataTable scrollable on mobile */
+  .p-datatable-wrapper {
+    overflow-x: auto !important;
+  }
+
+  /* Collapse gap in header action row */
+  .flex.flex-row.gap-4.items-center {
+    gap: 0.5rem;
   }
 }
