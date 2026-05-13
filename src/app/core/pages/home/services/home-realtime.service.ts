@@ -3,7 +3,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../services/supabase-service';
 import { DynamicService } from '../../../services/dynamic-service';
 import { PostgrestError } from '@supabase/supabase-js';
-import type { MatchRow, MatchPeriodRow, UserLeagueRow } from '../models/home.models';
+import type { MatchRow, MatchPeriodRow, UserLeagueRow, TeamRow } from '../models/home.models';
 
 @Injectable()
 export class HomeRealtimeService implements OnDestroy {
@@ -14,6 +14,7 @@ export class HomeRealtimeService implements OnDestroy {
 
   readonly matches = signal<MatchRow[]>([]);
   readonly periods = signal<MatchPeriodRow[]>([]);
+  readonly teams = signal<TeamRow[]>([]);
   readonly userLeagues = signal<UserLeagueRow[]>([]);
 
   async connect(): Promise<void> {
@@ -22,7 +23,7 @@ export class HomeRealtimeService implements OnDestroy {
   }
 
   private async loadInitialData(): Promise<void> {
-    const [matchRes, periodRes] = await Promise.all([
+    const [matchRes, periodRes, teamRes] = await Promise.all([
       this.dynamicService.fetchData<MatchRow>({
         table: 'MATCH',
         order: 'asc',
@@ -37,14 +38,18 @@ export class HomeRealtimeService implements OnDestroy {
         page: 0,
         columns: '*',
       }),
+      this.dynamicService.fetchData<TeamRow>({
+        table: 'TEAM',
+        order: 'asc',
+        limit: 200,
+        page: 0,
+        columns: 'team_id, name, catalog_id, created_at, created_by, deleted_at, deleted_by, is_deleted, updated_at, updated_by',
+      }),
     ]);
 
-    if (!(matchRes instanceof PostgrestError)) {
-      this.matches.set(matchRes);
-    }
-    if (!(periodRes instanceof PostgrestError)) {
-      this.periods.set(periodRes);
-    }
+    if (!(matchRes instanceof PostgrestError)) this.matches.set(matchRes);
+    if (!(periodRes instanceof PostgrestError)) this.periods.set(periodRes);
+    if (!(teamRes instanceof PostgrestError)) this.teams.set(teamRes);
   }
 
   private openChannel(): void {
