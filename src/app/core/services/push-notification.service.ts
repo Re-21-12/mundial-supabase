@@ -120,7 +120,7 @@ export class PushNotificationService {
     limit: number = 50,
     offset: number = 0,
   ): Promise<any[]> {
-    return this.notificationInboxService.getUserNotifications(userId, limit, offset);
+    return this.notificationInboxService.getUserNotifications(userId, limit);
   }
 
   /**

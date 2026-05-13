@@ -175,7 +175,7 @@ export type Database = {
           deleted_at: string | null;
           deleted_by: number | null;
           email: string;
-          expiration_date: string;
+          expires_at: string;
           invitation_type: string | null;
           is_deleted: boolean;
           league_id: number;
@@ -193,7 +193,7 @@ export type Database = {
           deleted_at?: string | null;
           deleted_by?: number | null;
           email: string;
-          expiration_date: string;
+          expires_at: string;
           invitation_type?: string | null;
           is_deleted?: boolean;
           league_id: number;
@@ -211,7 +211,7 @@ export type Database = {
           deleted_at?: string | null;
           deleted_by?: number | null;
           email?: string;
-          expiration_date?: string;
+          expires_at?: string;
           invitation_type?: string | null;
           is_deleted?: boolean;
           league_id?: number;
@@ -401,6 +401,135 @@ export type Database = {
           },
           {
             foreignKeyName: 'BROWSER_NOTIFICATION_LOG_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'USER';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
+      ERROR_CATALOG: {
+        Row: {
+          created_at: string;
+          created_by: number | null;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          description: string;
+          error_number: number;
+          integration: string;
+          is_active: boolean;
+          is_deleted: boolean;
+          resolution: string | null;
+          severity: string;
+          updated_at: string | null;
+          updated_by: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          description: string;
+          error_number: number;
+          integration: string;
+          is_active?: boolean;
+          is_deleted?: boolean;
+          resolution?: string | null;
+          severity?: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          description?: string;
+          error_number?: number;
+          integration?: string;
+          is_active?: boolean;
+          is_deleted?: boolean;
+          resolution?: string | null;
+          severity?: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+        };
+        Relationships: [];
+      };
+      ERROR_LOG: {
+        Row: {
+          browser_user_agent: string | null;
+          context: Json | null;
+          created_at: string;
+          created_by: number | null;
+          deleted_at: string | null;
+          deleted_by: number | null;
+          description: string;
+          error_log_id: number;
+          error_number: number;
+          is_deleted: boolean;
+          route: string | null;
+          severity: string;
+          source_file: string | null;
+          source_line: number | null;
+          stack_trace: string | null;
+          title: string;
+          updated_at: string | null;
+          updated_by: number | null;
+          user_id: number | null;
+        };
+        Insert: {
+          browser_user_agent?: string | null;
+          context?: Json | null;
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          description: string;
+          error_log_id?: number;
+          error_number: number;
+          is_deleted?: boolean;
+          route?: string | null;
+          severity?: string;
+          source_file?: string | null;
+          source_line?: number | null;
+          stack_trace?: string | null;
+          title: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id?: number | null;
+        };
+        Update: {
+          browser_user_agent?: string | null;
+          context?: Json | null;
+          created_at?: string;
+          created_by?: number | null;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+          description?: string;
+          error_log_id?: number;
+          error_number?: number;
+          is_deleted?: boolean;
+          route?: string | null;
+          severity?: string;
+          source_file?: string | null;
+          source_line?: number | null;
+          stack_trace?: string | null;
+          title?: string;
+          updated_at?: string | null;
+          updated_by?: number | null;
+          user_id?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ERROR_LOG_error_number_fkey';
+            columns: ['error_number'];
+            isOneToOne: false;
+            referencedRelation: 'ERROR_CATALOG';
+            referencedColumns: ['error_number'];
+          },
+          {
+            foreignKeyName: 'ERROR_LOG_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'USER';

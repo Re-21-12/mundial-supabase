@@ -155,6 +155,17 @@ export const routes: Routes = [
           import('./core/pages/audit-log/audit-log.routes').then((m) => m.AUDIT_LOG_ROUTES),
       },
       {
+        path: 'error-monitor',
+        title: 'Error Monitor',
+        data: {
+          description: 'Registry of runtime and application errors',
+          icon: 'lucideInfo',
+          requiredPermission: PERMISSIONS.AUDIT_LOG.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/error-monitor/error-monitor').then((m) => m.ErrorMonitorPage),
+      },
+      {
         path: 'invitation',
         title: 'Invitation',
         data: {

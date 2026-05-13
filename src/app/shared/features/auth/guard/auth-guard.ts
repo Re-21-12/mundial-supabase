@@ -6,11 +6,12 @@ import { SupabaseAuthService } from '../../../../core/services/supabase-auth-ser
 
 export const authGuard: CanActivateFn = async (route, state) => {
   const supabaseAuthService = inject(SupabaseAuthService);
+  inject(AuthFacade);
   const router = inject(Router);
 
   // Ensure initial auth resolved
   try {
-    await supabaseAuthService.waitForAuthReady();
+    await supabaseAuthService.waitForAuthReady(3000);
   } catch (err) {
     console.error('[AuthGuard] waitForAuthReady error', err);
   }

@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, inject, computed, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationInboxService } from '../../../core/services/notification-inbox.service';
+import { AuthFacade } from '../../features/auth/auth.facade';
 import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -296,8 +297,9 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class NotificationInboxComponent implements OnInit, OnDestroy {
   private notificationService = inject(NotificationInboxService);
+  private authFacade = inject(AuthFacade);
   private destroy$ = new Subject<void>();
-  private userId = 1; // TODO: Get from auth service
+  private get userId(): number { return Number(this.authFacade.getInternalUserId()) || 0; }
 
   notifications = signal<any[]>([]);
   unreadCount = signal(0);

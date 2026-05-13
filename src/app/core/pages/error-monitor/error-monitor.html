@@ -1,0 +1,133 @@
+<section class="error-monitor-shell">
+  <header class="hero-panel">
+    <div>
+      <p class="eyebrow">Observabilidad</p>
+      <h1>Monitor de errores</h1>
+      <p class="hero-copy">
+        Catálogo de errores conocidos y trazas recientes capturadas por el manejador global.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <p-button
+        label="Actualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="loadData()"
+      />
+      <span class="last-updated">{{ lastUpdated() ? formatDate(lastUpdated()?.toISOString()) : 'Sin actualización todavía' }}</span>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <p-progressSpinner ariaLabel="Cargando errores" />
+      <p>Cargando información de errores...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="stats-grid">
+    <p-card>
+      <div class="stat-card">
+        <span class="stat-label">Errores registrados</span>
+        <strong>{{ totalErrors() }}</strong>
+      </div>
+    </p-card>
+    <p-card>
+      <div class="stat-card">
+        <span class="stat-label">Críticos</span>
+        <strong>{{ criticalErrors() }}</strong>
+      </div>
+    </p-card>
+    <p-card>
+      <div class="stat-card">
+        <span class="stat-label">Altos</span>
+        <strong>{{ highErrors() }}</strong>
+      </div>
+    </p-card>
+    <p-card>
+      <div class="stat-card">
+        <span class="stat-label">Errores catalogados</span>
+        <strong>{{ trackedDefinitions() }}</strong>
+      </div>
+    </p-card>
+  </div>
+
+  <section class="panel-block">
+    <div class="panel-heading">
+      <h2>Catálogo de errores</h2>
+      <p>Define el número de error, integración y descripción estándar.</p>
+    </div>
+
+    <p-table [value]="catalog()" [rows]="10" [paginator]="true" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Número</th>
+          <th>Integración</th>
+          <th>Descripción</th>
+          <th>Severidad</th>
+          <th>Resolución</th>
+          <th>Activo</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.error_number }}</td>
+          <td>{{ item.integration }}</td>
+          <td>{{ item.description }}</td>
+          <td>
+            <p-tag [severity]="getSeveritySeverity(item.severity)" [value]="item.severity" />
+          </td>
+          <td>{{ item.resolution || 'Sin resolución' }}</td>
+          <td>{{ item.is_active ? 'Sí' : 'No' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="panel-block">
+    <div class="panel-heading">
+      <h2>Últimos errores</h2>
+      <p>Eventos recientes capturados por la app y almacenados en Supabase.</p>
+    </div>
+
+    <p-table [value]="logs()" [rows]="10" [paginator]="true" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha</th>
+          <th>Número</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Severidad</th>
+          <th>Ruta</th>
+          <th>Fuente</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ formatDate(item.created_at) }}</td>
+          <td>{{ item.error_number }}</td>
+          <td>{{ item.title }}</td>
+          <td>{{ item.description }}</td>
+          <td>
+            <p-tag [severity]="getSeveritySeverity(item.severity)" [value]="item.severity" />
+          </td>
+          <td>{{ item.route || 'Global' }}</td>
+          <td>
+            <div class="source-cell">
+              <span>{{ item.source_file || 'Sin archivo' }}</span>
+              <small>{{ item.source_line || '-' }}</small>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+</section>
