@@ -2,6 +2,42 @@
 
 ---
 
+## Roadmap
+
+| Version | Theme | Status | Issues |
+|---------|-------|--------|--------|
+| v3.2.1 | Fix trigger default role | ✅ Applied | — |
+| v3.3.0 | Migration versioning infrastructure | ✅ Applied | — |
+| v3.3.x | Auth Completeness | 🔄 In Progress | [#8](../../issues/8) [#9](../../issues/9) [#10](../../issues/10) |
+| v3.4.0 | Email Invitations | 📋 Planned | [#11](../../issues/11) |
+| v3.5.0 | Wallet navbar + Approval flow | 📋 Planned | [#12](../../issues/12) [#13](../../issues/13) |
+| v3.6.0 | Global Search | 📋 Planned | [#14](../../issues/14) |
+| v3.7.0 | Real-time Standings + Schedule | 📋 Planned | [#15](../../issues/15) [#16](../../issues/16) |
+| v3.8.0 | Interactive League Diagram | 📋 Planned | [#17](../../issues/17) |
+| v3.9.0 | Mobile First | 📋 Planned | [#18](../../issues/18) |
+
+---
+
+## Version 3.3.0 - 2026-05-13 — Auth Infrastructure + Migration Versioning
+
+### Infrastructure
+
+- **`MIGRATION_LOG` table**: Audits all DB migrations with version, name, description, script_path, applied_at, applied_by, status
+- **10 historical migrations backfilled** in MIGRATION_LOG (v1.0.0 → v3.3.0)
+
+### Bug Fix (v3.2.1)
+
+- **Trigger `handle_new_auth_user`**: Fixed default role lookup from nonexistent `cliente` to existing `user` (id=2). All new registrations now correctly receive USER + USER_ROLE + WALLET.
+
+### Files Changed in v3.3.0
+
+| File                                        | Change                                           |
+| ------------------------------------------- | ------------------------------------------------ |
+| `db/script/migration-user-registration.sql` | Role lookup changed from `'cliente'` to `'user'` |
+| `SESSION_CONTEXT_v3.3.md`                   | NEW — planning context for v3.3                  |
+
+---
+
 ## Version 3.2.0 - 2026-05-12 — Email/Password User Registration
 
 ### Registration Features

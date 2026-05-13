@@ -55,7 +55,7 @@ BEGIN
   -- Assign default role; silently skips when role does not exist
   SELECT role_id INTO v_role_id
   FROM public."ROLE"
-  WHERE name = 'cliente'
+  WHERE name = 'user'
   LIMIT 1;
 
   IF v_role_id IS NOT NULL THEN
