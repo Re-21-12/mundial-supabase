@@ -40,6 +40,7 @@ import { Tooltip } from 'primeng/tooltip';
 import { AuthFacade } from '../features/auth/auth.facade';
 import { NotificationInboxService } from '../../core/services/notification-inbox.service';
 import { NotificationInboxComponent } from '../components/notification-inbox/notification-inbox.component';
+import { GlobalSearchComponent } from '../components/global-search/global-search.component';
 
 const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
 
@@ -63,6 +64,7 @@ interface SidebarMenuItem {
     RouterLinkActive,
     Tooltip,
     NotificationInboxComponent,
+    GlobalSearchComponent,
   ],
   templateUrl: './layout.html',
   styleUrls: ['./layout.css'],

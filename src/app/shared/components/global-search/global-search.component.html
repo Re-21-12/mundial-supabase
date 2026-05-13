@@ -1,0 +1,39 @@
+<div class="search-wrapper" role="search">
+  <div class="search-input-row">
+    <span class="search-icon" aria-hidden="true">⌕</span>
+    <input
+      class="search-input"
+      type="search"
+      placeholder="Buscar ligas, usuarios, equipos..."
+      [value]="query()"
+      (input)="onInput($any($event.target).value)"
+      autocomplete="off"
+      aria-label="Búsqueda global"
+      aria-expanded="{{ isOpen() }}"
+      aria-controls="search-results"
+    />
+    @if (isLoading()) {
+      <span class="search-spinner" aria-hidden="true"></span>
+    }
+  </div>
+
+  @if (isOpen() && results().length > 0) {
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Resultados de búsqueda">
+      @for (r of results(); track r.entity_id + r.entity_type) {
+        <li
+          class="search-result-item"
+          role="option"
+          (click)="navigate(r)"
+          (keydown.enter)="navigate(r)"
+          tabindex="0"
+        >
+          <span class="result-badge">{{ entityLabel(r.entity_type) }}</span>
+          <span class="result-label">{{ r.label }}</span>
+          @if (r.sublabel) {
+            <span class="result-sublabel">{{ r.sublabel }}</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
