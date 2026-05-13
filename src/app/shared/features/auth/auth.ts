@@ -23,6 +23,8 @@ export class Auth implements OnInit {
   id = signal<string | null>(null);
   signInMode = signal<string | null>(null);
   mode = signal<AuthOverlayMode>('login');
+  registrationSuccess = signal(false);
+  registrationError = signal<string | null>(null);
 
   ngOnInit() {
     this.setId();
@@ -53,7 +55,7 @@ export class Auth implements OnInit {
     else this.signInMode.set('password');
   }
   /*  URL Configuration page */
-  submitData = ($event: string) => {
+  submitData = async ($event: string) => {
     const parsedData = JSON.parse($event);
     const email = parsedData.email as string | undefined;
     const password = parsedData.password as string | undefined;
@@ -70,14 +72,23 @@ export class Auth implements OnInit {
         }
         this.authFacade.signInWithEmail(email);
         return;
-      case 'register':
-        if (!email) {
+      case 'register': {
+        const name = parsedData.name as string | undefined;
+        const confirmPassword = parsedData.confirmPassword as string | undefined;
+        if (!email || !password || !name) return;
+        if (password !== confirmPassword) {
+          this.registrationError.set('Las contraseñas no coinciden.');
           return;
         }
-        if (password) {
-          this.authFacade.signUpWithPassword(email, password);
+        this.registrationError.set(null);
+        const { error } = await this.authFacade.signUpWithPassword(email, password, name);
+        if (error) {
+          this.registrationError.set((error as any)?.message ?? 'Error al registrar. Intenta de nuevo.');
+        } else {
+          this.registrationSuccess.set(true);
         }
         return;
+      }
       case 'change-password':
         if (!email) {
           return;

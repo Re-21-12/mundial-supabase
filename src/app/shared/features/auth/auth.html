@@ -10,7 +10,17 @@
       (providerSelected)="onOAuthProviderSelected($event)"
       (modeSelected)="onModeSelected($event)"
     >
-      <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
+      @if (mode() === 'register' && registrationSuccess()) {
+        <div class="register-success">
+          <p>Registro exitoso. Revisa tu correo para confirmar tu cuenta.</p>
+          <button type="button" (click)="onModeSelected('login')">Ir a iniciar sesión</button>
+        </div>
+      } @else {
+        <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
+        @if (mode() === 'register' && registrationError()) {
+          <p class="register-error">{{ registrationError() }}</p>
+        }
+      }
     </app-auth-overlay>
   </div>
 </section>
