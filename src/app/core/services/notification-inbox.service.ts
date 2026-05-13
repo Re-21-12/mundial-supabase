@@ -7,6 +7,7 @@ export type NotificationType =
   | 'prediction_locked'
   | 'result_posted'
   | 'invitation_received'
+  | 'invitation_accepted'
   | 'league_created';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -168,8 +169,8 @@ export class NotificationInboxService {
       // Click handler
       notification.onclick = () => {
         window.focus();
-        if (options.data?.actionUrl) {
-          window.location.hash = options.data.actionUrl;
+        if (options.data?.['actionUrl']) {
+          window.location.hash = options.data['actionUrl'];
         }
         notification.close();
       };

@@ -207,7 +207,7 @@ export class LeagueCreationService {
             );
             if (magicLinkResult.success) {
               anonymousCount++;
-              // TODO: Send email with magic link and custom message
+              // Magic link is persisted for in-app retrieval and onboarding flow
             } else {
               failedCount++;
             }
@@ -349,7 +349,7 @@ export class LeagueCreationService {
     try {
       const client = this.supabaseService.getClient();
       if (!client) {
-        return { matchId, isLocked: false };
+        return { matchId, isLocked: false, timeUntilStart: 0 };
       }
 
       // Get match start time
@@ -360,7 +360,7 @@ export class LeagueCreationService {
         .maybeSingle();
 
       if (matchError || !match) {
-        return { matchId, isLocked: false };
+        return { matchId, isLocked: false, timeUntilStart: 0 };
       }
 
       const startTime = new Date(match.start_time);
@@ -402,7 +402,7 @@ export class LeagueCreationService {
       };
     } catch (error) {
       console.error('Error checking prediction lock:', error);
-      return { matchId, isLocked: false };
+      return { matchId, isLocked: false, timeUntilStart: 0 };
     }
   }
 
@@ -465,7 +465,9 @@ export class LeagueCreationService {
           .eq('is_deleted', false);
 
         if (leagueMembers) {
-          const userIds = leagueMembers.map((m) => m.user_id);
+          const userIds = (leagueMembers as Array<{ user_id: number }>).map(
+            (member) => member.user_id,
+          );
           await this.notificationService.sendBulkNotifications(
             leagues.league_id,
             userIds,

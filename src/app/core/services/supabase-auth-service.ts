@@ -56,6 +56,7 @@ export class SupabaseAuthService {
   //#endregion
 
   private authSubscription: { unsubscribe: () => void } | null = null;
+  private authListenerInitialized = false;
   private authReadyPromise!: Promise<void>;
   private authReadyResolve!: () => void;
 
@@ -64,15 +65,27 @@ export class SupabaseAuthService {
     this.authReadyPromise = new Promise((resolve) => {
       this.authReadyResolve = resolve;
     });
+
+    // Start auth state tracking immediately so guards do not wait forever
+    void this.stateAuthChanges();
   }
 
   /**
    * Wait for initial auth to resolve.
    * Guards and resolvers should call this before proceeding.
    */
-  async waitForAuthReady(): Promise<void> {
-    if (this.authReady()) return; // Already ready
-    await this.authReadyPromise;
+  async waitForAuthReady(timeoutMs = 3000): Promise<void> {
+    if (this.authReady()) return;
+
+    await Promise.race([
+      this.authReadyPromise,
+      new Promise<void>((resolve) => {
+        window.setTimeout(() => {
+          console.warn('[Auth] waitForAuthReady timed out, continuing with current session state');
+          resolve();
+        }, timeoutMs);
+      }),
+    ]);
   }
 
   //#region Profile Management
@@ -110,6 +123,12 @@ export class SupabaseAuthService {
   }
 
   stateAuthChanges() {
+    if (this.authListenerInitialized) {
+      return;
+    }
+
+    this.authListenerInitialized = true;
+
     const {
       data: { subscription },
     } = this._supabaseService.client.auth.onAuthStateChange(async (event, session) => {
@@ -142,7 +161,19 @@ export class SupabaseAuthService {
           this._applySessionState(session);
           this._storeOAuthTokens(session);
           await this.logSessionStart();
-          this._router.navigate(['/home']);
+          // Only redirect to /home when coming from unauthenticated pages.
+          // Supabase can fire SIGNED_IN on token refresh or tab visibility
+          // changes; redirecting unconditionally cancels user-initiated navigation.
+          const currentUrl = this._router.url;
+          const isAuthPage =
+            !currentUrl ||
+            currentUrl === '/' ||
+            currentUrl.startsWith('/login') ||
+            currentUrl.startsWith('/auth') ||
+            currentUrl.startsWith('/sign-in');
+          if (isAuthPage) {
+            this._router.navigate(['/home']);
+          }
         }
         break;
 

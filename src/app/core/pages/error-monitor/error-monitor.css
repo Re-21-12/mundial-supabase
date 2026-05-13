@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+
+.error-monitor-shell {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.35), transparent 30%),
+    linear-gradient(135deg, #0f172a 0%, #111827 55%, #1e293b 100%);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.hero-panel h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.hero-copy {
+  max-width: 56ch;
+  margin: 0.75rem 0 0;
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.hero-actions {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: end;
+}
+
+.last-updated {
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 0.85rem;
+}
+
+.loading-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+}
+
+.error-banner {
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.stat-card strong {
+  font-size: 1.8rem;
+  color: var(--text-color, #111827);
+}
+
+.panel-block {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.panel-heading p {
+  margin: 0.25rem 0 0;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.source-cell {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.source-cell small {
+  color: var(--text-color-secondary, #6b7280);
+}
+
+@media (max-width: 960px) {
+  .hero-panel,
+  .hero-actions {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-panel {
+    padding: 1.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

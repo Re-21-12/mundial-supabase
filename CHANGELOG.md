@@ -273,19 +273,16 @@ None. Backward compatible with existing system.
 #### Known Limitations & TODO
 
 1. **Push Delivery**:
-   - Current implementation logs notifications but doesn't send to browser
-   - TODO: Implement web-push library integration with backend
-   - TODO: Add service worker registration UI
+   - Current implementation uses browser Notifications API for foreground delivery
+   - TODO: Add service worker registration UI for background delivery
 
-2. **Email Notifications**:
-   - Magic link emails not yet implemented
-   - TODO: Integrate email service (SendGrid, AWS SES, etc.)
-   - TODO: Email templates for magic links and invitations
+2. **Magic Link Delivery**:
+   - Magic links are stored for in-app onboarding and retrieval
+   - TODO: Add richer invitation UI for anonymous users
 
 3. **Magic Link Verification**:
-   - Currently no email verification during magic link generation
-   - TODO: Add email domain validation
-   - TODO: Add rate limiting for magic link requests per email
+   - Currently no domain validation during magic link generation
+   - TODO: Add rate limiting for magic link requests per address
 
 4. **Timezone Handling**:
    - Prediction lock times use UTC
@@ -298,14 +295,13 @@ None. Backward compatible with existing system.
 #### Next Steps (Phase 4)
 
 1. Implement backend push notification sending with web-push library
-2. Add email notification service integration
-3. Create UI components for:
+2. Create UI components for:
    - Magic link sign-up flow
    - Push notification preferences
    - Prediction lock countdown timer
-4. Add performance monitoring and metrics
-5. Implement rate limiting for API endpoints
-6. Add E2E tests for complete user flows
+3. Add performance monitoring and metrics
+4. Implement rate limiting for API endpoints
+5. Add E2E tests for complete user flows
 
 ---
 

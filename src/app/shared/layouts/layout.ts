@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, effect } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, effect } from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -25,16 +25,27 @@ import {
   lucideImage,
   lucideUser,
   lucideLogOut,
+  lucideBell,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
 import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
 import { Title } from '@angular/platform-browser';
-import { filter, map } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
+import { Subject, interval } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthFacade } from '../features/auth/auth.facade';
+import { NotificationInboxService } from '../../core/services/notification-inbox.service';
+import { NotificationInboxComponent } from '../components/notification-inbox/notification-inbox.component';
 
 const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
+
+interface SidebarMenuItem {
+  path: string;
+  title: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-layout',
@@ -49,6 +60,7 @@ const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
     RouterLink,
     RouterLinkActive,
     Tooltip,
+    NotificationInboxComponent,
   ],
   templateUrl: './layout.html',
   styleUrls: ['./layout.css'],
@@ -66,43 +78,69 @@ const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
       lucideInfo,
       lucideUser,
       lucideLogOut,
+      lucideBell,
     }),
   ],
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
+  private notificationService = inject(NotificationInboxService);
+  private destroy$ = new Subject<void>();
   readonly authFacade = inject(AuthFacade);
 
-  protected readonly menuItems = signal<Route[]>([]);
+  protected readonly menuItems = signal<SidebarMenuItem[]>([]);
   protected readonly title = signal('');
+  protected readonly showNotifications = signal(false);
+  protected readonly headerUnreadCount = signal(0);
 
-  // Inyectar el servicio de tema
   themeService = inject(ThemeService);
-
   titleService = inject(Title);
+
   constructor() {
     console.log('LayoutComponent constructor');
 
-    // Create reactive effect in constructor (injection context) so it can
-    // subscribe to permission changes and update menuItems accordingly.
     const layoutRoute = this.router.config.find((r) => r.component === LayoutComponent);
     effect(() => {
       const userPermissions = this.authFacade.permissions();
 
-      this.menuItems.set(
+      const visibleRoutes =
         layoutRoute?.children?.filter((route) => {
           if (route.path === 'not-found') {
             return false;
           }
-
           return this.canSeeRoute(route, userPermissions);
-        }) ?? [],
+        }) ?? [];
+
+      this.menuItems.set(
+        visibleRoutes
+          .filter((route): route is Route & { path: string } => typeof route.path === 'string')
+          .map((route) => ({
+            path: route.path,
+            title: typeof route.title === 'string' ? route.title : route.path,
+            icon: typeof route.data?.['icon'] === 'string' ? route.data['icon'] : 'lucideCircle',
+          })),
       );
     });
   }
+
   protected getTooltipText(title: any): string {
     return typeof title === 'string' ? title : '';
+  }
+
+  protected getRouteLink(path: string): string[] {
+    return ['/', path];
+  }
+
+  protected toggleNotifications(): void {
+    this.showNotifications.update((v) => !v);
+  }
+
+  private async refreshUnreadCount(): Promise<void> {
+    const uid = Number(this.authFacade.getInternalUserId());
+    if (!uid) return;
+    const count = await this.notificationService.getUnreadCount(uid);
+    this.headerUnreadCount.set(count);
   }
 
   private canSeeRoute(route: Route, userPermissions: string[]): boolean {
@@ -126,27 +164,38 @@ export class LayoutComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Trigger session fetch (populates permissions). The reactive effect in
-    // the constructor will update `menuItems` when permissions change.
     await this.authFacade.getSession();
+
+    await this.refreshUnreadCount();
+
+    interval(60000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.refreshUnreadCount());
 
     this.router.events
       .pipe(
+        takeUntil(this.destroy$),
         filter((event) => event instanceof NavigationEnd),
-        map(() => {
-          let route = this.activatedRoute;
-          while (route.firstChild) {
-            route = route.firstChild;
-          }
-          return route;
-        }),
-        filter((route) => route.outlet === 'primary'),
-        map((route) => route.snapshot.title),
       )
-      .subscribe((pageTitle: string | undefined) => {
-        const title = pageTitle || 'Sin título';
-        this.title.set(title);
-        this.titleService.setTitle(title);
+      .subscribe(() => {
+        // Close notification dropdown on every navigation
+        this.showNotifications.set(false);
+
+        // Update page title from the activated route
+        let route = this.activatedRoute;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
+        if (route.outlet === 'primary') {
+          const pageTitle = route.snapshot.title || 'Sin título';
+          this.title.set(pageTitle);
+          this.titleService.setTitle(pageTitle);
+        }
       });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
