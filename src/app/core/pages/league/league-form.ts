@@ -26,6 +26,8 @@ export const formFields: FormFields = {
           table: 'CATALOG',
           valueField: 'catalog_id',
           labelField: 'description',
+          filterField: 'table_id',
+          filterValue: 21,
           orderBy: 'description',
           order: 'asc',
           includeDeleted: false,
