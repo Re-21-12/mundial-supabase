@@ -36,14 +36,13 @@ export class Home implements OnInit, OnDestroy {
   private readonly realtimeService = inject(HomeRealtimeService);
   private readonly router = inject(Router);
 
-  /** Builds MatchCard[] from realtime signals */
-  readonly carouselMatches = computed<MatchCard[]>(() => {
-    return this.buildMatchCards(
+  readonly carouselMatches = computed<MatchCard[]>(() =>
+    this.buildMatchCards(
       this.realtimeService.matches(),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
-    );
-  });
+    ),
+  );
 
   readonly featuredMatches = computed<MatchCard[]>(() => this.carouselMatches().slice(0, 6));
 

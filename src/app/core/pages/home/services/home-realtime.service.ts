@@ -78,15 +78,9 @@ export class HomeRealtimeService implements OnDestroy {
     const removed = payload.old as Partial<MatchRow>;
 
     this.matches.update((current) => {
-      if (payload.eventType === 'INSERT') {
-        return [...current, incoming];
-      }
-      if (payload.eventType === 'UPDATE') {
-        return current.map((m) => (m.match_id === incoming.match_id ? incoming : m));
-      }
-      if (payload.eventType === 'DELETE') {
-        return current.filter((m) => m.match_id !== removed.match_id);
-      }
+      if (payload.eventType === 'INSERT') return [...current, incoming];
+      if (payload.eventType === 'UPDATE') return current.map((m) => (m.match_id === incoming.match_id ? incoming : m));
+      if (payload.eventType === 'DELETE') return current.filter((m) => m.match_id !== removed.match_id);
       return current;
     });
   }
@@ -96,15 +90,9 @@ export class HomeRealtimeService implements OnDestroy {
     const removed = payload.old as Partial<MatchPeriodRow>;
 
     this.periods.update((current) => {
-      if (payload.eventType === 'INSERT') {
-        return [...current, incoming];
-      }
-      if (payload.eventType === 'UPDATE') {
-        return current.map((p) => (p.period_id === incoming.period_id ? incoming : p));
-      }
-      if (payload.eventType === 'DELETE') {
-        return current.filter((p) => p.period_id !== removed.period_id);
-      }
+      if (payload.eventType === 'INSERT') return [...current, incoming];
+      if (payload.eventType === 'UPDATE') return current.map((p) => (p.period_id === incoming.period_id ? incoming : p));
+      if (payload.eventType === 'DELETE') return current.filter((p) => p.period_id !== removed.period_id);
       return current;
     });
   }
@@ -114,17 +102,9 @@ export class HomeRealtimeService implements OnDestroy {
     const removed = payload.old as Partial<UserLeagueRow>;
 
     this.userLeagues.update((current) => {
-      if (payload.eventType === 'INSERT') {
-        return [...current, incoming];
-      }
-      if (payload.eventType === 'UPDATE') {
-        return current.map((ul) =>
-          ul.user_league_id === incoming.user_league_id ? incoming : ul,
-        );
-      }
-      if (payload.eventType === 'DELETE') {
-        return current.filter((ul) => ul.user_league_id !== removed.user_league_id);
-      }
+      if (payload.eventType === 'INSERT') return [...current, incoming];
+      if (payload.eventType === 'UPDATE') return current.map((ul) => (ul.user_league_id === incoming.user_league_id ? incoming : ul));
+      if (payload.eventType === 'DELETE') return current.filter((ul) => ul.user_league_id !== removed.user_league_id);
       return current;
     });
   }
