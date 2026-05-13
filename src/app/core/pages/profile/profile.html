@@ -1,73 +1,94 @@
 <section class="profile-shell" aria-labelledby="profile-title">
   <div class="profile-card">
-    <h1 id="profile-title">Mi Perfil</h1>
 
+    @if (isLoading()) {
+      <p class="profile-loading">Cargando perfil...</p>
+    } @else if (errorMessage() && !profile()) {
+      <p class="error-text">{{ errorMessage() }}</p>
+    } @else {
 
-      @if (tokenClaims()?.user_metadata?.avatar_url) {
-        <div class="avatar-row">
-          <img
-            class="profile-avatar"
-            [src]="tokenClaims()?.user_metadata?.avatar_url"
-            [alt]="'Avatar de ' + (tokenClaims()?.user_metadata?.full_name ?? 'usuario')"
-            title="Avatar de usuario"
-            referrerpolicy="no-referrer"
-          />
+      <!-- Avatar + nombre -->
+      <div class="profile-header">
+        <div class="avatar-circle" aria-hidden="true">{{ initials }}</div>
+        <div>
+          <h1 id="profile-title" class="profile-name">{{ profile()?.name }}</h1>
+          <span class="profile-role">{{ authFacade.role() ?? 'sin rol' }}</span>
         </div>
-      }
-
-      <h2 class="section-title">Perfil base</h2>
-      <dl>
-        <div class="row">
-          <dt>ID</dt>
-          <dd>{{ profile()?.id }}</dd>
-        </div>
-
-        <div class="row">
-          <dt>Email</dt>
-          <dd>{{ profile()?.email }}</dd>
-        </div>
-
-        <div class="row">
-          <dt>Rol</dt>
-          <dd>{{ role() }}</dd>
-        </div>
-      </dl>
-
-      <div class="permissions-block">
-        <h2>Permisos</h2>
-        @if (permissions().length === 0) {
-          <p>No tienes permisos asignados.</p>
-        } @else {
-          <div class="permissions-list" role="list">
-            @for (permission of permissions(); track permission) {
-              <p role="listitem">{{ permission }}</p>
-            }
-          </div>
-        }
       </div>
 
-      @if (tokenClaims()) {
-        <div class="token-block">
-          <h2 class="section-title">Claims del access token</h2>
-          <dl>
-            <div class="row">
-              <dt>is_anonymous</dt>
-              <dd>{{ tokenClaims()?.is_anonymous ? 'true' : 'false' }}</dd>
-            </div>
-          </dl>
+      <!-- Info de solo lectura -->
+      <section class="info-section" aria-label="Información de cuenta">
+        <h2 class="section-title">Cuenta</h2>
+        <dl>
+          <div class="row">
+            <dt>Email</dt>
+            <dd>{{ profile()?.email }}</dd>
+          </div>
+          <div class="row">
+            <dt>Estado</dt>
+            <dd>
+              <span class="status-badge" [class.active]="profile()?.status === 'active'">
+                {{ profile()?.status }}
+              </span>
+            </dd>
+          </div>
+          <div class="row">
+            <dt>Registro</dt>
+            <dd>{{ profile()?.registration_date | date: 'dd/MM/yyyy' }}</dd>
+          </div>
+        </dl>
+      </section>
 
-          <h3 class="subsection-title">User metadata</h3>
-          <dl>
-            <div class="row">
-              <dt>name</dt>
-              <dd>{{ tokenClaims()?.user_metadata?.name ?? 'N/A' }}</dd>
-            </div>
-            <div class="row">
-              <dt>email_verified</dt>
-              <dd>{{ tokenClaims()?.user_metadata?.email_verified ? 'true' : 'false' }}</dd>
-            </div>
-          </dl>
+      <!-- Wallet -->
+      <section class="wallet-section" aria-label="Billetera">
+        <h2 class="section-title">Billetera</h2>
+        <div class="wallet-balance">
+          <span class="balance-label">Saldo disponible</span>
+          <span class="balance-amount">Q {{ wallet()?.balance ?? 0 }}</span>
         </div>
-      }
+      </section>
+
+      <!-- Formulario editable -->
+      <section class="edit-section" aria-label="Editar perfil">
+        <h2 class="section-title">Editar perfil</h2>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+          <div class="field">
+            <label for="name">Nombre</label>
+            <input id="name" type="text" formControlName="name" autocomplete="name" />
+            @if (form.controls.name.touched && form.controls.name.errors?.['required']) {
+              <small class="error-text">El nombre es requerido.</small>
+            }
+            @if (form.controls.name.touched && form.controls.name.errors?.['minlength']) {
+              <small class="error-text">Mínimo 2 caracteres.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="login">Login</label>
+            <input id="login" type="text" formControlName="login" autocomplete="username" />
+            @if (form.controls.login.touched && form.controls.login.errors?.['required']) {
+              <small class="error-text">El login es requerido.</small>
+            }
+            @if (form.controls.login.touched && form.controls.login.errors?.['minlength']) {
+              <small class="error-text">Mínimo 2 caracteres.</small>
+            }
+          </div>
+
+          @if (successMessage()) {
+            <p class="success-text">{{ successMessage() }}</p>
+          }
+          @if (errorMessage()) {
+            <p class="error-text">{{ errorMessage() }}</p>
+          }
+
+          <button type="submit" class="save-btn" [disabled]="isSaving() || form.invalid">
+            {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </form>
+      </section>
+
+    }
   </div>
 </section>

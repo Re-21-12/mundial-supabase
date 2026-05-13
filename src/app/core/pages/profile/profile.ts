@@ -1,104 +1,101 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { jwtDecode } from 'jwt-decode';
+import { DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
-
-type UserProfile = {
-  id: string;
-  email: string;
-};
-
-type AccessTokenAmr = {
-  method?: string;
-  timestamp?: number;
-};
-
-type AccessTokenMetadata = {
-  avatar_url?: string;
-  email?: string;
-  email_verified?: boolean;
-  full_name?: string;
-  iss?: string;
-  name?: string;
-  phone_verified?: boolean;
-  picture?: string;
-  provider_id?: string;
-  sub?: string;
-};
-
-type AccessTokenClaims = {
-  iss?: string;
-  sub?: string;
-  aud?: string;
-  exp?: number;
-  iat?: number;
-  email?: string;
-  phone?: string;
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-  };
-  user_metadata?: AccessTokenMetadata;
-  role?: string;
-  aal?: string;
-  amr?: AccessTokenAmr[];
-  session_id?: string;
-  is_anonymous?: boolean;
-};
+import { ProfileService, UserProfileData, WalletData } from '../../services/profile.service';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePage implements OnInit {
-  private readonly authFacade = inject(AuthFacade);
-  private readonly router = inject(Router);
+  protected readonly authFacade = inject(AuthFacade);
+  private readonly profileService = inject(ProfileService);
+  private readonly fb = inject(FormBuilder);
 
   protected readonly isLoading = signal(true);
+  protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal('');
-  protected readonly profile = signal<UserProfile | null>(null);
-  protected readonly tokenClaims = signal<AccessTokenClaims | null>(null);
-  protected readonly role = this.authFacade.role;
-  protected readonly permissions = this.authFacade.permissions;
+  protected readonly successMessage = signal('');
+  protected readonly profile = signal<UserProfileData | null>(null);
+  protected readonly wallet = signal<WalletData | null>(null);
 
-  protected formatUnixTimestamp(timestamp?: number): string {
-    if (!timestamp) {
-      return 'N/A';
-    }
+  protected readonly form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+    login: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(40)]],
+  });
 
-    return new Date(timestamp * 1000).toLocaleString();
+  protected get initials(): string {
+    const name = this.profile()?.name ?? '';
+    return name
+      .split(' ')
+      .slice(0, 2)
+      .map((w) => w[0] ?? '')
+      .join('')
+      .toUpperCase();
   }
 
   async ngOnInit() {
+    const userId = Number(this.authFacade.getInternalUserId());
+    if (!userId) {
+      this.errorMessage.set('No se pudo identificar al usuario.');
+      this.isLoading.set(false);
+      return;
+    }
+
     try {
-      const {
-        data: { session },
-      } = await this.authFacade.getSession();
+      const [profileResult, walletResult] = await Promise.all([
+        this.profileService.loadProfile(userId),
+        this.profileService.loadWallet(userId),
+      ]);
 
-      if (!session) {
-        await this.router.navigate(['/auth']);
-        return;
-      }
-
-      this.tokenClaims.set(jwtDecode<AccessTokenClaims>(session.access_token));
-
-      const { data, error } = await this.authFacade.profile(session.user.email ?? '');
-      if (error) {
+      if (profileResult.error) {
         this.errorMessage.set('No se pudo cargar el perfil.');
         return;
       }
 
-      this.profile.set({
-        id: data?.id ?? session.user.id,
-        email: data?.email ?? session.user.email ?? '',
+      this.profile.set(profileResult.data);
+      this.wallet.set(walletResult.data ?? null);
+
+      this.form.setValue({
+        name: profileResult.data?.name ?? '',
+        login: profileResult.data?.login ?? '',
       });
     } catch {
-      this.errorMessage.set('Ocurrio un error al consultar tu perfil.');
+      this.errorMessage.set('Error inesperado al cargar el perfil.');
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  protected async onSubmit() {
+    if (this.form.invalid || this.isSaving()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const userId = Number(this.authFacade.getInternalUserId());
+    if (!userId) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    try {
+      const { data, error } = await this.profileService.updateProfile(userId, this.form.getRawValue());
+      if (error) {
+        this.errorMessage.set('No se pudo guardar. Intenta nuevamente.');
+        return;
+      }
+      this.profile.set(data);
+      this.successMessage.set('Perfil actualizado correctamente.');
+    } catch {
+      this.errorMessage.set('Error inesperado al guardar.');
+    } finally {
+      this.isSaving.set(false);
     }
   }
 }
