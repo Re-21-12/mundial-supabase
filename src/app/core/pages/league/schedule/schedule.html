@@ -1,0 +1,43 @@
+<div class="schedule-wrapper">
+  <header class="schedule-header">
+    <h2 class="schedule-title">Calendario de Partidos</h2>
+  </header>
+
+  @if (isLoading()) {
+    <div class="schedule-loading" role="status" aria-live="polite">Cargando calendario…</div>
+  } @else if (matchDays().length === 0) {
+    <p class="schedule-empty">No hay partidos programados para esta liga.</p>
+  } @else {
+    @for (day of matchDays(); track day.date) {
+      <section class="match-day">
+        <h3 class="match-day-label">{{ day.date | date:'EEEE d \'de\' MMMM yyyy':'':'es-GT' }}</h3>
+
+        @for (match of day.matches; track match.match_id) {
+          <div class="match-card" [class]="'match-card--' + match.status">
+            @if (match.status === 'live') {
+              <span class="status-live" aria-label="Partido en vivo">● EN VIVO</span>
+            } @else if (match.status === 'finished') {
+              <span class="status-finished" aria-label="Partido finalizado">Finalizado</span>
+            } @else {
+              <span class="status-upcoming" aria-label="Partido próximo">
+                {{ match.start_time | date:'HH:mm' }}
+              </span>
+            }
+
+            <div class="match-teams">
+              <span class="team team--home">{{ match.first_team_name }}</span>
+              <span class="match-score">
+                @if (match.status !== 'upcoming') {
+                  {{ match.first_team_total }} – {{ match.second_team_total }}
+                } @else {
+                  vs
+                }
+              </span>
+              <span class="team team--away">{{ match.second_team_name }}</span>
+            </div>
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

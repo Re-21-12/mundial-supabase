@@ -1,0 +1,38 @@
+<div class="standings-wrapper">
+  <header class="standings-header">
+    <h2 class="standings-title">Tabla de Posiciones</h2>
+    <span class="live-badge" aria-label="Actualización en tiempo real">● Live</span>
+  </header>
+
+  @if (isLoading()) {
+    <div class="standings-loading" role="status" aria-live="polite">Cargando posiciones…</div>
+  } @else if (standings().length === 0) {
+    <p class="standings-empty">No hay participantes registrados en esta liga.</p>
+  } @else {
+    <table class="standings-table" role="table" aria-label="Posiciones de la liga">
+      <thead>
+        <tr>
+          <th scope="col" class="col-rank">#</th>
+          <th scope="col" class="col-name">Jugador</th>
+          <th scope="col" class="col-login">Usuario</th>
+          <th scope="col" class="col-pts">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of standings(); track row.user_league_id; let i = $index) {
+          <tr [class.top-three]="i < 3">
+            <td class="col-rank">
+              @if (i === 0) { <span class="medal gold">🥇</span> }
+              @else if (i === 1) { <span class="medal silver">🥈</span> }
+              @else if (i === 2) { <span class="medal bronze">🥉</span> }
+              @else { {{ i + 1 }} }
+            </td>
+            <td class="col-name">{{ row.user_name }}</td>
+            <td class="col-login">{{ row.user_login }}</td>
+            <td class="col-pts">{{ row.accumulated_points }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

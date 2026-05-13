@@ -1,0 +1,114 @@
+.schedule-wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.schedule-header {
+  margin-bottom: 1.25rem;
+}
+
+.schedule-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.schedule-loading,
+.schedule-empty {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
+.match-day {
+  margin-bottom: 1.5rem;
+}
+
+.match-day-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  margin: 0 0 0.5rem;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.match-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  margin-bottom: 8px;
+}
+
+.match-card--live {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.match-card--finished {
+  opacity: 0.75;
+}
+
+.status-live {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #16a34a;
+  white-space: nowrap;
+  animation: pulse 2s ease-in-out infinite;
+  min-width: 60px;
+}
+
+.status-finished {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.status-upcoming {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.team {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.team--home { text-align: right; }
+.team--away { text-align: left; }
+
+.match-score {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  min-width: 48px;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
