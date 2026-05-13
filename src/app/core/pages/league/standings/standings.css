@@ -1,0 +1,82 @@
+.standings-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.standings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.standings-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.live-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 999px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.standings-loading,
+.standings-empty {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.standings-table thead {
+  background: var(--muted);
+}
+
+.standings-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.standings-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.standings-table tr.top-three td {
+  font-weight: 600;
+}
+
+.standings-table tbody tr:hover {
+  background: var(--accent);
+}
+
+.col-rank { width: 48px; text-align: center; }
+.col-pts  { width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.medal { font-size: 1.1rem; }
