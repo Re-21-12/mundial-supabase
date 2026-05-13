@@ -2,3 +2,11 @@
 	min-width: 3.5rem;
 	justify-content: center;
 }
+
+@media (max-width: 640px) {
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+}

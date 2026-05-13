@@ -20,3 +20,14 @@
 .wallet-amount {
   letter-spacing: -0.01em;
 }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .wallet-chip {
+    padding: 0.25rem 0.5rem;
+  }
+
+  .wallet-amount {
+    display: none;
+  }
+}
