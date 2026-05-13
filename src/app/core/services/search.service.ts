@@ -16,13 +16,12 @@ export class SearchService {
     if (!query.trim() || query.length < 2) return [];
 
     const { data, error } = await this._db.client
-      .rpc('fn_global_search', { q: query.trim() })
-      .returns<SearchResult[]>();
+      .rpc('fn_global_search', { q: query.trim() });
 
     if (error) {
       console.error('[Search]', error);
       return [];
     }
-    return data ?? [];
+    return (data as SearchResult[]) ?? [];
   }
 }
