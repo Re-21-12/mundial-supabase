@@ -75,8 +75,8 @@ export class AuthFacade implements IAuthFacade {
     return this._supabaseAuthService.signInWithPassword(email, password);
   }
 
-  async signUpWithPassword(email: string, password: string): Promise<{ data: any; error: any }> {
-    return this._supabaseAuthService.signUpWithPassword(email, password);
+  async signUpWithPassword(email: string, password: string, name?: string): Promise<{ data: any; error: any }> {
+    return this._supabaseAuthService.signUpWithPassword(email, password, name);
   }
 
   async requestPasswordReset(email: string) {

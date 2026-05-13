@@ -339,11 +339,14 @@ export class SupabaseAuthService {
   //#endregion
 
   //#region Sign Up & Password Reset
-  async signUpWithPassword(email: string, password: string) {
+  async signUpWithPassword(email: string, password: string, name?: string) {
     const { data, error } = await this._supabaseService.client.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: environment.authRedirect },
+      options: {
+        emailRedirectTo: environment.authRedirect,
+        data: name ? { name } : {},
+      },
     });
 
     if (error) {

@@ -22,7 +22,7 @@ export interface IAuthFacade {
   signInWithOtp(email: string, createUser?: boolean): Promise<any>;
   signInWithEmail(email: string): Promise<{ data: any; error: any }>;
   signInWithPassword(email: string, password?: string): Promise<{ data: any; error: any }>;
-  signUpWithPassword(email: string, password: string): Promise<{ data: any; error: any }>;
+  signUpWithPassword(email: string, password: string, name?: string): Promise<{ data: any; error: any }>;
   requestPasswordReset(email: string): Promise<{ data: any; error: any }>;
   signInWithOAuth(provider: Provider): Promise<{ data: any; error: any }>;
   signOut(): Promise<any>;

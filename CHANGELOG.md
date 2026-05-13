@@ -1,5 +1,32 @@
 # CHANGELOG - WorldBet League Phase 3
 
+---
+
+## Version 3.2.0 - 2026-05-12 — Email/Password User Registration
+
+### Registration Features
+
+- **DB Trigger** `handle_new_auth_user`: Fires on every `auth.users` INSERT. Auto-creates `public.USER` record, assigns the `cliente` role via `USER_ROLE`, and seeds a zero-balance `WALLET`.
+- **Migration**: `db/script/migration-user-registration.sql` — idempotent, uses `CREATE OR REPLACE` and `DROP TRIGGER IF EXISTS`.
+- **Registration form fields**: Added `name` (required) and `confirmPassword` (required) to `registerForm` in `forms.ts`. Email (order 2) and password (order 3) shifted; confirm-password is order 4.
+- **`signUpWithPassword(email, password, name?)`**: Updated across service, facade, and interface to forward `name` as Supabase `user_metadata`, consumed by the DB trigger.
+- **Client-side validation**: Passwords-must-match check in `auth.ts` before the Supabase call — no round-trip on mismatch.
+- **Registration feedback**: `registrationSuccess` and `registrationError` signals in `Auth` component. On success shows "Revisa tu correo" + login button; on error displays the error message inline.
+
+### Files Changed in v3.2.0
+
+| File | Change |
+|------|--------|
+| `db/script/migration-user-registration.sql` | NEW — DB trigger |
+| `src/app/shared/features/dynamic-form/utils/forms.ts` | Updated `registerForm` |
+| `src/app/core/services/supabase-auth-service.ts` | `signUpWithPassword` accepts `name?` |
+| `src/app/shared/features/auth/interface/iauth-interface-facade.ts` | Updated signature |
+| `src/app/shared/features/auth/auth.facade.ts` | Propagates `name` |
+| `src/app/shared/features/auth/auth.ts` | Async submit, validation, feedback signals |
+| `src/app/shared/features/auth/auth.html` | Conditional success/error UI |
+
+---
+
 ## Magic Links + In-App Notification Inbox + Browser Notifications
 
 ### Version 3.1.0 - 2026-05-11 (Updated: In-App Inbox)
