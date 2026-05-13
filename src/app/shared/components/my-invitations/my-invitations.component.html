@@ -1,0 +1,28 @@
+<section class="invitations-shell" aria-labelledby="inv-title">
+  <h2 id="inv-title" class="inv-title">Mis invitaciones pendientes</h2>
+
+  @if (isLoading()) {
+    <p class="inv-empty">Cargando...</p>
+  } @else if (invitations().length === 0) {
+    <p class="inv-empty">No tienes invitaciones pendientes.</p>
+  } @else {
+    <ul class="inv-list" role="list">
+      @for (inv of invitations(); track inv.invitation_id) {
+        <li class="inv-card" role="listitem">
+          <div class="inv-info">
+            <span class="inv-league">Liga #{{ inv.league_id }}</span>
+            <span class="inv-date">Enviada: {{ inv.send_date | date:'dd/MM/yyyy' }}</span>
+            <span class="inv-exp">Expira: {{ inv.expiration_date | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="inv-actions">
+            <button class="btn-accept" (click)="accept(inv.invitation_id)">Aceptar</button>
+            <button class="btn-decline" (click)="decline(inv.invitation_id)">Rechazar</button>
+          </div>
+        </li>
+      }
+    </ul>
+    @if (actionError()) {
+      <p class="inv-error">{{ actionError() }}</p>
+    }
+  }
+</section>
