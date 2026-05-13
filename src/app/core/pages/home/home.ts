@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -33,10 +34,15 @@ import type { MatchRow, TeamRow } from './models/home.models';
 })
 export class Home implements OnInit, OnDestroy {
   private readonly realtimeService = inject(HomeRealtimeService);
+  private readonly router = inject(Router);
 
   /** Builds MatchCard[] from realtime signals */
   readonly carouselMatches = computed<MatchCard[]>(() => {
-    return this.buildMatchCards(this.realtimeService.matches(), this.realtimeService.periods());
+    return this.buildMatchCards(
+      this.realtimeService.matches(),
+      this.realtimeService.periods(),
+      this.realtimeService.teams(),
+    );
   });
 
   readonly featuredMatches = computed<MatchCard[]>(() => this.carouselMatches().slice(0, 6));
@@ -49,39 +55,33 @@ export class Home implements OnInit, OnDestroy {
     this.realtimeService.disconnect();
   }
 
-  private buildMatchCards(matches: MatchRow[], periods: MatchPeriodRow[]): MatchCard[] {
-    const matchesMap = matches.map((match) => {
+  navigateToPredict(card: MatchCard): void {
+    this.router.navigate(['/prediction', card.match.match_id]);
+  }
+
+  private buildMatchCards(matches: MatchRow[], periods: MatchPeriodRow[], teams: TeamRow[]): MatchCard[] {
+    const teamsMap = new Map(teams.map((t) => [t.team_id, t]));
+
+    const placeholder = (id: number): TeamRow => ({
+      team_id: id,
+      name: `Equipo ${id}`,
+      catalog_id: 0,
+      created_at: '',
+      created_by: null,
+      deleted_at: null,
+      deleted_by: null,
+      is_deleted: false,
+      updated_at: null,
+      updated_by: null,
+    });
+
+    return matches.map((match) => {
       const period = periods.find((p) => p.match_id === match.match_id);
-      const homeTeam: TeamRow = {
-        team_id: match.first_team_id,
-        name: `Equipo ${match.first_team_id}`,
-        catalog_id: 0,
-        created_at: '',
-        created_by: null,
-        deleted_at: null,
-        is_deleted: false,
-        updated_at: null,
-        deleted_by: null,
-        updated_by: null,
-      };
-      const awayTeam: TeamRow = {
-        team_id: match.second_team_id,
-        name: `Equipo ${match.second_team_id}`,
-        catalog_id: 0,
-        created_at: '',
-        created_by: null,
-        deleted_by: null,
-        deleted_at: null,
-        is_deleted: false,
-        updated_at: null,
-        updated_by: null,
-      };
-      const startTime = new Date(match.start_time);
-      const isLive = startTime <= new Date() && !match.is_deleted;
+      const homeTeam = teamsMap.get(match.first_team_id) ?? placeholder(match.first_team_id);
+      const awayTeam = teamsMap.get(match.second_team_id) ?? placeholder(match.second_team_id);
+      const isLive = new Date(match.start_time) <= new Date() && !match.is_deleted;
       return { match, homeTeam, awayTeam, period, isLive };
     });
-    console.log('matchesMap', JSON.stringify(matchesMap));
-    return matchesMap;
   }
 
   formatMatchDate(dateStr: string): string {
