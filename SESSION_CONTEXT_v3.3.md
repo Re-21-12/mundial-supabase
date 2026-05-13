@@ -15,6 +15,27 @@
 - **10 historical migrations registered** in MIGRATION_LOG (v1.0.0 → v3.3.0)
 - **Trigger bug fixed** (`v3.2.1`): `handle_new_auth_user` now assigns role `user` (id=2) instead of nonexistent `cliente`
 
+### Password Recovery (#8) — Verified Complete
+
+The full flow was already implemented. One bug found and fixed:
+
+- **Bug fixed**: `setNewPassword()` in `SupabaseAuthService` was calling `this._router.navigate(['/dashboard'])` after updating the password — but `/dashboard` does not exist and the component already handles navigation to `/home`. The service-level navigation was removed; routing is now solely the component's responsibility.
+
+**Recovery flow (working):**
+```
+/change-password → ChangePasswordPage
+  → requestPasswordReset(email) → Supabase sends recovery email
+  → User clicks link → /auth/v1/callback#type=recovery
+  → PASSWORD_RECOVERY event → router.navigate(['/set-password'])
+  → SetPasswordPage: new password + confirm + validate
+  → setNewPassword(newPassword) → supabase.auth.updateUser({ password })
+  → Component navigates to /home on success
+```
+
+### User Sessions + IP (#10) — Already Done
+
+`ip_address` column already exists in `USER_SESSION` (VARCHAR NOT NULL). `logSessionStart()` already stores the IP on every SIGNED_IN event. No migration needed.
+
 ### Backlog Organized
 Full roadmap versioned — see table below.
 
