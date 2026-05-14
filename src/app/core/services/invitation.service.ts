@@ -35,6 +35,7 @@ export class InvitationService {
       .single<{ user_id: number }>();
 
     if (userErr || !user) {
+      console.error('[Invitation] USER lookup error:', userErr);
       return { success: false, error: 'No se encontró un usuario con ese email.' };
     }
 
@@ -46,7 +47,8 @@ export class InvitationService {
       .single<{ user_league_id: number }>();
 
     if (ulErr) {
-      return { success: false, error: 'Error al crear la participación en liga.' };
+      console.error('[Invitation] USER_LEAGUE insert error:', ulErr);
+      return { success: false, error: `Error al crear la participación en liga. (${ulErr.code}: ${ulErr.message})` };
     }
 
     // 3. Create INVITATION record
@@ -66,7 +68,8 @@ export class InvitationService {
     } as any);
 
     if (invErr) {
-      return { success: false, error: 'Error al registrar la invitación.' };
+      console.error('[Invitation] INVITATION insert error:', invErr);
+      return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
     return { success: true, token };
@@ -91,7 +94,8 @@ export class InvitationService {
     } as any);
 
     if (mlErr) {
-      return { success: false, error: 'Error al generar el enlace mágico.' };
+      console.error('[Invitation] MAGIC_LINK insert error:', mlErr);
+      return { success: false, error: `Error al generar el enlace mágico. (${mlErr.code}: ${mlErr.message})` };
     }
 
     // 2. Create INVITATION (no user_league_id yet — user doesn't exist)
@@ -107,7 +111,8 @@ export class InvitationService {
     } as any);
 
     if (invErr) {
-      return { success: false, error: 'Error al registrar la invitación anónima.' };
+      console.error('[Invitation] INVITATION insert error:', invErr);
+      return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
     return { success: true, token };

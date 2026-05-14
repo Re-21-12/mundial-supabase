@@ -45,22 +45,27 @@ export class SendInvitationComponent implements OnInit {
     this.errorMessage.set('');
     this.successToken.set(null);
 
-    const { email, type } = this.form.getRawValue();
-    const leagueId = this.form.controls.leagueId.value;
-    const inviterId = Number(this.authFacade.getInternalUserId());
+    try {
+      const { email, type } = this.form.getRawValue();
+      const leagueId = this.form.controls.leagueId.value;
+      const inviterId = Number(this.authFacade.getInternalUserId());
 
-    const result = type === 'existing'
-      ? await this.invitationService.sendToExistingUser(email, leagueId, inviterId)
-      : await this.invitationService.sendToAnonymous(email, leagueId, inviterId);
+      const result = type === 'existing'
+        ? await this.invitationService.sendToExistingUser(email, leagueId, inviterId)
+        : await this.invitationService.sendToAnonymous(email, leagueId, inviterId);
 
-    if (!result.success) {
-      this.errorMessage.set(result.error ?? 'Error al enviar la invitación.');
-    } else {
-      this.successToken.set(result.token ?? null);
-      this.form.reset({ email: '', leagueId: this.leagueId() > 0 ? this.leagueId() : 0, type: 'existing' });
-      if (this.leagueId() > 0) this.form.controls.leagueId.disable();
+      if (!result.success) {
+        this.errorMessage.set(result.error ?? 'Error al enviar la invitación.');
+      } else {
+        this.successToken.set(result.token ?? null);
+        this.form.reset({ email: '', leagueId: this.leagueId() > 0 ? this.leagueId() : 0, type: 'existing' });
+        if (this.leagueId() > 0) this.form.controls.leagueId.disable();
+      }
+    } catch (err) {
+      console.error('[SendInvitation] onSubmit error:', err);
+      this.errorMessage.set('Error inesperado al enviar la invitación.');
+    } finally {
+      this.isSending.set(false);
     }
-
-    this.isSending.set(false);
   }
 }
