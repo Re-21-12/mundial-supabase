@@ -6,6 +6,11 @@ export const WALLET_ROUTES: Routes = [
     loadComponent: () => import('./wallet').then((m) => m.WalletPage),
   },
   {
+    path: 'top-up',
+    loadComponent: () =>
+      import('../wallet-topup/wallet-topup').then((m) => m.WalletTopupPage),
+  },
+  {
     path: ':id',
     loadComponent: () => import('./wallet').then((m) => m.WalletPage),
   },

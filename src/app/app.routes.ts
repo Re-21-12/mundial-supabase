@@ -386,16 +386,6 @@ export const routes: Routes = [
           import('./core/pages/wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
       },
       {
-        path: 'wallet/top-up',
-        title: 'Cargar saldo',
-        data: {
-          description: 'Recarga tu wallet',
-          icon: 'lucideWallet',
-        },
-        loadChildren: () =>
-          import('./core/pages/wallet-topup/wallet-topup.routes').then((m) => m.WALLET_TOPUP_ROUTES),
-      },
-      {
         path: 'world-league',
         title: 'World League',
         data: {
