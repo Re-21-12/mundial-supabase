@@ -62,6 +62,19 @@ export const routes: Routes = [
           import('./core/pages/user-admin/user-admin.routes').then((m) => m.USER_ADMIN_ROUTES),
       },
       {
+        path: 'admin/migrations',
+        title: 'Migraciones',
+        data: {
+          description: 'Historial de migraciones de base de datos',
+          icon: 'lucideDatabase',
+          requiredPermission: 'ADMIN',
+        },
+        loadChildren: () =>
+          import('./core/pages/admin-migrations/admin-migrations.routes').then(
+            (m) => m.ADMIN_MIGRATIONS_ROUTES,
+          ),
+      },
+      {
         path: 'profile',
         title: 'Profile',
         data: {
@@ -371,6 +384,16 @@ export const routes: Routes = [
         },
         loadChildren: () =>
           import('./core/pages/wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
+      },
+      {
+        path: 'wallet/top-up',
+        title: 'Cargar saldo',
+        data: {
+          description: 'Recarga tu wallet',
+          icon: 'lucideWallet',
+        },
+        loadChildren: () =>
+          import('./core/pages/wallet-topup/wallet-topup.routes').then((m) => m.WALLET_TOPUP_ROUTES),
       },
       {
         path: 'world-league',

@@ -221,6 +221,118 @@
   50%       { box-shadow: 0 0 0 6px transparent; }
 }
 
+/* ─── Leagues grid (Mis Ligas) ────────────────────────────────── */
+.leagues-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.league-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  color: inherit;
+}
+
+.league-card:hover {
+  transform: translateX(4px);
+  border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.league-card__position {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.league-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.league-card__name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.league-card__meta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.league-card__points {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.league-card__pts-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.league-card__pts-label {
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.league-card__arrow {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Skeleton loading */
+.leagues-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.league-card--skeleton {
+  height: 64px;
+  background: linear-gradient(
+    90deg,
+    var(--card) 0%,
+    color-mix(in oklch, var(--border) 60%, var(--card)) 50%,
+    var(--card) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: default;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ─── Empty state ─────────────────────────────────────────────── */
 .empty-state {
   display: flex;

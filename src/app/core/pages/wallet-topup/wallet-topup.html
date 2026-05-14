@@ -1,0 +1,104 @@
+<div class="topup-page">
+
+  <button class="topup-back" (click)="goBack()" type="button" aria-label="Volver">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i> Volver
+  </button>
+
+  <h1 class="topup-title">
+    <i class="pi pi-wallet" aria-hidden="true"></i>
+    Cargar saldo
+  </h1>
+
+  @if (isLoading()) {
+    <div class="topup-loading" role="status">
+      <i class="pi pi-spin pi-spinner topup-spinner" aria-hidden="true"></i>
+      <span>Cargando wallet…</span>
+    </div>
+  } @else {
+
+    <!-- Balance card -->
+    <div class="balance-card" aria-label="Saldo actual">
+      <span class="balance-label">Saldo actual</span>
+      <span class="balance-amount">${{ wallet()?.balance ?? 0 | number:'1.2-2' }}</span>
+      <span class="balance-currency">MXN</span>
+    </div>
+
+    <!-- Quick amounts -->
+    <div class="quick-amounts" role="group" aria-label="Montos rápidos">
+      <span class="quick-label">Selecciona un monto</span>
+      <div class="quick-grid">
+        @for (preset of [100, 200, 500, 1000]; track preset) {
+          <button
+            class="quick-btn"
+            type="button"
+            [class.quick-btn--active]="amount === preset"
+            (click)="amount = preset"
+          >
+            ${{ preset }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Deposit form -->
+    <form class="topup-form" (ngSubmit)="submit()">
+
+      <div class="form-group">
+        <label class="form-label" for="amount">Monto a cargar (MXN)</label>
+        <div class="amount-input-wrapper">
+          <span class="amount-prefix">$</span>
+          <input
+            id="amount"
+            class="amount-input"
+            type="number"
+            [(ngModel)]="amount"
+            name="amount"
+            min="50"
+            step="50"
+            placeholder="0"
+            aria-describedby="amount-hint"
+          />
+        </div>
+        <p class="form-hint" id="amount-hint">Monto mínimo: $50 MXN</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="payment">Método de pago</label>
+        <select id="payment" class="form-select" [(ngModel)]="selectedPaymentMethod" name="payment">
+          @for (method of paymentMethods; track method.key) {
+            <option [value]="method.key">{{ method.label }}</option>
+          }
+        </select>
+        <p class="form-hint">Simulado — sin cargo real.</p>
+      </div>
+
+      @if (depositCatalogOptions().length > 1) {
+        <div class="form-group">
+          <label class="form-label" for="txType">Tipo de transacción</label>
+          <select id="txType" class="form-select" [(ngModel)]="selectedCatalogId" name="txType">
+            @for (opt of depositCatalogOptions(); track opt.catalog_id) {
+              <option [value]="opt.catalog_id">{{ opt.description }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      @if (errorMsg()) {
+        <p class="form-error" role="alert">{{ errorMsg() }}</p>
+      }
+      @if (successMsg()) {
+        <p class="form-success" role="status">{{ successMsg() }}</p>
+      }
+
+      <p-button
+        type="submit"
+        label="Confirmar recarga"
+        icon="pi pi-check"
+        styleClass="w-full topup-submit-btn"
+        [loading]="isSubmitting()"
+        [disabled]="isSubmitting() || amount < 50"
+      />
+    </form>
+
+  }
+</div>

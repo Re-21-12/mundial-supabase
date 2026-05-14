@@ -16,6 +16,9 @@ import { HeroBannerComponent } from './hero-banner/hero-banner';
 import { StatsBarComponent } from './stats-bar/stats-bar';
 import { HomeRealtimeService } from './services/home-realtime.service';
 import { JoinLeagueComponent } from '../../../shared/components/join-league/join-league.component';
+import { UserLeaguesService } from '../../../core/services/user-leagues.service';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
+import type { UserLeagueCard } from '../../../core/services/user-leagues.service';
 import type { MatchCard, MatchPeriodRow } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
 
@@ -37,9 +40,13 @@ import type { MatchRow, TeamRow } from './models/home.models';
 })
 export class Home implements OnInit, OnDestroy {
   private readonly realtimeService = inject(HomeRealtimeService);
+  private readonly userLeaguesSvc = inject(UserLeaguesService);
+  private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
 
   protected readonly showJoinDialog = signal(false);
+  protected readonly userLeagues = signal<UserLeagueCard[]>([]);
+  protected readonly leaguesLoading = signal(true);
 
   readonly carouselMatches = computed<MatchCard[]>(() => {
     return this.buildMatchCards(
@@ -53,6 +60,12 @@ export class Home implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.realtimeService.connect();
+    const userId = Number(this.auth.getInternalUserId());
+    if (userId) {
+      const leagues = await this.userLeaguesSvc.loadUserLeagues(userId);
+      this.userLeagues.set(leagues);
+    }
+    this.leaguesLoading.set(false);
   }
 
   ngOnDestroy(): void {
@@ -67,12 +80,23 @@ export class Home implements OnInit, OnDestroy {
     this.router.navigate(['/league']);
   }
 
+  navigateToLeague(leagueId: number): void {
+    this.router.navigate(['/league', leagueId, 'standings']);
+  }
+
   openJoinDialog(): void {
     this.showJoinDialog.set(true);
   }
 
   closeJoinDialog(): void {
     this.showJoinDialog.set(false);
+  }
+
+  positionEmoji(pos: number): string {
+    if (pos === 1) return '🥇';
+    if (pos === 2) return '🥈';
+    if (pos === 3) return '🥉';
+    return `#${pos}`;
   }
 
   private buildMatchCards(matches: MatchRow[], periods: MatchPeriodRow[], teams: TeamRow[]): MatchCard[] {

@@ -46,13 +46,13 @@
         <!-- Wallet -->
         @if (walletBalance() !== null) {
           <a
-            routerLink="/wallet"
+            routerLink="/wallet/top-up"
             class="wallet-chip"
-            pTooltip="Mi billetera"
+            pTooltip="Cargar saldo"
             tooltipPosition="bottom"
           >
             <ng-icon hlm size="sm" name="lucideWallet" />
-            <span class="wallet-amount">Q {{ walletBalance() }}</span>
+            <span class="wallet-amount">$ {{ walletBalance() }}</span>
           </a>
         }
 

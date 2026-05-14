@@ -17,6 +17,54 @@
     <app-stats-bar />
   </section>
 
+  <!-- ═══ MIS LIGAS ═══ -->
+  <section class="home-section" aria-label="Mis ligas activas">
+    <h2 class="section-title">
+      <i class="pi pi-trophy" aria-hidden="true"></i>
+      Mis Ligas
+    </h2>
+
+    @if (leaguesLoading()) {
+      <div class="leagues-skeleton">
+        @for (n of [1,2,3]; track n) {
+          <div class="league-card league-card--skeleton"></div>
+        }
+      </div>
+    } @else if (userLeagues().length > 0) {
+      <div class="leagues-grid">
+        @for (card of userLeagues(); track card.user_league_id) {
+          <button
+            class="league-card"
+            (click)="navigateToLeague(card.league_id)"
+            type="button"
+            [attr.aria-label]="'Ver ' + card.league_name"
+          >
+            <div class="league-card__position">
+              {{ positionEmoji(card.position) }}
+            </div>
+            <div class="league-card__info">
+              <span class="league-card__name">{{ card.league_name }}</span>
+              <span class="league-card__meta">
+                Posición {{ card.position }} de {{ card.total_participants }}
+              </span>
+            </div>
+            <div class="league-card__points">
+              <span class="league-card__pts-value">{{ card.accumulated_points }}</span>
+              <span class="league-card__pts-label">pts</span>
+            </div>
+            <i class="pi pi-chevron-right league-card__arrow" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-trophy empty-state__icon" aria-hidden="true"></i>
+        <p>Aún no perteneces a ninguna liga activa.</p>
+        <p-button label="Unirse con código" icon="pi pi-link" size="small" severity="secondary" (click)="openJoinDialog()" />
+      </div>
+    }
+  </section>
+
   <!-- ═══ FEATURED MATCHES GRID ═══ -->
   <section  aria-label="Partidos del torneo">
     <h2 class="section-title">

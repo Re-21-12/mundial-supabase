@@ -36,6 +36,7 @@ export class Catalog implements OnInit {
       header: 'Catalogs',
       columns: [
         { field: 'catalog_id', header: 'ID' },
+        { field: 'table_id', header: 'Table ID' },
         { field: 'table_name', header: 'Table Name' },
         { field: 'description', header: 'Description' },
         { field: 'value', header: 'Value' },
@@ -148,6 +149,3 @@ export class Catalog implements OnInit {
     await this.getData();
   };
 }
-
-
-

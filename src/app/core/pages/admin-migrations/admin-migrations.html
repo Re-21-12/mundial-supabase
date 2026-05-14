@@ -1,0 +1,70 @@
+<div class="mig-page">
+
+  <header class="mig-header">
+    <h1 class="mig-title">
+      <i class="pi pi-database" aria-hidden="true"></i>
+      Historial de Migraciones
+    </h1>
+    <p class="mig-subtitle">Registro de todas las migraciones aplicadas a la base de datos.</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="mig-loading" role="status" aria-live="polite">
+      <i class="pi pi-spin pi-spinner mig-spinner" aria-hidden="true"></i>
+      <span>Cargando migraciones…</span>
+    </div>
+  } @else if (error()) {
+    <div class="mig-error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      {{ error() }}
+    </div>
+  } @else if (migrations().length === 0) {
+    <div class="mig-empty">
+      <i class="pi pi-inbox mig-empty__icon" aria-hidden="true"></i>
+      <p>No hay migraciones registradas.</p>
+    </div>
+  } @else {
+    <div class="table-scroll-wrapper">
+      <table class="mig-table" role="grid" aria-label="Historial de migraciones">
+        <thead>
+          <tr>
+            <th scope="col">Versión</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Aplicada el</th>
+            <th scope="col">Aplicada por</th>
+            <th scope="col" class="text-right">Tiempo (ms)</th>
+            <th scope="col" class="text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of migrations(); track m.migration_id) {
+            <tr class="mig-row" [class.mig-row--error]="m.status === 'error' || m.status === 'failed'">
+              <td class="mig-version">{{ m.version }}</td>
+              <td class="mig-name">{{ m.name }}</td>
+              <td class="mig-desc">{{ m.description ?? '—' }}</td>
+              <td class="mig-date">{{ m.applied_at | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="mig-by">{{ m.applied_by ?? '—' }}</td>
+              <td class="mig-ms text-right">
+                @if (m.execution_ms !== null) {
+                  {{ m.execution_ms | number }}
+                } @else {
+                  —
+                }
+              </td>
+              <td class="text-center">
+                <p-tag
+                  [severity]="statusSeverity(m.status)"
+                  [value]="statusLabel(m.status)"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mig-count">{{ migrations().length }} migraciones en total</p>
+  }
+
+</div>

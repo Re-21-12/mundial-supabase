@@ -23,4 +23,43 @@ export class WalletService {
       .eq('user_id', userId)
       .single<WalletSummary>();
   }
+
+  async deposit(
+    walletId: number,
+    userId: number,
+    amount: number,
+    catalogId: number,
+    description: string,
+  ): Promise<{ error: string | null }> {
+    const now = new Date().toISOString();
+
+    const { error: txErr } = await this._db.client.from('TRANSACTION').insert({
+      wallet_id: walletId,
+      amount,
+      catalog_id: catalogId,
+      description,
+      transaction_date: now,
+      created_by: userId,
+      created_at: now,
+      is_deleted: false,
+    });
+
+    if (txErr) return { error: txErr.message };
+
+    const { data: wallet } = await this._db.client
+      .from('WALLET')
+      .select('balance')
+      .eq('wallet_id', walletId)
+      .single<{ balance: number }>();
+
+    const newBalance = (wallet?.balance ?? 0) + amount;
+
+    const { error: updateErr } = await this._db.client
+      .from('WALLET')
+      .update({ balance: newBalance, updated_at: now, updated_by: userId })
+      .eq('wallet_id', walletId);
+
+    if (updateErr) return { error: updateErr.message };
+    return { error: null };
+  }
 }
