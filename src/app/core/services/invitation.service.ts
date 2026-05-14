@@ -72,6 +72,7 @@ export class InvitationService {
       return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
+    await this._sendEmail(email, token, leagueId, 'existing');
     return { success: true, token };
   }
 
@@ -115,7 +116,27 @@ export class InvitationService {
       return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
+    await this._sendEmail(email, token, leagueId, 'anonymous');
     return { success: true, token };
+  }
+
+  // ─── Email ────────────────────────────────────────────────────────────────
+
+  private async _sendEmail(email: string, token: string, leagueId: number, type: InvitationType) {
+    try {
+      const { error } = await this._db.client.functions.invoke('send-invitation-email', {
+        body: {
+          email,
+          token,
+          leagueId,
+          type,
+          appUrl: window.location.origin,
+        },
+      });
+      if (error) console.error('[Invitation] Email function error:', error);
+    } catch (err) {
+      console.error('[Invitation] Email send failed:', err);
+    }
   }
 
   // ─── Recipient views ──────────────────────────────────────────────────────
