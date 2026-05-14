@@ -42,13 +42,39 @@
 
   @if (successToken()) {
     <div class="success-block">
-      <p class="success-text">Invitación creada correctamente.</p>
-      <p class="token-label">Token de acceso (compártelo con el invitado):</p>
-      <code class="token-code">{{ successToken() }}</code>
+      <p class="success-text">✓ Invitación creada correctamente.</p>
+
+      @if (emailSent() === true) {
+        <p class="email-status email-status--ok">
+          <i class="pi pi-envelope"></i> Correo enviado al invitado.
+        </p>
+      } @else if (emailSent() === false) {
+        <p class="email-status email-status--warn">
+          <i class="pi pi-exclamation-triangle"></i>
+          No se pudo enviar el correo automáticamente. Comparte el token manualmente.
+        </p>
+      }
+
+      <p class="token-label">Token de acceso:</p>
+      <div class="token-row">
+        <code class="token-code">{{ successToken() }}</code>
+        <button
+          type="button"
+          class="copy-btn"
+          (click)="copyToken()"
+          [attr.aria-label]="copied() ? 'Copiado' : 'Copiar token'"
+        >
+          @if (copied()) {
+            <i class="pi pi-check"></i> Copiado
+          } @else {
+            <i class="pi pi-copy"></i> Copiar
+          }
+        </button>
+      </div>
     </div>
   }
 
   @if (errorMessage()) {
-    <p class="error-text">{{ errorMessage() }}</p>
+    <p class="error-text" role="alert">{{ errorMessage() }}</p>
   }
 </section>

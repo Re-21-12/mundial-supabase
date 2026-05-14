@@ -38,3 +38,26 @@
   padding: 0.25rem 0.5rem; border-radius: 0.25rem; word-break: break-all;
 }
 .error-text { color: #b91c1c; font-size: 0.875rem; margin: 0; }
+
+.email-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; margin: 4px 0 8px; padding: 6px 10px;
+  border-radius: 6px;
+}
+.email-status--ok   { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.email-status--warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+.token-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.token-code { flex: 1; min-width: 0; }
+
+.copy-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--background); color: var(--foreground);
+  font-size: 0.75rem; font-weight: 500; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s;
+}
+.copy-btn:hover { background: var(--accent); }
+.copy-btn .pi-check { color: #16a34a; }

@@ -19,7 +19,9 @@ export class SendInvitationComponent implements OnInit {
 
   protected readonly isSending = signal(false);
   protected readonly successToken = signal<string | null>(null);
+  protected readonly emailSent = signal<boolean | null>(null);
   protected readonly errorMessage = signal('');
+  protected readonly copied = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -44,6 +46,8 @@ export class SendInvitationComponent implements OnInit {
     this.isSending.set(true);
     this.errorMessage.set('');
     this.successToken.set(null);
+    this.emailSent.set(null);
+    this.copied.set(false);
 
     try {
       const { email, type } = this.form.getRawValue();
@@ -58,6 +62,7 @@ export class SendInvitationComponent implements OnInit {
         this.errorMessage.set(result.error ?? 'Error al enviar la invitación.');
       } else {
         this.successToken.set(result.token ?? null);
+        this.emailSent.set(result.emailSent ?? null);
         this.form.reset({ email: '', leagueId: this.leagueId() > 0 ? this.leagueId() : 0, type: 'existing' });
         if (this.leagueId() > 0) this.form.controls.leagueId.disable();
       }
@@ -66,6 +71,18 @@ export class SendInvitationComponent implements OnInit {
       this.errorMessage.set('Error inesperado al enviar la invitación.');
     } finally {
       this.isSending.set(false);
+    }
+  }
+
+  protected async copyToken() {
+    const token = this.successToken();
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(token);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      // clipboard not available
     }
   }
 }

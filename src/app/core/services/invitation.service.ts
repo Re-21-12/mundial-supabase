@@ -72,8 +72,8 @@ export class InvitationService {
       return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
-    await this._sendEmail(email, token, leagueId, 'existing');
-    return { success: true, token };
+    const emailSent = await this._sendEmail(email, token, leagueId, 'existing');
+    return { success: true, token, emailSent };
   }
 
   // ─── Anonymous user ───────────────────────────────────────────────────────
@@ -116,26 +116,25 @@ export class InvitationService {
       return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
     }
 
-    await this._sendEmail(email, token, leagueId, 'anonymous');
-    return { success: true, token };
+    const emailSent = await this._sendEmail(email, token, leagueId, 'anonymous');
+    return { success: true, token, emailSent };
   }
 
   // ─── Email ────────────────────────────────────────────────────────────────
 
-  private async _sendEmail(email: string, token: string, leagueId: number, type: InvitationType) {
+  private async _sendEmail(email: string, token: string, leagueId: number, type: InvitationType): Promise<boolean> {
     try {
       const { error } = await this._db.client.functions.invoke('send-invitation-email', {
-        body: {
-          email,
-          token,
-          leagueId,
-          type,
-          appUrl: window.location.origin,
-        },
+        body: { email, token, leagueId, type, appUrl: window.location.origin },
       });
-      if (error) console.error('[Invitation] Email function error:', error);
+      if (error) {
+        console.warn('[Invitation] Email not sent:', error);
+        return false;
+      }
+      return true;
     } catch (err) {
-      console.error('[Invitation] Email send failed:', err);
+      console.warn('[Invitation] Email send failed:', err);
+      return false;
     }
   }
 
