@@ -19,10 +19,10 @@ CREATE POLICY "magic_link_admin_all" ON "MAGIC_LINK"
   USING     (has_permission('MAGIC_LINK:admin'))
   WITH CHECK(has_permission('MAGIC_LINK:admin'));
 
--- Usuarios autenticados: pueden crear magic links (created_by debe ser el propio usuario)
+-- Cualquier usuario autenticado puede crear magic links
 CREATE POLICY "magic_link_insert" ON "MAGIC_LINK"
   FOR INSERT TO authenticated
-  WITH CHECK (created_by = get_my_user_id());
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- Usuarios autenticados: ven los magic links que ellos crearon
 CREATE POLICY "magic_link_select_own" ON "MAGIC_LINK"
@@ -56,10 +56,10 @@ CREATE POLICY "invitation_admin_all" ON "INVITATION"
   USING     (has_permission('INVITATION:admin'))
   WITH CHECK(has_permission('INVITATION:admin'));
 
--- Remitente: puede crear invitaciones en nombre propio
+-- Cualquier usuario autenticado puede crear invitaciones
 CREATE POLICY "invitation_insert" ON "INVITATION"
   FOR INSERT TO authenticated
-  WITH CHECK (created_by = get_my_user_id());
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- Remitente: ve las invitaciones que envió
 CREATE POLICY "invitation_select_sender" ON "INVITATION"
