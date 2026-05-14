@@ -42,13 +42,21 @@ export class InvitationService {
     // 2. Create USER_LEAGUE record (status managed at application level)
     const { data: ul, error: ulErr } = await client
       .from('USER_LEAGUE')
-      .insert({ league_id: leagueId, user_id: user.user_id, created_by: inviterId, accumulated_points: 0 })
+      .insert({
+        league_id: leagueId,
+        user_id: user.user_id,
+        created_by: inviterId,
+        accumulated_points: 0,
+      })
       .select('user_league_id')
       .single<{ user_league_id: number }>();
 
     if (ulErr) {
       console.error('[Invitation] USER_LEAGUE insert error:', ulErr);
-      return { success: false, error: `Error al crear la participación en liga. (${ulErr.code}: ${ulErr.message})` };
+      return {
+        success: false,
+        error: `Error al crear la participación en liga. (${ulErr.code}: ${ulErr.message})`,
+      };
     }
 
     // 3. Create INVITATION record
@@ -69,7 +77,10 @@ export class InvitationService {
 
     if (invErr) {
       console.error('[Invitation] INVITATION insert error:', invErr);
-      return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
+      return {
+        success: false,
+        error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})`,
+      };
     }
 
     const emailSent = await this._sendEmail(email, token, leagueId, 'existing');
@@ -96,7 +107,10 @@ export class InvitationService {
 
     if (mlErr) {
       console.error('[Invitation] MAGIC_LINK insert error:', mlErr);
-      return { success: false, error: `Error al generar el enlace mágico. (${mlErr.code}: ${mlErr.message})` };
+      return {
+        success: false,
+        error: `Error al generar el enlace mágico. (${mlErr.code}: ${mlErr.message})`,
+      };
     }
 
     // 2. Create INVITATION (no user_league_id yet — user doesn't exist)
@@ -113,7 +127,10 @@ export class InvitationService {
 
     if (invErr) {
       console.error('[Invitation] INVITATION insert error:', invErr);
-      return { success: false, error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})` };
+      return {
+        success: false,
+        error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})`,
+      };
     }
 
     const emailSent = await this._sendEmail(email, token, leagueId, 'anonymous');
@@ -122,20 +139,70 @@ export class InvitationService {
 
   // ─── Email ────────────────────────────────────────────────────────────────
 
-  private async _sendEmail(email: string, token: string, leagueId: number, type: InvitationType): Promise<boolean> {
+  private async _sendEmail(
+    email: string,
+    token: string,
+    leagueId: number,
+    type: InvitationType,
+  ): Promise<boolean> {
     try {
-      const { error } = await this._db.client.functions.invoke('send-invitation-email', {
+      const res = await this._db.client.functions.invoke('send-invitation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: { email, token, leagueId, type, appUrl: window.location.origin },
-      });
-      if (error) {
-        console.warn('[Invitation] Email not sent:', error);
+      } as any);
+
+      // Supabase client may return an object with `data`/`error` or throw on non-2xx.
+      // Handle both shapes defensively.
+      if (res && (res as any).error) {
+        console.warn('[Invitation] Email not sent (function returned error):', (res as any).error);
         return false;
       }
+
       return true;
     } catch (err) {
+      // Try to extract more info from the thrown error (FunctionsHttpError may include a response)
       console.warn('[Invitation] Email send failed:', err);
+      try {
+        const maybeResponse = (err as any)?.response;
+        if (maybeResponse && typeof maybeResponse.text === 'function') {
+          const text = await maybeResponse.text();
+          console.warn('[Invitation] Function response body:', text);
+        }
+      } catch (innerErr) {
+        // ignore
+      }
       return false;
     }
+  }
+
+  // ─── Magic link redemption ───────────────────────────────────────────────
+
+  async acceptMagicLink(token: string, userId: number): Promise<{ leagueId?: number; error?: string }> {
+    const client = this._db.client;
+
+    const { data: ml, error: mlErr } = await client
+      .from('MAGIC_LINK')
+      .select('magic_link_id, league_id, expires_at, status')
+      .eq('token', token)
+      .single<{ magic_link_id: number; league_id: number; expires_at: string; status: string }>();
+
+    if (mlErr || !ml) return { error: 'Token inválido o no encontrado.' };
+    if (ml.status === 'used') return { error: 'Este enlace de invitación ya fue utilizado.' };
+    if (new Date(ml.expires_at) < new Date()) return { error: 'Este enlace ha expirado (válido 48 h).' };
+
+    const { error: ulErr } = await client
+      .from('USER_LEAGUE')
+      .insert({ user_id: userId, league_id: ml.league_id, accumulated_points: 0 });
+
+    if (ulErr) return { error: 'Ya eres miembro de esta liga o no se pudo completar la unión.' };
+
+    await client
+      .from('MAGIC_LINK')
+      .update({ status: 'used', used_at: new Date().toISOString(), used_by: userId } as any)
+      .eq('magic_link_id', ml.magic_link_id);
+
+    return { leagueId: ml.league_id };
   }
 
   // ─── Recipient views ──────────────────────────────────────────────────────
@@ -143,11 +210,13 @@ export class InvitationService {
   async getPendingForUser(userEmail: string) {
     const { data, error } = await this._db.client
       .from('INVITATION')
-      .select(`
+      .select(
+        `
         invitation_id, email, invitation_type, status,
         send_date, expiration_date, token, league_id,
         LEAGUE ( name )
-      `)
+      `,
+      )
       .eq('email', userEmail)
       .eq('status', 'pending')
       .order('send_date', { ascending: false })

@@ -16,6 +16,11 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/features/auth/auth').then((m) => m.Auth),
   },
   {
+    path: 'invite',
+    title: 'Aceptar Invitación',
+    loadComponent: () => import('./core/pages/invite/invite').then((m) => m.InvitePage),
+  },
+  {
     path: 'auth/v1/callback',
     title: 'Auth Callback',
     loadComponent: () =>

@@ -1,0 +1,47 @@
+<div class="invite-shell">
+  <div class="invite-card">
+    <div class="invite-logo">🏆</div>
+    <h1 class="invite-brand">Mundial</h1>
+
+    @switch (state()) {
+
+      @case ('loading') {
+        <p class="invite-msg">Verificando invitación…</p>
+        <i class="pi pi-spin pi-spinner invite-spinner"></i>
+      }
+
+      @case ('processing') {
+        <p class="invite-msg">Uniéndote a la liga…</p>
+        <i class="pi pi-spin pi-spinner invite-spinner"></i>
+      }
+
+      @case ('unauthenticated') {
+        <h2 class="invite-title">¡Fuiste invitado!</h2>
+        <p class="invite-msg">
+          Para aceptar la invitación necesitás iniciar sesión o crear una cuenta.
+          Tu invitación quedará guardada.
+        </p>
+        <button class="invite-btn invite-btn--primary" type="button" (click)="goToAuth()">
+          <i class="pi pi-sign-in"></i> Iniciar sesión / Registrarme
+        </button>
+      }
+
+      @case ('success') {
+        <i class="pi pi-check-circle invite-icon-success"></i>
+        <h2 class="invite-title">¡Ya sos parte de la liga!</h2>
+        <p class="invite-msg">Tu invitación fue aceptada correctamente.</p>
+        <button class="invite-btn invite-btn--primary" type="button" (click)="goToLeague()">
+          <i class="pi pi-trophy"></i> Ver tabla de posiciones
+        </button>
+      }
+
+      @case ('error') {
+        <i class="pi pi-times-circle invite-icon-error"></i>
+        <h2 class="invite-title">No se pudo procesar</h2>
+        <p class="invite-msg invite-msg--error">{{ errorMsg() }}</p>
+        <a class="invite-btn invite-btn--ghost" routerLink="/home">Ir al inicio</a>
+      }
+
+    }
+  </div>
+</div>

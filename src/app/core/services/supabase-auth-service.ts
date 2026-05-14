@@ -176,7 +176,13 @@ export class SupabaseAuthService {
             currentUrl.startsWith('/auth') ||
             currentUrl.startsWith('/sign-in');
           if (isAuthPage) {
-            this._router.navigate(['/home']);
+            const pendingInviteToken = sessionStorage.getItem('invite_token');
+            if (pendingInviteToken) {
+              sessionStorage.removeItem('invite_token');
+              this._router.navigate(['/invite'], { queryParams: { token: pendingInviteToken } });
+            } else {
+              this._router.navigate(['/home']);
+            }
           }
         }
         break;
