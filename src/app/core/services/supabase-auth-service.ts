@@ -79,15 +79,17 @@ export class SupabaseAuthService {
   async waitForAuthReady(timeoutMs = 3000): Promise<void> {
     if (this.authReady()) return;
 
-    await Promise.race([
-      this.authReadyPromise,
-      new Promise<void>((resolve) => {
-        window.setTimeout(() => {
-          console.warn('[Auth] waitForAuthReady timed out, continuing with current session state');
-          resolve();
-        }, timeoutMs);
+    const timedOut = await Promise.race([
+      this.authReadyPromise.then(() => false),
+      new Promise<boolean>((resolve) => {
+        window.setTimeout(() => resolve(true), timeoutMs);
       }),
     ]);
+
+    if (timedOut) {
+      console.warn('[Auth] waitForAuthReady timed out — signing out');
+      await this.signOut();
+    }
   }
 
   //#region Profile Management
