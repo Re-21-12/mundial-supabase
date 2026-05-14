@@ -1,5 +1,5 @@
 import { Injectable, signal, WritableSignal, computed } from '@angular/core';
-import { TableTemplateModel, TypeOption } from '../interfaces/table-interface';
+import { RowAction, TableTemplateModel, TypeOption } from '../interfaces/table-interface';
 
 @Injectable()
 export class DynamicTableService {
@@ -14,6 +14,7 @@ export class DynamicTableService {
   private routeBase = signal<string | undefined>(undefined);
   private rowIdField = signal<string | undefined>(undefined);
   private actions = signal<TypeOption[]>(['view', 'update', 'delete']);
+  private rowActionsData = signal<RowAction[]>([]);
 
   // Estado computado
   tableProps = computed(
@@ -28,6 +29,7 @@ export class DynamicTableService {
         routeBase: this.routeBase(),
         rowIdField: this.rowIdField(),
         actions: this.actions(),
+        rowActions: this.rowActionsData(),
       }) as TableTemplateModel,
   );
 
@@ -46,6 +48,7 @@ export class DynamicTableService {
     if (props.routeBase) this.routeBase.set(props.routeBase);
     if (props.rowIdField) this.rowIdField.set(props.rowIdField);
     if (props.actions) this.actions.set(props.actions);
+    if (props.rowActions) this.rowActionsData.set(props.rowActions);
   }
 
   /**
@@ -100,5 +103,6 @@ export class DynamicTableService {
     this.totalRecords.set(0);
     this.currentPage.set(0);
     this.pageSize.set(10);
+    this.rowActionsData.set([]);
   }
 }

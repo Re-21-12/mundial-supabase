@@ -11,13 +11,15 @@
       }
     </div>
 
-    <div class="field">
-      <label for="inv-league">ID de Liga</label>
-      <input id="inv-league" type="number" formControlName="leagueId" min="1" />
-      @if (form.controls.leagueId.touched && form.controls.leagueId.errors?.['min']) {
-        <small class="error-text">Selecciona una liga válida.</small>
-      }
-    </div>
+    @if (leagueId() === 0) {
+      <div class="field">
+        <label for="inv-league">ID de Liga</label>
+        <input id="inv-league" type="number" formControlName="leagueId" min="1" />
+        @if (form.controls.leagueId.touched && form.controls.leagueId.errors?.['min']) {
+          <small class="error-text">Selecciona una liga válida.</small>
+        }
+      </div>
+    }
 
     <div class="field">
       <label>Tipo de invitación</label>
@@ -41,7 +43,7 @@
   @if (successToken()) {
     <div class="success-block">
       <p class="success-text">Invitación creada correctamente.</p>
-      <p class="token-label">Comparte este token con el invitado:</p>
+      <p class="token-label">Token de acceso (compártelo con el invitado):</p>
       <code class="token-code">{{ successToken() }}</code>
     </div>
   }

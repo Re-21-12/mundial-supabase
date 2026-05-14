@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
 import { InvitationService, InvitationType } from '../../../services/invitation.service';
@@ -10,10 +10,12 @@ import { InvitationService, InvitationType } from '../../../services/invitation.
   styleUrl: './send-invitation.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SendInvitationComponent {
+export class SendInvitationComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly invitationService = inject(InvitationService);
   private readonly authFacade = inject(AuthFacade);
+
+  readonly leagueId = input<number>(0);
 
   protected readonly isSending = signal(false);
   protected readonly successToken = signal<string | null>(null);
@@ -25,6 +27,14 @@ export class SendInvitationComponent {
     type: ['existing' as InvitationType, Validators.required],
   });
 
+  ngOnInit() {
+    const id = this.leagueId();
+    if (id > 0) {
+      this.form.controls.leagueId.setValue(id);
+      this.form.controls.leagueId.disable();
+    }
+  }
+
   protected async onSubmit() {
     if (this.form.invalid || this.isSending()) {
       this.form.markAllAsTouched();
@@ -35,7 +45,8 @@ export class SendInvitationComponent {
     this.errorMessage.set('');
     this.successToken.set(null);
 
-    const { email, leagueId, type } = this.form.getRawValue();
+    const { email, type } = this.form.getRawValue();
+    const leagueId = this.form.controls.leagueId.value;
     const inviterId = Number(this.authFacade.getInternalUserId());
 
     const result = type === 'existing'
@@ -46,7 +57,8 @@ export class SendInvitationComponent {
       this.errorMessage.set(result.error ?? 'Error al enviar la invitación.');
     } else {
       this.successToken.set(result.token ?? null);
-      this.form.reset({ email: '', leagueId: 0, type: 'existing' });
+      this.form.reset({ email: '', leagueId: this.leagueId() > 0 ? this.leagueId() : 0, type: 'existing' });
+      if (this.leagueId() > 0) this.form.controls.leagueId.disable();
     }
 
     this.isSending.set(false);

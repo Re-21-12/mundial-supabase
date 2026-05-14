@@ -25,7 +25,7 @@
           {{ col.header }}
         </th>
       }
-      @if (actions.length > 0) {
+      @if (hasAnyAction) {
         <th class="text-center">Acciones</th>
       }
     </tr>
@@ -44,7 +44,7 @@
       } @empty {
         <td>No data found.</td>
       }
-      @if (actions.length > 0) {
+      @if (hasAnyAction) {
         <td class="flex gap-2 justify-center">
           @if (hasAction('view')) {
             <p-button
@@ -74,6 +74,16 @@
               text="true"
               (click)="onDelete(rowData)"
               title="Eliminar"
+            />
+          }
+          @for (ra of rowActions; track ra.label) {
+            <p-button
+              [icon]="ra.icon"
+              size="small"
+              [severity]="ra.severity ?? 'secondary'"
+              text="true"
+              (click)="ra.action(rowData)"
+              [title]="ra.label"
             />
           }
         </td>

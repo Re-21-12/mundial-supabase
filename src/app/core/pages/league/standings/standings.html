@@ -2,7 +2,22 @@
   <header class="standings-header">
     <h2 class="standings-title">Tabla de Posiciones</h2>
     <span class="live-badge" aria-label="Actualización en tiempo real">● Live</span>
+    <button
+      class="invite-btn"
+      type="button"
+      (click)="showInvite.set(!showInvite())"
+      [attr.aria-expanded]="showInvite()"
+    >
+      <i class="pi pi-user-plus"></i>
+      {{ showInvite() ? 'Cerrar' : 'Invitar' }}
+    </button>
   </header>
+
+  @if (showInvite()) {
+    <div class="invite-panel">
+      <app-send-invitation [leagueId]="leagueId" />
+    </div>
+  }
 
   @if (isLoading()) {
     <div class="standings-loading" role="status" aria-live="polite">Cargando posiciones…</div>

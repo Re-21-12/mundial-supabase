@@ -38,6 +38,14 @@ export class DynamicTable {
     return this.tableProps().actions ?? ['view', 'update', 'delete'];
   }
 
+  get rowActions() {
+    return this.tableProps().rowActions ?? [];
+  }
+
+  get hasAnyAction() {
+    return this.actions.length > 0 || this.rowActions.length > 0;
+  }
+
   hasAction(action: TypeOption) {
     return this.actions.includes(action);
   }

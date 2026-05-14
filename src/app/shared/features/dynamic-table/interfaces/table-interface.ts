@@ -1,3 +1,10 @@
+export interface RowAction {
+  icon: string;
+  label: string;
+  severity?: 'primary' | 'secondary' | 'success' | 'info' | 'warn' | 'danger' | 'contrast';
+  action: (row: Record<string, unknown>) => void;
+}
+
 export interface TableTemplateModel {
   header: string;
   columns: TableColumnTemplateModel[];
@@ -9,6 +16,7 @@ export interface TableTemplateModel {
   actions?: TypeOption[];
   routeBase?: string;
   rowIdField?: string;
+  rowActions?: RowAction[];
 }
 export interface TableColumnTemplateModel {
   field: string;

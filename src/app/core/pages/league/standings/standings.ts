@@ -1,10 +1,11 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StandingRow, StandingsService } from '../../../services/standings.service';
+import { SendInvitationComponent } from '../../invitation/send-invitation/send-invitation';
 
 @Component({
   selector: 'app-standings',
-  imports: [],
+  imports: [SendInvitationComponent],
   templateUrl: './standings.html',
   styleUrl: './standings.css',
 })
@@ -14,8 +15,9 @@ export class StandingsPage implements OnInit, OnDestroy {
 
   protected readonly standings = signal<StandingRow[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly showInvite = signal(false);
 
-  private leagueId = 0;
+  protected leagueId = 0;
 
   async ngOnInit() {
     this.leagueId = Number(this.route.snapshot.paramMap.get('id'));
