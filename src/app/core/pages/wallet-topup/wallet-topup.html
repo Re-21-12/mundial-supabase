@@ -20,7 +20,7 @@
     <div class="balance-card" aria-label="Saldo actual">
       <span class="balance-label">Saldo actual</span>
       <span class="balance-amount">${{ wallet()?.balance ?? 0 | number:'1.2-2' }}</span>
-      <span class="balance-currency">MXN</span>
+      <span class="balance-currency">GTQ</span>
     </div>
 
     <!-- Quick amounts -->
@@ -34,7 +34,7 @@
             [class.quick-btn--active]="amount === preset"
             (click)="amount = preset"
           >
-            ${{ preset }}
+            Q{{ preset }}
           </button>
         }
       </div>
@@ -44,9 +44,9 @@
     <form class="topup-form" (ngSubmit)="submit()">
 
       <div class="form-group">
-        <label class="form-label" for="amount">Monto a cargar (MXN)</label>
+        <label class="form-label" for="amount">Monto a cargar (GTQ)</label>
         <div class="amount-input-wrapper">
-          <span class="amount-prefix">$</span>
+          <span class="amount-prefix">Q</span>
           <input
             id="amount"
             class="amount-input"
@@ -59,7 +59,7 @@
             aria-describedby="amount-hint"
           />
         </div>
-        <p class="form-hint" id="amount-hint">Monto mínimo: $50 MXN</p>
+        <p class="form-hint" id="amount-hint">Monto mínimo: Q50 GTQ</p>
       </div>
 
       <div class="form-group">

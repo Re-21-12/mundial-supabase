@@ -78,7 +78,7 @@ export class WalletTopupPage implements OnInit {
     this.successMsg.set('');
 
     if (!this.amount || this.amount < 50) {
-      this.errorMsg.set('El monto mínimo de recarga es $50.');
+      this.errorMsg.set('El monto mínimo de recarga es Q50.');
       return;
     }
 
@@ -93,7 +93,7 @@ export class WalletTopupPage implements OnInit {
     this.isSubmitting.set(true);
 
     const paymentLabel = this.paymentMethods.find((p) => p.key === this.selectedPaymentMethod)?.label ?? '';
-    const desc = `Recarga vía ${paymentLabel} — $${this.amount}`;
+    const desc = `Recarga vía ${paymentLabel} — Q${this.amount}`;
 
     const { error } = await this.walletSvc.deposit(w.wallet_id, this.userId, this.amount, this.selectedCatalogId, desc);
 
@@ -104,7 +104,7 @@ export class WalletTopupPage implements OnInit {
     } else {
       const updated = { ...w, balance: w.balance + this.amount };
       this.wallet.set(updated);
-      this.successMsg.set(`¡Recarga exitosa! Se añadieron $${this.amount} a tu saldo.`);
+      this.successMsg.set(`¡Recarga exitosa! Se añadieron Q${this.amount} a tu saldo.`);
       this.amount = 0;
     }
   }
