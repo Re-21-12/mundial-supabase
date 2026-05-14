@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +21,7 @@ const PAYMENT_METHODS = [
 
 @Component({
   selector: 'app-wallet-topup',
-  imports: [FormsModule, ButtonModule],
+  imports: [FormsModule, ButtonModule, DecimalPipe],
   templateUrl: './wallet-topup.html',
   styleUrl: './wallet-topup.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
