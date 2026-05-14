@@ -12,9 +12,77 @@
 | v3.4.0 | Email Invitations | 📋 Planned | [#11](../../issues/11) |
 | v3.5.0 | Wallet navbar + Approval flow | 📋 Planned | [#12](../../issues/12) [#13](../../issues/13) |
 | v3.6.0 | Global Search | 📋 Planned | [#14](../../issues/14) |
-| v3.7.0 | Real-time Standings + Schedule | 📋 Planned | [#15](../../issues/15) [#16](../../issues/16) |
-| v3.8.0 | Interactive League Diagram | 📋 Planned | [#17](../../issues/17) |
-| v3.9.0 | Mobile First | 📋 Planned | [#18](../../issues/18) |
+| v3.7.0 | Real-time Standings + Schedule | ✅ Completo | — |
+| v3.8.0 | Interactive League Diagram | 🔜 Issue #31 | — |
+| v3.9.0 | Mobile First | ✅ Completo | — |
+| v3.10.0 | Home real, Admin backoffice, Session fix | ✅ Completo | #28 #29 |
+| v3.11.0 | League dashboard, Catalog seed, Migrations, Wallet top-up | ✅ Completo | #30 #31 |
+
+---
+
+## Version 3.11.0 - 2026-05-14 — League Dashboard + Catalog + Migrations + Wallet
+
+### Features
+
+- **Home — "Mis Ligas"**: nueva sección que muestra las ligas activas del usuario con posición actual, puntos y total de participantes. Cards clickeables → `/league/:id/standings`. Skeleton loading animado.
+- **`UserLeaguesService`**: `loadUserLeagues(userId)` — query USER_LEAGUE + LEAGUE join, calcula rank comparando puntos acumulados en cada liga.
+- **`/admin/migrations`**: página readonly que lista `MIGRATION_LOG` con estado coloreado (✅/❌/⚠). Columnas: versión, nombre, fecha, ejecutada por, tiempo ms.
+- **`/wallet/top-up`**: pantalla de recarga de saldo. Botones rápidos ($100/$200/$500/$1000), método de pago simulado, INSERT en TRANSACTION + UPDATE WALLET.balance.
+- **`WalletService.deposit()`**: encapsula la operación INSERT TRANSACTION + UPDATE balance.
+- **Catalog seed** (`db/script/seed-catalogs.sql`): 58 registros en CATALOG para todas las categorías de SELECT (table_id 10/20/30/40/50/60).
+
+### Form Fixes
+
+- **`league-form.ts`**: campo `status` migrado de TEXT a SELECT (optionsSource table_id=60 — league_status).
+- **`teams-form.ts`**: `filterValue` corregido de `'1'` a `10` (team_category).
+- **`forms.ts` matchPeriodForm**: añadido `filterField: 'table_id', filterValue: 30` (period_type).
+- **`forms.ts` transactionForm**: añadido `filterField: 'table_id', filterValue: 40` (transaction_type).
+
+### Bug Fixes
+
+- **NG8004** — `DecimalPipe` importado explícitamente en `WalletTopupPage` (standalone component).
+- **NG04002** — ruta `wallet/top-up` movida como hijo de `WALLET_ROUTES` en lugar de ruta top-level con slash (Angular no permite `/` en `path`).
+- **Wallet chip en navbar**: cambiado link de `/wallet` a `/wallet/top-up`; prefijo `Q` → `$`.
+- **Importación muerta** en `league-form.ts`: removido `import { filter } from 'rxjs/operators'`.
+
+### Catalog Taxonomy
+
+| table_id | Categoría | Formulario | Ejemplos |
+| -------- | --------- | ---------- | -------- |
+| 10 | `team_category` | teams-form | Selección Nacional, Club de Liga |
+| 20 | `league_type` | league-form tipo | Liga Regular, Copa, Eliminatoria |
+| 30 | `period_type` | matchPeriodForm | 1T, 2T, TE1, Penales |
+| 40 | `transaction_type` | transactionForm | Depósito, Retiro, Premio |
+| 50 | `country` | stadiumForm | MX, AR, BR, ES… 20 países |
+| 60 | `league_status` | league-form estado | Activa, Inactiva, Finalizada |
+
+### Files Changed in v3.11.0
+
+| File | Change |
+|------|--------|
+| `db/script/seed-catalogs.sql` | NEW — 58 registros CATALOG |
+| `src/app/core/services/user-leagues.service.ts` | NEW |
+| `src/app/core/services/wallet.service.ts` | ADD `deposit()` |
+| `src/app/core/pages/admin-migrations/` | NEW (4 archivos) |
+| `src/app/core/pages/wallet-topup/` | NEW (4 archivos) |
+| `src/app/core/pages/home/home.ts` | ADD UserLeaguesService, leaguesLoading, navigateToLeague |
+| `src/app/core/pages/home/home.html` | ADD sección "Mis Ligas" |
+| `src/app/core/pages/home/home.css` | ADD estilos league-card + skeleton |
+| `src/app/core/pages/league/league-form.ts` | status TEXT→SELECT; rm import muerto |
+| `src/app/core/pages/teams/teams-form.ts` | filterValue '1'→10 |
+| `src/app/core/pages/wallet/wallet.routes.ts` | ADD ruta top-up |
+| `src/app/shared/features/dynamic-form/utils/forms.ts` | matchPeriodForm + transactionForm filters |
+| `src/app/shared/layouts/layout.html` | wallet chip → /wallet/top-up |
+| `src/app/app.routes.ts` | ADD /admin/migrations |
+
+### ⚠️ Acción manual requerida
+
+Ejecutar en Supabase SQL Editor:
+
+```sql
+-- db/script/seed-catalogs.sql
+-- Pobla todos los catálogos para que funcionen los SELECT de los formularios
+```
 
 ---
 
@@ -122,7 +190,7 @@
 
 ### Version 3.0.0 - 2026-05-11 (Initial Release)
 
-#### Features
+#### Core Features
 
 ##### 1. Magic Links for Anonymous User Invitations
 
