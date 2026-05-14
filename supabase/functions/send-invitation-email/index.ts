@@ -1,3 +1,4 @@
+// @ts-nocheck — Deno Edge Function: tipos Deno no disponibles en tsconfig de Node
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -134,7 +135,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Mundial <invitaciones@re-21-12.app>',
+        from: Deno.env.get('RESEND_FROM') ?? 'Mundial <onboarding@resend.dev>',
         to: [email],
         subject,
         html: bodyHtml,
