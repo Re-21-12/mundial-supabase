@@ -117,6 +117,10 @@ export class AuthFacade implements IAuthFacade {
     return this._supabaseAuthService.setNewPassword(newPassword);
   }
 
+  waitForAuthReady(timeoutMs = 5000): Promise<void> {
+    return this._supabaseAuthService.waitForAuthReady(timeoutMs);
+  }
+
   getInternalUserId(): string | null {
     return this._supabaseAuthService.getInternalUserId();
   }

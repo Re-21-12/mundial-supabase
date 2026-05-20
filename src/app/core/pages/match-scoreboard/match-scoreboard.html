@@ -1,0 +1,220 @@
+<div class="scoreboard-page">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="scoreboard-header">
+    <h1 class="scoreboard-title">
+      <i class="pi pi-sliders-h" aria-hidden="true"></i>
+      Tablero de Marcadores
+    </h1>
+    <p class="scoreboard-subtitle">Administra los períodos y punteos de cada partido.</p>
+  </div>
+
+  <!-- ═══ LEAGUE SELECTOR ═══ -->
+  <div class="scoreboard-filter">
+    <label class="scoreboard-filter__label" for="league-select">Liga</label>
+    <p-select
+      inputId="league-select"
+      [options]="leagueOptions()"
+      [ngModel]="selectedLeagueId()"
+      (ngModelChange)="onLeagueChange($event)"
+      placeholder="Selecciona una liga…"
+      [showClear]="true"
+      styleClass="scoreboard-select"
+    />
+  </div>
+
+  <!-- ═══ NO LEAGUE SELECTED ═══ -->
+  @if (!selectedLeagueId()) {
+    <div class="scoreboard-empty">
+      <i class="pi pi-trophy scoreboard-empty__icon" aria-hidden="true"></i>
+      <p>Selecciona una liga para ver sus partidos.</p>
+    </div>
+  }
+
+  <!-- ═══ LOADING ═══ -->
+  @if (selectedLeagueId() && loadingMatches()) {
+    <div class="scoreboard-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      Cargando partidos…
+    </div>
+  }
+
+  <!-- ═══ MATCH LIST ═══ -->
+  @if (!loadingMatches() && matches().length > 0) {
+    <div class="scoreboard-list">
+      @for (match of matches(); track match.match_id) {
+
+        <!-- ─── Match row ─── -->
+        <div
+          class="sb-match"
+          [class.sb-match--live]="isLive(match)"
+          [class.sb-match--expanded]="expandedMatchId() === match.match_id"
+        >
+
+          <!-- Match header (click to expand) -->
+          <button
+            class="sb-match__header"
+            type="button"
+            (click)="toggleMatch(match.match_id)"
+            [attr.aria-expanded]="expandedMatchId() === match.match_id"
+          >
+            <div class="sb-match__status">
+              <p-tag
+                [severity]="isLive(match) ? 'success' : 'secondary'"
+                [value]="isLive(match) ? 'En vivo' : 'Próximo'"
+                styleClass="sb-tag"
+              />
+            </div>
+
+            <div class="sb-match__teams">
+              <span class="sb-match__team">{{ match.first_team_id ?? '–' }}</span>
+              <span class="sb-match__score">
+                {{ match.first_team_total }} : {{ match.second_team_total }}
+              </span>
+              <span class="sb-match__team sb-match__team--away">{{ match.second_team_id ?? '–' }}</span>
+            </div>
+
+            <div class="sb-match__meta">
+              <span class="sb-match__date">{{ match.start_time | date: 'dd/MM HH:mm' }}</span>
+              <i [class]="expandedMatchId() === match.match_id ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+            </div>
+          </button>
+
+          <!-- ─── Expanded: period control ─── -->
+          @if (expandedMatchId() === match.match_id) {
+            <div class="sb-match__body">
+
+              @if (isLoadingPeriods(match.match_id)) {
+                <div class="sb-loading">
+                  <i class="pi pi-spin pi-spinner"></i> Cargando períodos…
+                </div>
+              } @else {
+
+                <!-- Period rows -->
+                @if (getPeriods(match.match_id).length > 0) {
+                  <table class="sb-periods-table">
+                    <thead>
+                      <tr>
+                        <th>Período</th>
+                        <th class="text-center">{{ match.first_team_id ?? 'Local' }}</th>
+                        <th class="text-center">{{ match.second_team_id ?? 'Visita' }}</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (period of getPeriods(match.match_id); track period.period_id; let i = $index) {
+                        @let key = editKey(match.match_id, period.period_id);
+                        @let ed  = getEdit(match.match_id, period.period_id);
+
+                        <tr [class.sb-period--editing]="isEditing(match.match_id, period.period_id)">
+                          <td class="sb-period__label">
+                            @if (ed) {
+                              <p-select
+                                [options]="catalogOptions()"
+                                [(ngModel)]="ed.catalogId"
+                                styleClass="sb-cat-select"
+                                placeholder="Tipo"
+                              />
+                            } @else {
+                              {{ getCatalogName(period.catalog_id) }}
+                            }
+                          </td>
+                          <td class="text-center">
+                            @if (ed) {
+                              <input class="sb-score-input" type="number" min="0" [(ngModel)]="ed.home" />
+                            } @else {
+                              <span class="sb-score-val">{{ period.first_team_score ?? 0 }}</span>
+                            }
+                          </td>
+                          <td class="text-center">
+                            @if (ed) {
+                              <input class="sb-score-input" type="number" min="0" [(ngModel)]="ed.away" />
+                            } @else {
+                              <span class="sb-score-val">{{ period.second_team_score ?? 0 }}</span>
+                            }
+                          </td>
+                          <td class="sb-period__actions">
+                            @if (ed) {
+                              <button class="sb-btn sb-btn--save" type="button" [disabled]="ed.saving" (click)="savePeriod(key)">
+                                @if (ed.saving) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+                              </button>
+                              <button class="sb-btn sb-btn--cancel" type="button" (click)="cancelEdit(key)">
+                                <i class="pi pi-times"></i>
+                              </button>
+                            } @else {
+                              <button class="sb-btn sb-btn--edit" type="button" (click)="startEditPeriod(period)">
+                                <i class="pi pi-pencil"></i>
+                              </button>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr class="sb-period--total">
+                        <td><strong>Total</strong></td>
+                        <td class="text-center"><strong>{{ match.first_team_total }}</strong></td>
+                        <td class="text-center"><strong>{{ match.second_team_total }}</strong></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                } @else {
+                  <p class="sb-empty-periods">Sin períodos registrados aún.</p>
+                }
+
+                <!-- New period form -->
+                @let newKey = editKey(match.match_id, null);
+                @let newEd  = getEdit(match.match_id, null);
+
+                @if (newEd) {
+                  <div class="sb-new-period">
+                    <span class="sb-new-period__title">Nuevo período</span>
+                    <div class="sb-new-period__fields">
+                      <p-select
+                        [options]="catalogOptions()"
+                        [(ngModel)]="newEd.catalogId"
+                        styleClass="sb-cat-select"
+                        placeholder="Tipo de período"
+                      />
+                      <label class="sb-new-period__score-label">
+                        Local
+                        <input class="sb-score-input" type="number" min="0" [(ngModel)]="newEd.home" />
+                      </label>
+                      <label class="sb-new-period__score-label">
+                        Visita
+                        <input class="sb-score-input" type="number" min="0" [(ngModel)]="newEd.away" />
+                      </label>
+                      <button class="sb-btn sb-btn--save" type="button" [disabled]="newEd.saving" (click)="savePeriod(newKey)">
+                        @if (newEd.saving) { <i class="pi pi-spin pi-spinner"></i> } @else { Guardar }
+                      </button>
+                      <button class="sb-btn sb-btn--cancel" type="button" (click)="cancelEdit(newKey)">Cancelar</button>
+                    </div>
+                  </div>
+                } @else {
+                  <button
+                    class="sb-add-period-btn"
+                    type="button"
+                    (click)="startNewPeriod(match.match_id)"
+                  >
+                    <i class="pi pi-plus"></i>
+                    Agregar período
+                  </button>
+                }
+
+              }<!-- /loading check -->
+            </div><!-- /sb-match__body -->
+          }
+
+        </div><!-- /sb-match -->
+      }
+    </div>
+
+  } @else if (!loadingMatches() && selectedLeagueId()) {
+    <div class="scoreboard-empty">
+      <i class="pi pi-calendar scoreboard-empty__icon" aria-hidden="true"></i>
+      <p>No hay partidos en esta liga aún.</p>
+    </div>
+  }
+
+</div>

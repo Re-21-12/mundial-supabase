@@ -146,6 +146,13 @@ export const PERMISSIONS = {
     DELETE: 'wallet:delete',
     RESTORE: 'wallet:restore',
   },
+  TEAM_LEAGUE: {
+    CREATE: 'team_league:create',
+    READ: 'team_league:read',
+    UPDATE: 'team_league:update',
+    DELETE: 'team_league:delete',
+    RESTORE: 'team_league:restore',
+  },
   WORLD_LEAGUE: {
     CREATE: 'world_league:create',
     READ: 'world_league:read',

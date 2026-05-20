@@ -35,7 +35,13 @@
       @for (col of columns; track col) {
         <td>
           @let cellValue = rowData[col.field];
-          @if (shouldRenderAsBadge(cellValue)) {
+          @if (col.type === 'image') {
+            @if (cellValue) {
+              <img [src]="cellValue" [alt]="col.header" [title]="col.header" class="dt-img-thumb" loading="lazy" />
+            } @else {
+              <span class="dt-img-empty"><i class="pi pi-image"></i></span>
+            }
+          } @else if (shouldRenderAsBadge(cellValue)) {
             <p-tag [value]="getBadgeLabel(cellValue)" [severity]="getBadgeSeverity(cellValue)" />
           } @else {
             {{ formatCellValue(cellValue) }}

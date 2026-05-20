@@ -1,5 +1,4 @@
 <div class="home-page" role="main">
-
   <!-- ═══ HERO CAROUSEL ═══ -->
   <section class="home-section home-section--hero" aria-label="Partidos destacados">
     @if (carouselMatches().length > 0) {
@@ -12,106 +11,507 @@
     }
   </section>
 
+  <!-- ═══ VIDEO FIFA 2026 ═══ -->
+  <section class="home-section home-section--video" aria-label="Video oficial FIFA World Cup 2026">
+    <div class="video-wrapper">
+      <iframe
+        [src]="safeVideoUrl"
+        title="FIFA World Cup 2026 — Official Video"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+  </section>
+
+  <!-- ═══ GLOBO INTERACTIVO ═══ -->
+  <section class="home-section" aria-label="Mapa de países participantes">
+    <div class="section-title-row">
+      <h2 class="section-title">
+        <i class="pi pi-map" aria-hidden="true"></i>
+        Naciones Participantes
+        <span class="leagues-count">48 selecciones · 12 grupos</span>
+      </h2>
+    </div>
+    <app-world-globe [grupos]="grupos()" />
+  </section>
+
   <!-- ═══ STATS BAR ═══ -->
   <section class="home-section" aria-label="Estadísticas del torneo">
     <app-stats-bar />
   </section>
 
+   <!-- ═══ FASE DE GRUPOS ═══ -->
+
+<!--
+  @if (grupos().length > 0) {
+    <section class="home-section" aria-label="Fase de grupos FIFA World Cup 2026">
+      <div class="section-title-row">
+        <h2 class="section-title">
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          Fase de Grupos
+          <span class="leagues-count">FIFA World Cup 2026</span>
+        </h2>
+      </div>
+      <app-world-cup-groups [grupos]="grupos()" />
+    </section>
+  }
+-->
+
   <!-- ═══ MIS LIGAS ═══ -->
   <section class="home-section" aria-label="Mis ligas activas">
-    <h2 class="section-title">
-      <i class="pi pi-trophy" aria-hidden="true"></i>
-      Mis Ligas
-    </h2>
 
+    <!-- Header -->
+    <div class="section-title-row">
+      <h2 class="section-title">
+        <i class="pi pi-trophy" aria-hidden="true"></i>
+        Mis Ligas
+        @if (userLeagues().length > 0) {
+          <span class="leagues-count"><ngx-digit-flow [value]="filteredLeagues().length" />/<ngx-digit-flow [value]="userLeagues().length" /></span>
+        }
+      </h2>
+
+      <!-- Botón de filtro -->
+      @if (leagueTypes().length > 1) {
+        <div class="filter-wrap">
+          <button
+            class="filter-btn"
+            [class.filter-btn--active]="leagueFilter() !== 'all'"
+            type="button"
+            (click)="showFilter.set(!showFilter())"
+            [attr.aria-expanded]="showFilter()"
+          >
+            <i class="pi pi-filter-fill"></i>
+            @if (leagueFilter() === 'all') {
+              Filtrar
+            } @else {
+              {{ leagueFilter() }}
+              <i class="pi pi-times filter-btn__clear" (click)="$event.stopPropagation(); selectFilter('all')"></i>
+            }
+          </button>
+
+          @if (showFilter()) {
+            <div class="filter-panel" role="listbox" aria-label="Filtrar por tipo de liga">
+              <button
+                class="filter-option"
+                [class.filter-option--active]="leagueFilter() === 'all'"
+                type="button"
+                role="option"
+                (click)="selectFilter('all')"
+              >
+                <i class="pi pi-list"></i>
+                Todas las ligas
+                <span class="filter-option__count"><ngx-digit-flow [value]="userLeagues().length" /></span>
+              </button>
+              @for (type of leagueTypes(); track type) {
+                <button
+                  class="filter-option"
+                  [class.filter-option--active]="leagueFilter() === type"
+                  type="button"
+                  role="option"
+                  (click)="selectFilter(type)"
+                >
+                  <i class="pi pi-tag"></i>
+                  {{ type }}
+                  <span class="filter-option__count"><ngx-digit-flow [value]="countByType(type)" /></span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Loading skeleton -->
     @if (leaguesLoading()) {
       <div class="leagues-skeleton">
-        @for (n of [1,2,3]; track n) {
+        @for (n of [1, 2, 3]; track n) {
           <div class="league-card league-card--skeleton"></div>
         }
       </div>
+
     } @else if (userLeagues().length > 0) {
-      <div class="leagues-grid">
-        @for (card of userLeagues(); track card.user_league_id) {
-          <button
-            class="league-card"
-            (click)="navigateToLeague(card.league_id)"
-            type="button"
-            [attr.aria-label]="'Ver ' + card.league_name"
-          >
-            <div class="league-card__position">
-              {{ positionEmoji(card.position) }}
-            </div>
-            <div class="league-card__info">
-              <span class="league-card__name">{{ card.league_name }}</span>
-              <span class="league-card__meta">
-                Posición {{ card.position }} de {{ card.total_participants }}
-              </span>
-            </div>
-            <div class="league-card__points">
-              <span class="league-card__pts-value">{{ card.accumulated_points }}</span>
-              <span class="league-card__pts-label">pts</span>
-            </div>
-            <i class="pi pi-chevron-right league-card__arrow" aria-hidden="true"></i>
+
+      <!-- Sin resultados del filtro -->
+      @if (filteredLeagues().length === 0) {
+        <div class="empty-state empty-state--inline">
+          <p>Sin ligas del tipo <strong>{{ leagueFilter() }}</strong></p>
+          <button class="filter-btn" type="button" (click)="selectFilter('all')">
+            <i class="pi pi-times"></i> Quitar filtro
           </button>
-        }
-      </div>
+        </div>
+      } @else {
+        <div class="leagues-list">
+          @for (card of filteredLeagues(); track card.user_league_id) {
+
+            <!-- ─── League card ─── -->
+            <div class="league-item" [class.league-item--expanded]="isExpanded(card.league_id)">
+              <div class="league-card-row">
+
+                <!-- Emoji posición -->
+                <div class="league-card__position">{{ positionEmoji(card.position) }}</div>
+
+                <!-- Info principal -->
+                <div class="league-card__info" (click)="toggleLeagueDetail(card.league_id)">
+                  <span class="league-card__name">{{ card.league_name }}</span>
+                  <div class="league-card__meta-row">
+                    <span class="league-card__type-badge">{{ card.league_type }}</span>
+                    @if (card.league_type_desc) {
+                      <span class="league-card__type-desc">{{ card.league_type_desc }}</span>
+                    }
+                  </div>
+                  <span class="league-card__meta">
+                    Pos. <ngx-digit-flow [value]="card.position" /> de <ngx-digit-flow [value]="card.total_participants" /> participantes
+                  </span>
+                </div>
+
+                <!-- Puntos -->
+                <div class="league-card__points">
+                  <span class="league-card__pts-value"><ngx-digit-flow [value]="card.accumulated_points" [continuous]="true" /></span>
+                  <span class="league-card__pts-label">pts</span>
+                </div>
+
+                <!-- Acciones -->
+                <div class="league-card__actions">
+                  <button
+                    class="league-card__expand-btn"
+                    type="button"
+                    [title]="isExpanded(card.league_id) ? 'Cerrar' : 'Ver posiciones'"
+                    [attr.aria-label]="isExpanded(card.league_id) ? 'Cerrar posiciones' : 'Ver posiciones de la liga'"
+                    (click)="toggleLeagueDetail(card.league_id)"
+                  >
+                    <i [class]="isExpanded(card.league_id) ? 'pi pi-chevron-up' : 'pi pi-chart-bar'"></i>
+                  </button>
+                  <button
+                    class="league-card__nav-btn"
+                    type="button"
+                    title="Ir a la liga"
+                    (click)="navigateToLeague(card.league_id)"
+                  >
+                    <i class="pi pi-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ─── Panel expandible: posiciones ─── -->
+              @if (isExpanded(card.league_id)) {
+                <div class="league-detail">
+
+                  @if (isLoadingDetail(card.league_id)) {
+                    <div class="league-detail__loading">
+                      <i class="pi pi-spin pi-spinner"></i>
+                      Cargando posiciones...
+                    </div>
+                  } @else if (expandedDetail()) {
+
+                    <div class="league-detail__grid">
+
+                      <!-- Tabla de posiciones (usuarios) -->
+                      <div class="standings-block">
+                        <h3 class="standings-block__title">
+                          <i class="pi pi-users" aria-hidden="true"></i>
+                          Tabla de Posiciones
+                        </h3>
+                        @if (expandedDetail()!.users.length > 0) {
+                          <table class="standings-table">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>Participante</th>
+                                <th class="text-right">Pts</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (row of expandedDetail()!.users; track row.user_id) {
+                                <tr [class.standings-table__row--highlight]="row.position <= 3">
+                                  <td class="standings-table__pos">{{ positionEmoji(row.position) }}</td>
+                                  <td class="standings-table__name">{{ row.user_name }}</td>
+                                  <td class="standings-table__pts"><ngx-digit-flow [value]="row.accumulated_points" [continuous]="true" /></td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        } @else {
+                          <p class="standings-block__empty">Sin participantes aún.</p>
+                        }
+                      </div>
+
+                      <!-- Tabla de equipos (TEAM_LEAGUE) -->
+                      <div class="standings-block">
+                        <h3 class="standings-block__title">
+                          <i class="pi pi-shield" aria-hidden="true"></i>
+                          Equipos de la Liga
+                        </h3>
+                        @if (expandedDetail()!.teams.length > 0) {
+                          <table class="standings-table standings-table--teams">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>Equipo</th>
+                                <th title="Partidos jugados">PJ</th>
+                                <th title="Ganados">G</th>
+                                <th title="Empatados">E</th>
+                                <th title="Perdidos">P</th>
+                                <th title="Diferencia de goles">DG</th>
+                                <th class="text-right" title="Puntos">Pts</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (row of expandedDetail()!.teams; track row.team_id) {
+                                <tr [class.standings-table__row--highlight]="row.position <= 3">
+                                  <td class="standings-table__pos"><ngx-digit-flow [value]="row.position" /></td>
+                                  <td class="standings-table__name">{{ row.team_name }}</td>
+                                  <td><ngx-digit-flow [value]="row.games_played" /></td>
+                                  <td><ngx-digit-flow [value]="row.wins" /></td>
+                                  <td><ngx-digit-flow [value]="row.draws" /></td>
+                                  <td><ngx-digit-flow [value]="row.losses" /></td>
+                                  <td [class.pos]="row.goal_diff > 0" [class.neg]="row.goal_diff < 0">
+                                    <ngx-digit-flow [value]="row.goal_diff" [prefix]="row.goal_diff > 0 ? '+' : ''" />
+                                  </td>
+                                  <td class="standings-table__pts"><ngx-digit-flow [value]="row.points" [continuous]="true" /></td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        } @else {
+                          <p class="standings-block__empty">
+                            No hay equipos asignados a esta liga aún.
+                          </p>
+                        }
+                      </div>
+
+                    </div><!-- /league-detail__grid -->
+
+                    <!-- Fase de Grupos -->
+                    @if (expandedDetail()!.grupos.length > 0) {
+                      <div class="grupo-section">
+                        <h3 class="standings-block__title grupo-section__title">
+                          <i class="pi pi-th-large" aria-hidden="true"></i>
+                          Fase de Grupos
+                        </h3>
+                        <div class="grupo-grid">
+                          @for (grupo of expandedDetail()!.grupos; track grupo.grupo_id) {
+                            <div class="grupo-card">
+                              <div class="grupo-card__header">
+                                <span class="grupo-card__letter">{{ grupo.name }}</span>
+                                <span class="grupo-card__label">Grupo</span>
+                              </div>
+                              <table class="grupo-table">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th class="grupo-table__col-team">Equipo</th>
+                                    <th title="Partidos jugados">PJ</th>
+                                    <th title="Ganados">G</th>
+                                    <th title="Empatados">E</th>
+                                    <th title="Perdidos">P</th>
+                                    <th title="Diferencia de goles">DG</th>
+                                    <th title="Puntos">Pts</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (team of grupo.teams; track team.team_id; let i = $index) {
+                                    <tr
+                                      [class.grupo-table__row--advances]="team.advances === true"
+                                      [class.grupo-table__row--eliminated]="team.advances === false"
+                                    >
+                                      <td class="grupo-table__pos">{{ i + 1 }}</td>
+                                      <td class="grupo-table__name">{{ team.team_name }}</td>
+                                      <td>{{ team.games_played }}</td>
+                                      <td>{{ team.wins }}</td>
+                                      <td>{{ team.draws }}</td>
+                                      <td>{{ team.losses }}</td>
+                                      <td [class.pos]="team.goal_diff > 0" [class.neg]="team.goal_diff < 0">
+                                        {{ team.goal_diff > 0 ? '+' : '' }}{{ team.goal_diff }}
+                                      </td>
+                                      <td class="grupo-table__pts">{{ team.points }}</td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <div class="league-detail__footer">
+                      <button
+                        class="league-detail__full-btn"
+                        type="button"
+                        (click)="navigateToLeague(card.league_id)"
+                      >
+                        <i class="pi pi-external-link"></i>
+                        Ver tabla completa
+                      </button>
+                    </div>
+
+                  }<!-- /if expandedDetail -->
+                </div><!-- /league-detail -->
+              }
+
+            </div><!-- /league-item -->
+          }
+        </div><!-- /leagues-list -->
+      }
+
     } @else {
       <div class="empty-state">
         <i class="pi pi-trophy empty-state__icon" aria-hidden="true"></i>
         <p>Aún no perteneces a ninguna liga activa.</p>
-        <p-button label="Unirse con código" icon="pi pi-link" size="small" severity="secondary" (click)="openJoinDialog()" />
+        <p-button
+          label="Unirse con código"
+          icon="pi pi-link"
+          size="small"
+          severity="secondary"
+          (click)="openJoinDialog()"
+        />
       </div>
     }
   </section>
 
-  <!-- ═══ FEATURED MATCHES GRID ═══ -->
-  <section  aria-label="Partidos del torneo">
-    <h2 class="section-title">
-      <i class="pi pi-calendar-clock" aria-hidden="true"></i>
-      Partidos del Torneo
-    </h2>
+  <!-- ═══ FEATURED MATCHES ═══ -->
+  <section aria-label="Partidos del torneo">
+    <div class="section-title-row">
+      <h2 class="section-title">
+        <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+        Partidos del Torneo
+      </h2>
+      <div class="view-toggle" role="group" aria-label="Cambiar vista">
+        <button
+          class="view-toggle__btn"
+          [class.view-toggle__btn--active]="matchView() === 'grid'"
+          type="button"
+          title="Vista grilla"
+          (click)="matchView.set('grid')"
+        >
+          <i class="pi pi-th-large"></i>
+        </button>
+        <button
+          class="view-toggle__btn"
+          [class.view-toggle__btn--active]="matchView() === 'bracket'"
+          type="button"
+          title="Vista bracket"
+          (click)="matchView.set('bracket')"
+        >
+          <i class="pi pi-sitemap"></i>
+        </button>
+      </div>
+    </div>
 
-    @if (featuredMatches().length > 0) {
+    @if (carouselMatches().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
+        <p>No hay partidos programados por el momento.</p>
+      </div>
+    } @else if (matchView() === 'bracket') {
+      @if (filteredLeagues().length === 0) {
+        <p class="bracket-empty">Únete a una liga para ver su bracket.</p>
+      } @else {
+        <!-- League tab selector -->
+        <div class="bracket-league-tabs" role="tablist" aria-label="Seleccionar liga">
+          @for (league of filteredLeagues(); track league.league_id) {
+            <button
+              class="bracket-league-tab"
+              role="tab"
+              type="button"
+              [class.bracket-league-tab--active]="selectedLeagueId() === league.league_id"
+              [attr.aria-selected]="selectedLeagueId() === league.league_id"
+              (click)="selectLeague(league.league_id)"
+            >
+              {{ league.league_name }}
+            </button>
+          }
+        </div>
+
+        @if (selectedLeagueId(); as lid) {
+          <app-tournament-bracket [leagueId]="lid" [grupos]="grupos()" />
+        }
+      }
+    } @else {
       <div class="matches-grid">
         @for (card of featuredMatches(); track card.match.match_id) {
-          <article class="match-card" [class.match-card--live]="card.isLive">
-            <!-- Status badge -->
-            <div class="match-card__header">
+          <article
+            class="match-card"
+            [class.match-card--live]="card.isLive"
+            [class.match-card--expanded]="isMatchExpanded(card.match.match_id)"
+          >
+            <!-- Header: status + toggle -->
+            <div class="match-card__header match-card__header--clickable" (click)="toggleMatchDetail(card.match.match_id)">
+
               <p-tag
                 [severity]="getLiveSeverity(card)"
                 [value]="getLiveLabel(card)"
                 styleClass="match-status-tag"
               />
-              <span class="match-date">
-                @if (!card.isLive) { {{ formatMatchDate(card.match.start_time) }} }
-              </span>
+              <div class="match-card__header-actions">
+                <span class="match-date">
+                  @if (!card.isLive) { {{ formatMatchDate(card.match.start_time) }} }
+                </span>
+                <i [class]="isMatchExpanded(card.match.match_id) ? 'pi pi-chevron-up match-card__toggle' : 'pi pi-chevron-down match-card__toggle'"></i>
+              </div>
             </div>
 
-            <!-- Teams and score -->
+            <!-- Teams + score -->
             <div class="match-card__body">
-              <div class="match-team">
-                <span class="match-team__emoji">🏟️</span>
-                <span class="match-team__name">{{ card.homeTeam.name }}</span>
+              <div class="match-card__teams">
+                <div class="match-team">
+                  <span class="match-team__emoji">🏟️</span>
+                  <span class="match-team__name">{{ card.homeTeam.name }}</span>
+                </div>
+                <div class="match-card__score">
+                @if (!card.period) {
+                  -  :  -
+                } @else {
+                  <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
+                  <span>:</span>
+                  <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
+                }
               </div>
-
-              <div class="match-card__score">{{ getScore(card) }}</div>
-
-              <div class="match-team match-team--away">
-                <span class="match-team__name">{{ card.awayTeam.name }}</span>
-                <span class="match-team__emoji">✈️</span>
+                <div class="match-team match-team--away">
+                  <span class="match-team__name">{{ card.awayTeam.name }}</span>
+                  <span class="match-team__emoji">✈️</span>
+                </div>
               </div>
             </div>
 
-            <!-- User prediction chip -->
-            @if (card.prediction) {
-              <div class="match-card__prediction">
-                <i class="pi pi-check-circle" aria-hidden="true"></i>
-                Tu predicción: {{ card.prediction.first_team_score }} – {{ card.prediction.second_team_score }}
+            <!-- Expanded: period breakdown -->
+            @if (isMatchExpanded(card.match.match_id)) {
+              <div class="match-periods">
+                @let periods = getMatchPeriods(card.match.match_id);
+                @if (periods.length === 0) {
+                  <p class="match-periods__empty">Sin períodos registrados.</p>
+                } @else {
+                  @for (p of periods; track p.period_id; let i = $index) {
+                    <div class="match-period-row">
+                      <span class="match-period-row__label">Período {{ i + 1 }}</span>
+                      <span class="match-period-row__score">
+                        <span class="match-period-row__val"><ngx-digit-flow [value]="p.first_team_score ?? 0" /></span>
+                        <span class="match-period-row__sep">:</span>
+                        <span class="match-period-row__val"><ngx-digit-flow [value]="p.second_team_score ?? 0" /></span>
+                      </span>
+                    </div>
+                  }
+                  <div class="match-period-row match-period-row--total">
+                    <span class="match-period-row__label">Total</span>
+                    <span class="match-period-row__score">
+                      <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
+                      <span class="match-period-row__sep">:</span>
+                      <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
+                    </span>
+                  </div>
+                }
               </div>
             }
 
-            <!-- CTA -->
+            @if (card.prediction) {
+              <div class="match-card__prediction">
+                <i class="pi pi-check-circle" aria-hidden="true"></i>
+                Tu predicción: <ngx-digit-flow [value]="card.prediction.first_team_score" /> – <ngx-digit-flow [value]="card.prediction.second_team_score" />
+              </div>
+            }
+
             <div class="match-card__footer">
               <p-button
                 label="Predecir resultado"
@@ -119,16 +519,12 @@
                 severity="contrast"
                 size="small"
                 styleClass="w-full predict-btn"
+                [disabled]="!canPredictMatch(card)"
                 (click)="navigateToPredict(card)"
               />
             </div>
           </article>
         }
-      </div>
-    } @else {
-      <div class="empty-state">
-        <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
-        <p>No hay partidos programados por el momento.</p>
       </div>
     }
   </section>
@@ -148,5 +544,4 @@
   @if (showJoinDialog()) {
     <app-join-league (closed)="closeJoinDialog()" />
   }
-
 </div>

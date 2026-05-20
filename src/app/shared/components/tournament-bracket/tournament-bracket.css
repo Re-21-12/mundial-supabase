@@ -1,0 +1,293 @@
+/* ─── Grupo standings section ───────────────────────────────────── */
+.tb-grupos {
+  margin-bottom: 2rem;
+}
+
+.tb-grupos__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary, #6366f1);
+}
+
+/* ─── Scroll wrapper ───────────────────────────────────────────── */
+.bracket-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 0.5rem;
+}
+
+.bracket-empty {
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+/* ─── Bracket flex row ─────────────────────────────────────────── */
+.bracket {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0;
+  min-width: max-content;
+  padding: 0 1rem;
+  overflow: visible;
+}
+
+/* ─── Round column ─────────────────────────────────────────────── */
+.b-round {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 200px;
+  /* Right margin = 32px connector gap (16px right lines + 16px left lines of next round) */
+  margin-right: 32px;
+  overflow: visible;
+}
+
+.b-round--last {
+  margin-right: 0;
+}
+
+.b-round__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  padding: 0 0 10px;
+  text-align: center;
+}
+
+.b-round__body {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/* ─── Pair container ───────────────────────────────────────────── */
+.b-pair {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/*
+ * Connector design (only when !isLast):
+ *
+ * Each .b-slot gets a right horizontal line (16px).
+ * .b-pair (with 2 slots) gets a vertical line on the right connecting the
+ *   midpoints of both slots.
+ * The NEXT round's .b-pair gets a left horizontal line (16px) at its center.
+ *
+ * Layout:
+ *
+ *   [Match A] ──┐
+ *               ├── [Match C]
+ *   [Match B] ──┘
+ */
+
+/* Horizontal connector from each match slot to the junction */
+.b-pair.b-pair--connector .b-slot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -16px;
+  width: 16px;
+  height: 2px;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+
+/* Vertical connector joining the two slots in a pair */
+.b-pair.b-pair--connector:not(.b-pair--single)::after {
+  content: '';
+  position: absolute;
+  top: 25%;
+  right: -16px;
+  height: 50%;
+  width: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+/* Left horizontal connector from junction to next round's match card */
+.b-round:not(:first-child) .b-pair .b-slot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -16px;
+  width: 16px;
+  height: 2px;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+
+/* ─── Slot (vertical space for one match) ──────────────────────── */
+.b-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+
+/* ─── Match card ───────────────────────────────────────────────── */
+.b-card {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  overflow: hidden;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.b-card:hover {
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--primary) 12%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+}
+
+.b-card--live {
+  border-color: color-mix(in oklch, oklch(0.65 0.15 145) 70%, var(--border));
+}
+
+/* Live dot indicator */
+.b-card__live-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.75); }
+}
+
+/* ─── Team row ─────────────────────────────────────────────────── */
+.b-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  gap: 8px;
+  min-height: 34px;
+  transition: background 0.15s;
+}
+
+.b-team--win {
+  background: color-mix(in oklch, oklch(0.65 0.15 145) 12%, transparent);
+}
+
+.b-team--lose {
+  opacity: 0.55;
+}
+
+.b-team__name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+.b-team--win .b-team__name {
+  color: oklch(0.48 0.14 145);
+}
+
+.b-team__score {
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  flex-shrink: 0;
+}
+
+.b-team--win .b-team__score {
+  color: oklch(0.48 0.14 145);
+}
+
+/* ─── Match-level label (Final / Tercer Lugar) ─────────────────────── */
+.b-match-label {
+  position: absolute;
+  top: -1.25rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted-foreground);
+}
+
+.b-card--final {
+  border-color: color-mix(in oklch, oklch(0.78 0.16 80) 60%, var(--border));
+  box-shadow: 0 0 12px color-mix(in oklch, oklch(0.78 0.16 80) 18%, transparent);
+}
+
+.b-card--third {
+  border-color: color-mix(in oklch, oklch(0.73 0.1 50) 50%, var(--border));
+}
+
+/* ─── TBD team row ─────────────────────────────────────────────────── */
+.b-team--tbd .b-team__name {
+  color: var(--muted-foreground);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Separator between teams */
+.b-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* ─── Mobile: compact cards, same scroll pattern ───────────────── */
+@media (max-width: 640px) {
+  .bracket {
+    padding: 0 0.5rem;
+  }
+
+  .b-round {
+    width: 155px;
+    margin-right: 24px;
+  }
+
+  .b-pair.b-pair--connector .b-slot::after {
+    right: -12px;
+    width: 12px;
+  }
+
+  .b-pair.b-pair--connector:not(.b-pair--single)::after {
+    right: -12px;
+  }
+
+  .b-round:not(:first-child) .b-pair .b-slot::before {
+    left: -12px;
+    width: 12px;
+  }
+
+  .b-team {
+    padding: 5px 8px;
+    min-height: 28px;
+    gap: 6px;
+  }
+
+  .b-team__name {
+    font-size: 0.7rem;
+    max-width: 100px;
+  }
+
+  .b-team__score { font-size: 0.78rem; }
+}

@@ -1,7 +1,6 @@
 import { Database } from './../../../types/database.types';
-import { Component, inject, model, OnInit, signal } from '@angular/core';
+import { Component, inject, model, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -11,15 +10,16 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from './user-league-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { UserLeagueRealtimeService } from './services/user-league-realtime.service';
 
 @Component({
   selector: 'app-user-league',
   imports: [DynamicForm, Overlay],
   templateUrl: './user-league.html',
   styleUrl: './user-league.css',
-  providers: [DialogService, DynamicTableService],
+  providers: [DialogService, DynamicTableService, UserLeagueRealtimeService],
 })
-export class UserLeaguePage implements OnInit {
+export class UserLeaguePage implements OnInit, OnDestroy {
   visible = model(false);
 
   items: Database['public']['Tables']['USER_LEAGUE'][] = [];
@@ -31,9 +31,10 @@ export class UserLeaguePage implements OnInit {
   readonlyMode = signal<boolean>(false);
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
+  readonly realtimeService = inject(UserLeagueRealtimeService);
   private readonly dialogService = inject(DialogService);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.tableService.initTable({
       header: 'User League',
       columns: [
@@ -51,7 +52,18 @@ export class UserLeaguePage implements OnInit {
       rows: 10,
       rowsPerPageOptions: [5, 10, 20],
     });
+
+    await this.realtimeService.connect(
+      this.tableService.getPageSize(),
+      this.tableService.getCurrentPage(),
+    );
+
+    this.tableService.setData(this.realtimeService.userLeagues());
     this.getData();
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeService.disconnect();
   }
 
   submitData = async ($event: string) => {
@@ -123,6 +135,7 @@ export class UserLeaguePage implements OnInit {
     });
     return response;
   };
+
   deleteData = async (rowId: string) => {
     const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
       header: 'Confirmar eliminación',
@@ -144,11 +157,9 @@ export class UserLeaguePage implements OnInit {
       await this.getData();
     }
   };
+
   onPageChange = async (event: { first: number; rows: number }) => {
     this.tableService.onPageChange(event);
     await this.getData();
   };
 }
-
-
-

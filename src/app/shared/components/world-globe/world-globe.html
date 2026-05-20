@@ -1,0 +1,26 @@
+<div class="globe-outer" role="img" aria-label="Mapa interactivo — países participantes FIFA World Cup 2026">
+
+  @if (loading()) {
+    <div class="globe-state">
+      <i class="pi pi-spin pi-spinner globe-state__icon"></i>
+      <span>Cargando mapa…</span>
+    </div>
+  }
+
+  @if (hasError()) {
+    <div class="globe-state globe-state--error">
+      <i class="pi pi-exclamation-triangle globe-state__icon"></i>
+      <span>No se pudo cargar el globo</span>
+    </div>
+  }
+
+  <div #globeEl class="globe-canvas"></div>
+
+  @if (hoveredInfo(); as info) {
+    <div class="globe-hovered" aria-live="polite">
+      <span class="globe-hovered__flag">{{ info.team }}</span>
+      <span class="globe-hovered__group">Grupo {{ info.group }}</span>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,56 @@
+<div class="preview-shell">
+
+  <div class="preview-banner">
+    <span class="preview-banner__text">
+      <i class="pi pi-eye"></i> Vista previa — Iniciá sesión para unirte y participar
+    </span>
+    <button class="preview-banner__btn" type="button" (click)="joinLeague()">
+      <i class="pi pi-sign-in"></i> Unirme
+    </button>
+  </div>
+
+  <div class="preview-card">
+    <div class="preview-header">
+      <span class="preview-logo">🏆</span>
+      <h1 class="preview-title">Tabla de posiciones</h1>
+    </div>
+
+    @if (isLoading()) {
+      <div class="preview-loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Cargando…</span>
+      </div>
+    } @else if (standings().length === 0) {
+      <p class="preview-empty">Aún no hay participantes en esta liga.</p>
+    } @else {
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Jugador</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of standings(); track row.user_league_id; let i = $index) {
+            <tr [class.preview-table__row--top]="i < 3">
+              <td class="preview-table__pos">
+                @if (i === 0) { 🥇 }
+                @else if (i === 1) { 🥈 }
+                @else if (i === 2) { 🥉 }
+                @else { {{ i + 1 }} }
+              </td>
+              <td class="preview-table__name">{{ row.user_name }}</td>
+              <td class="preview-table__pts">{{ row.accumulated_points }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <button class="preview-join-btn" type="button" (click)="joinLeague()">
+      <i class="pi pi-sign-in"></i> Unirme a esta liga
+    </button>
+  </div>
+
+</div>

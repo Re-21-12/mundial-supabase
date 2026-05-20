@@ -48,3 +48,11 @@
 .invite-btn:hover { opacity: 0.85; }
 .invite-btn--primary { background: #16a34a; color: #fff; }
 .invite-btn--ghost   { background: var(--muted); color: var(--foreground); }
+
+.invite-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+}

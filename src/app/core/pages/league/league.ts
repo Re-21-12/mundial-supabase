@@ -1,7 +1,6 @@
 import { Database } from './../../../types/database.types';
 import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -37,6 +36,7 @@ export class LeaguePage implements OnInit {
     this.tableService.initTable({
       header: 'League',
       columns: [
+        { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'catalog_id', header: 'Catalog Id' },
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },

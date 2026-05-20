@@ -1,0 +1,359 @@
+/* ─── Page wrapper ─────────────────────────────────────────────── */
+.scoreboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Header ───────────────────────────────────────────────────── */
+.scoreboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.scoreboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.scoreboard-title i { color: var(--primary); }
+
+.scoreboard-subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* ─── League filter ────────────────────────────────────────────── */
+.scoreboard-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 360px;
+}
+
+.scoreboard-filter__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:host ::ng-deep .scoreboard-select {
+  width: 100%;
+}
+
+/* ─── Loading / empty ──────────────────────────────────────────── */
+.scoreboard-loading,
+.sb-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.scoreboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.scoreboard-empty__icon { font-size: 2.5rem; color: var(--primary); }
+
+/* ─── Match list ───────────────────────────────────────────────── */
+.scoreboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* ─── Match card ───────────────────────────────────────────────── */
+.sb-match {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.sb-match--live {
+  border-color: color-mix(in oklch, oklch(0.65 0.15 145) 60%, var(--border));
+}
+
+.sb-match--expanded {
+  border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+}
+
+/* ─── Match header button ──────────────────────────────────────── */
+.sb-match__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.875rem 1.125rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.sb-match__header:hover {
+  background: color-mix(in oklch, var(--primary) 4%, var(--card));
+}
+
+.sb-match__status { flex-shrink: 0; }
+
+.sb-match__teams {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-match__team {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-match__team--away { text-align: right; }
+
+.sb-match__score {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-match__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+/* ─── Match body (period control) ──────────────────────────────── */
+.sb-match__body {
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklch, var(--primary) 3%, var(--background));
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── Periods table ────────────────────────────────────────────── */
+.sb-periods-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.sb-periods-table thead th {
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-periods-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
+  vertical-align: middle;
+}
+
+.sb-periods-table tfoot td {
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+  padding-top: 0.5rem;
+}
+
+.sb-period--editing td { background: color-mix(in oklch, var(--primary) 5%, transparent); }
+
+.sb-period__label { color: var(--foreground); font-weight: 500; }
+
+.sb-score-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--foreground);
+}
+
+.sb-period__actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.text-center { text-align: center; }
+
+/* ─── Score input ──────────────────────────────────────────────── */
+.sb-score-input {
+  width: 56px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s;
+}
+
+.sb-score-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 20%, transparent);
+}
+
+/* ─── Action buttons ───────────────────────────────────────────── */
+.sb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.sb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sb-btn--edit:hover {
+  background: color-mix(in oklch, var(--primary) 10%, var(--background));
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.sb-btn--save {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.sb-btn--save:not(:disabled):hover {
+  opacity: 0.88;
+}
+
+.sb-btn--cancel:hover {
+  background: color-mix(in oklch, oklch(0.55 0.2 25) 10%, var(--background));
+  border-color: oklch(0.55 0.2 25);
+  color: oklch(0.55 0.2 25);
+}
+
+/* ─── Empty periods ────────────────────────────────────────────── */
+.sb-empty-periods {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 0.5rem 0;
+  margin: 0;
+}
+
+/* ─── New period form ──────────────────────────────────────────── */
+.sb-new-period {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--primary) 4%, transparent);
+}
+
+.sb-new-period__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.sb-new-period__fields {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sb-new-period__score-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+}
+
+:host ::ng-deep .sb-cat-select {
+  min-width: 140px;
+}
+
+/* ─── Add period button ────────────────────────────────────────── */
+.sb-add-period-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sb-add-period-btn:hover {
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+  border-color: var(--primary);
+}
+
+:host ::ng-deep .sb-tag .p-tag { font-size: 0.68rem; }

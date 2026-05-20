@@ -1,4 +1,5 @@
-﻿import { Routes } from '@angular/router';
+﻿import { PreditcionClient } from './preditcion-client/preditcion-client';
+import { Routes } from '@angular/router';
 
 export const PREDICTION_ROUTES: Routes = [
   {
@@ -16,5 +17,10 @@ export const PREDICTION_ROUTES: Routes = [
   {
     path: ':id/detail',
     loadComponent: () => import('./prediction').then((m) => m.PredictionPage),
+  },
+  {
+    path: 'prediction-client/:id',
+    loadComponent: () =>
+      import('./preditcion-client/preditcion-client').then((m) => m.PreditcionClient),
   },
 ];

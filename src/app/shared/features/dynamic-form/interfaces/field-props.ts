@@ -12,6 +12,12 @@ export interface FieldOptionSource {
   order?: 'asc' | 'desc';
   includeDeleted?: boolean;
 }
+
+export interface FieldStorageConfig {
+  bucket: string;
+  folder?: string;
+}
+
 export type FormFields = Record<string, { fields: FieldBase<any>[] }>;
 export class FieldBase<T> {
   value: T | undefined;
@@ -26,6 +32,7 @@ export class FieldBase<T> {
   type: string;
   options: { key: string | number; value: string }[];
   optionsSource?: FieldOptionSource;
+  storage?: FieldStorageConfig;
   rules: Validators[];
   constructor(
     options: {
@@ -42,6 +49,7 @@ export class FieldBase<T> {
       type?: string;
       options?: { key: string | number; value: string }[];
       optionsSource?: FieldOptionSource;
+      storage?: FieldStorageConfig;
     } = {},
   ) {
     this.value = options.value;
@@ -63,5 +71,6 @@ export class FieldBase<T> {
     this.type = options.type || '';
     this.options = options.options || [];
     this.optionsSource = options.optionsSource;
+    this.storage = options.storage;
   }
 }

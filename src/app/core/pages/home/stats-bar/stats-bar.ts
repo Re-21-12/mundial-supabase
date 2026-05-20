@@ -8,10 +8,11 @@ import {
 } from '@angular/core';
 import type { HomeStat } from '../models/home.models';
 import { CommonModule } from '@angular/common';
-  
+
 @Component({
   selector: 'app-stats-bar',
   templateUrl: './stats-bar.html',
+  styleUrl: './stats-bar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
 })
@@ -21,14 +22,21 @@ export class StatsBarComponent implements OnInit, OnDestroy {
   private interval: ReturnType<typeof setInterval> | null = null;
 
   readonly displayedStats = signal<HomeStat[]>([
-    { icon: 'pi pi-dollar', label: 'Premio Acumulado', value: 0, prefix: '$', suffix: 'MXN', colorClass: 'stat-gold' },
+    {
+      icon: 'pi pi-dollar',
+      label: 'Premio Acumulado',
+      value: 0,
+      prefix: 'Q',
+      suffix: 'Q',
+      colorClass: 'stat-gold',
+    },
     { icon: 'pi pi-calendar', label: 'Partidos Hoy', value: 0, colorClass: 'stat-blue' },
     { icon: 'pi pi-users', label: 'Jugadores Activos', value: 0, colorClass: 'stat-green' },
     { icon: 'pi pi-trophy', label: 'Predicciones Ganadoras', value: 0, colorClass: 'stat-purple' },
   ]);
 
   private targetStats = [
-    { value: 250000, prefix: '$', suffix: 'MXN' },
+    { value: 250000, prefix: 'Q', suffix: 'Q' },
     { value: 12 },
     { value: 3847 },
     { value: 18923 },

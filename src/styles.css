@@ -19,7 +19,6 @@
 
   --radius: 0.625rem;
   --background: oklch(0.985 0.004 247.86);
-  --foreground: oklch(0.22 0.034 264.67);
   --card: oklch(0.998 0.002 247.85);
   --card-foreground: oklch(0.22 0.034 264.67);
   --popover: oklch(0.998 0.002 247.85);
@@ -106,19 +105,8 @@
     padding-inline: 0.5rem;
   }
 
-  /* Content area: less padding on small screens */
-  .flex-1.flex.items-center.justify-center {
-    padding: 0.75rem;
-    align-items: flex-start;
-  }
-
   /* Make PrimeNG DataTable scrollable on mobile */
   .p-datatable-wrapper {
     overflow-x: auto !important;
-  }
-
-  /* Collapse gap in header action row */
-  .flex.flex-row.gap-4.items-center {
-    gap: 0.5rem;
   }
 }

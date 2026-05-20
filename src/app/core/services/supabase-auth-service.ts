@@ -1,6 +1,5 @@
 import { inject, Injectable, Injector, signal, Signal } from '@angular/core';
 import { AuthChangeEvent, Provider, Session, User } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
 import { Database } from '../../types/database.types';
 import { SupabaseService } from './supabase-service';
 import { DynamicService } from './dynamic-service';
@@ -76,7 +75,7 @@ export class SupabaseAuthService {
    * Wait for initial auth to resolve.
    * Guards and resolvers should call this before proceeding.
    */
-  async waitForAuthReady(timeoutMs = 3000): Promise<void> {
+  async waitForAuthReady(timeoutMs = 8000): Promise<void> {
     if (this.authReady()) return;
 
     const timedOut = await Promise.race([
@@ -87,8 +86,7 @@ export class SupabaseAuthService {
     ]);
 
     if (timedOut) {
-      console.warn('[Auth] waitForAuthReady timed out — signing out');
-      await this.signOut();
+      console.warn('[Auth] waitForAuthReady timed out — continuing without session');
     }
   }
 
@@ -303,7 +301,7 @@ export class SupabaseAuthService {
     const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: environment.authRedirect,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         shouldCreateUser: createUser,
       },
     });
@@ -314,7 +312,7 @@ export class SupabaseAuthService {
   async signInWithEmail(email: string) {
     const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: environment.authRedirect },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
       console.error('Error sending OTP:', error);
@@ -337,7 +335,7 @@ export class SupabaseAuthService {
     const { data, error } = await this._supabaseService.client.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: environment.authRedirect,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -355,7 +353,7 @@ export class SupabaseAuthService {
       email,
       password,
       options: {
-        emailRedirectTo: environment.authRedirect,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: name ? { name } : {},
       },
     });
@@ -369,7 +367,7 @@ export class SupabaseAuthService {
 
   async requestPasswordReset(email: string) {
     const { data, error } = await this._supabaseService.client.auth.resetPasswordForEmail(email, {
-      redirectTo: environment.authRedirect,
+      redirectTo: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {

@@ -7,6 +7,7 @@ import {
   FormControlName,
   FormArray,
 } from '@angular/forms';
+import { SupabaseService } from '../../../../core/services/supabase-service';
 import { NgTemplateOutlet } from '@angular/common';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
@@ -99,6 +100,56 @@ export class DynamicField {
   readonly isArrayItem = input<boolean>(false);
   readonly arrayIndex = input<number | null>(null);
   private readonly catalogOptionsService = inject(CatalogOptionsService);
+  private readonly supabaseService = inject(SupabaseService);
+
+  uploading = signal(false);
+  uploadError = signal<string | null>(null);
+
+  private static readonly MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.size > DynamicField.MAX_BYTES) {
+      this.uploadError.set('El archivo supera el límite de 2 MB.');
+      input.value = '';
+      return;
+    }
+
+    const field = this.fieldProps();
+    const bucket = field.storage?.bucket ?? 'logos';
+    const folder = field.storage?.folder ?? field.key;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${folder}/${Date.now()}_${safeName}`;
+
+    this.uploading.set(true);
+    this.uploadError.set(null);
+
+    const { error } = await this.supabaseService.client.storage
+      .from(bucket)
+      .upload(path, file, { upsert: true });
+
+    if (error) {
+      this.uploadError.set(`Error al subir: ${error.message}`);
+      this.uploading.set(false);
+      input.value = '';
+      return;
+    }
+
+    const { data } = this.supabaseService.client.storage.from(bucket).getPublicUrl(path);
+    this.formControl().setValue(data.publicUrl);
+    this.formControl().markAsDirty();
+    this.uploading.set(false);
+    input.value = '';
+  }
+
+  removeImage(): void {
+    this.formControl().setValue(null);
+    this.formControl().markAsDirty();
+    this.uploadError.set(null);
+  }
 
   // Computed para acceder a las propiedades del campo
   fieldProps = computed(() => this.fieldControl());

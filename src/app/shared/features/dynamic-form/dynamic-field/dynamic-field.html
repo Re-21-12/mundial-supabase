@@ -532,6 +532,53 @@
       <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
     }
 
+    <!-- IMAGE_UPLOAD -->
+    @case (TypeFields.IMAGE_UPLOAD) {
+      <div class="">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Imagen' }"
+        ></ng-container>
+        <div class="upload-field">
+          @if (formControl().value) {
+            <div class="upload-preview-wrap">
+              <img
+                [src]="formControl().value"
+                class="upload-preview"
+                alt="Vista previa"
+                loading="lazy"
+              />
+              <button
+                type="button"
+                class="upload-remove"
+                (click)="removeImage()"
+                title="Quitar imagen"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+          }
+          <div class="upload-actions">
+            <label class="upload-btn" [class.upload-btn--loading]="uploading()">
+              <i [class]="uploading() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"></i>
+              {{ uploading() ? 'Subiendo…' : (formControl().value ? 'Cambiar' : 'Seleccionar imagen') }}
+              <input
+                type="file"
+                accept="image/*"
+                [disabled]="uploading()"
+                (change)="onFileSelected($event)"
+                hidden
+              />
+            </label>
+            <span class="upload-hint">PNG, JPG, WEBP · máx. 2 MB</span>
+          </div>
+        </div>
+        @if (uploadError()) {
+          <p class="upload-error">{{ uploadError() }}</p>
+        }
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
     @default {
       <p class=" italic">Campo no configurado</p>
     }

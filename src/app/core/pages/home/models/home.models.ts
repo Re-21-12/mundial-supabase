@@ -27,3 +27,23 @@ export interface HomeStat {
   suffix?: string;
   colorClass: string;
 }
+
+export interface GrupoTeam {
+  grupo_standing_id: number;
+  team_id: number;
+  team_name: string;
+  position: number | null;
+  games_played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goal_diff: number;
+  points: number;
+  advances: boolean | null;
+}
+
+export interface GrupoCard {
+  grupo_id: number;
+  name: string;
+  teams: GrupoTeam[];
+}

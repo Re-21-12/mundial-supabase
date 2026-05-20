@@ -28,6 +28,7 @@
       <thead>
         <tr>
           <th scope="col" class="col-rank">#</th>
+          <th scope="col" class="col-trend"><span class="sr-only">Variación</span></th>
           <th scope="col" class="col-name">Jugador</th>
           <th scope="col" class="col-login">Usuario</th>
           <th scope="col" class="col-pts">Pts</th>
@@ -41,6 +42,21 @@
               @else if (i === 1) { <span class="medal silver">🥈</span> }
               @else if (i === 2) { <span class="medal bronze">🥉</span> }
               @else { {{ i + 1 }} }
+            </td>
+            <td class="col-trend">
+              @if (row.rankChange === null) {
+                <span class="trend trend--neutral" title="Sin datos previos">—</span>
+              } @else if (row.rankChange > 0) {
+                <span class="trend trend--up" [title]="'Subió ' + row.rankChange + ' posición(es)'">
+                  ↑{{ row.rankChange }}
+                </span>
+              } @else if (row.rankChange < 0) {
+                <span class="trend trend--down" [title]="'Bajó ' + (-row.rankChange) + ' posición(es)'">
+                  ↓{{ -row.rankChange }}
+                </span>
+              } @else {
+                <span class="trend trend--neutral" title="Sin cambio">—</span>
+              }
             </td>
             <td class="col-name">{{ row.user_name }}</td>
             <td class="col-login">{{ row.user_login }}</td>

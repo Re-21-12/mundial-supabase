@@ -1,0 +1,183 @@
+<div class="pc-page">
+
+  <!-- Header -->
+  <div class="pc-header">
+    <button type="button" class="pc-back-btn" title="Volver" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <div class="pc-header__info">
+      <h2 class="pc-header__title">Mis Predicciones</h2>
+      @if (league(); as lg) {
+        <span class="pc-header__league">{{ lg.name }}</span>
+        @if (isPaidLeague()) {
+          <span class="pc-paid-badge">
+            <i class="pi pi-wallet"></i> Liga de apuesta · ${{ lg.buy_in_amount | number:'1.2-2' }} MXN
+          </span>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="pc-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando predicciones…</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (error()) {
+    <div class="pc-error">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Not a member -->
+  @else if (!userLeagueId()) {
+    <div class="pc-error">
+      <i class="pi pi-lock"></i>
+      <p>No eres miembro de esta liga. Únete para hacer predicciones.</p>
+    </div>
+  }
+
+  <!-- Content -->
+  @else {
+    <!-- Focused match (clicked from home) -->
+    @if (groupedCards().focusedCard; as focused) {
+      <section class="pc-section">
+        <h3 class="pc-section__title">
+          <i class="pi pi-star-fill"></i> Partido seleccionado
+        </h3>
+        <ng-container
+          *ngTemplateOutlet="matchCard; context: { $implicit: focused, highlight: true }" />
+      </section>
+    }
+
+    <!-- Upcoming matches -->
+    @if (groupedCards().upcoming.length > 0) {
+      <section class="pc-section">
+        <h3 class="pc-section__title">
+          <i class="pi pi-calendar"></i> Próximos partidos
+          <span class="pc-section__count">({{ groupedCards().upcoming.length }})</span>
+        </h3>
+        @for (card of groupedCards().upcoming; track card.matchId) {
+          <ng-container *ngTemplateOutlet="matchCard; context: { $implicit: card, highlight: false }" />
+        }
+      </section>
+    }
+
+    <!-- Finished matches -->
+    @if (groupedCards().finished.length > 0) {
+      <section class="pc-section pc-section--finished">
+        <h3 class="pc-section__title">
+          <i class="pi pi-check-circle"></i> Partidos finalizados
+          <span class="pc-section__count">({{ groupedCards().finished.length }})</span>
+        </h3>
+        @for (card of groupedCards().finished; track card.matchId) {
+          <ng-container *ngTemplateOutlet="matchCard; context: { $implicit: card, highlight: false }" />
+        }
+      </section>
+    }
+  }
+</div>
+
+<!-- ── Match card template ──────────────────────────────────────── -->
+<ng-template #matchCard let-card let-highlight="highlight">
+  <div
+    class="pc-card"
+    [class.pc-card--highlight]="highlight"
+    [class.pc-card--live]="card.isLive"
+    [class.pc-card--finished]="card.isFinished"
+  >
+    <!-- Card header: teams + score -->
+    <div class="pc-card__header" (click)="toggleExpand(card.matchId)">
+      <div class="pc-card__teams">
+        <div class="pc-team pc-team--home">
+          @if (card.homeTeamLogo) {
+            <img [src]="card.homeTeamLogo" [alt]="card.homeTeamName" [title]="card.homeTeamName" class="pc-team__logo" />
+          } @else {
+            <span class="pc-team__emoji">🏠</span>
+          }
+          <span class="pc-team__name">{{ card.homeTeamName }}</span>
+        </div>
+
+        <div class="pc-card__score">
+          @if (card.isLive || card.isFinished) {
+            <span class="pc-score">{{ card.homeScore }} – {{ card.awayScore }}</span>
+            @if (card.isLive) {
+              <span class="pc-live-dot"></span>
+            }
+          } @else {
+            <span class="pc-score pc-score--pending">vs</span>
+          }
+        </div>
+
+        <div class="pc-team pc-team--away">
+          @if (card.awayTeamLogo) {
+            <img [src]="card.awayTeamLogo" [alt]="card.awayTeamName" [title]="card.awayTeamName" class="pc-team__logo" />
+          } @else {
+            <span class="pc-team__emoji">✈️</span>
+          }
+          <span class="pc-team__name">{{ card.awayTeamName }}</span>
+        </div>
+      </div>
+
+      <div class="pc-card__meta">
+        <span class="pc-meta__date">{{ formatDate(card.startTime) }}</span>
+        <span class="pc-meta__round">{{ getRoundLabel(card) }}</span>
+
+        @if (card.prediction) {
+          <span class="pc-pred-badge">
+            <i class="pi pi-check"></i>
+            Mi pred: {{ card.prediction.firstTeamScore }} – {{ card.prediction.secondTeamScore }}
+            @if (isPaidLeague() && card.prediction.wagerAmount > 0) {
+              · ${{ card.prediction.wagerAmount | number:'1.2-2' }}
+            }
+          </span>
+        } @else if (card.canPredict) {
+          <span class="pc-pred-badge pc-pred-badge--missing">
+            <i class="pi pi-pencil"></i> Sin predicción
+          </span>
+        }
+
+        <i class="pi pc-card__chevron"
+           [class.pi-chevron-down]="!isExpanded(card.matchId)"
+           [class.pi-chevron-up]="isExpanded(card.matchId)">
+        </i>
+      </div>
+    </div>
+
+    <!-- Expanded: prediction form -->
+    @if (isExpanded(card.matchId)) {
+      <div class="pc-card__body">
+        @if (!card.canPredict && !card.isLive) {
+          <p class="pc-locked-msg">
+            <i class="pi pi-lock"></i>
+            Las predicciones para este partido están cerradas.
+          </p>
+        } @else if (card.isLive) {
+          <p class="pc-locked-msg pc-locked-msg--live">
+            <i class="pi pi-circle-fill"></i>
+            Partido en curso — predicciones bloqueadas.
+          </p>
+        } @else {
+          <p class="pc-form-hint">
+            {{ card.prediction ? 'Actualiza tu predicción:' : 'Ingresa tu predicción:' }}
+          </p>
+          <app-dynamic-form
+            [fields]="scoreFields()"
+            [initialData]="getInitialData(card)"
+            (data)="onSubmitPrediction(card, $event)" />
+          @if (isSaved(card.matchId)) {
+            <p class="pc-saved-msg"><i class="pi pi-check-circle"></i> Predicción guardada</p>
+          }
+          @if (isSubmitting(card.matchId)) {
+            <p class="pc-saving-msg"><i class="pi pi-spin pi-spinner"></i> Guardando…</p>
+          }
+        }
+      </div>
+    }
+  </div>
+</ng-template>

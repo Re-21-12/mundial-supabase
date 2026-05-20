@@ -11,6 +11,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from './wallet-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 
 @Component({
   selector: 'app-wallet',
@@ -32,6 +33,7 @@ export class WalletPage implements OnInit {
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
   private readonly dialogService = inject(DialogService);
+  private readonly auth = inject(AuthFacade);
 
   ngOnInit() {
     this.tableService.initTable({
@@ -81,12 +83,18 @@ export class WalletPage implements OnInit {
         filters: { field: 'wallet_id', value: this.id()! },
       });
     } else {
+      const isAdmin = this.auth.permissions().includes('ADMIN');
+      const currentUserId = Number(this.auth.getInternalUserId());
       response = await this.dynamicService.fetchData({
         table: 'WALLET',
         order: 'asc',
         limit: this.tableService.getPageSize(),
         page: this.tableService.getCurrentPage(),
         columns: '*',
+        // Non-admin users only see their own wallet
+        ...((!isAdmin && currentUserId) && {
+          filters: { field: 'user_id', value: String(currentUserId) },
+        }),
       });
     }
 

@@ -16,14 +16,23 @@
       }
 
       @case ('unauthenticated') {
-        <h2 class="invite-title">¡Fuiste invitado!</h2>
+        <h2 class="invite-title">
+          ¡Fuiste invitado@if (leagueName()) { a <strong>{{ leagueName() }}</strong>}!
+        </h2>
         <p class="invite-msg">
-          Para aceptar la invitación necesitás iniciar sesión o crear una cuenta.
+          Para unirte necesitás iniciar sesión o crear una cuenta.
           Tu invitación quedará guardada.
         </p>
-        <button class="invite-btn invite-btn--primary" type="button" (click)="goToAuth()">
-          <i class="pi pi-sign-in"></i> Iniciar sesión / Registrarme
-        </button>
+        <div class="invite-actions">
+          <button class="invite-btn invite-btn--primary" type="button" (click)="goToAuth()">
+            <i class="pi pi-sign-in"></i> Iniciar sesión / Registrarme
+          </button>
+          @if (leagueId) {
+            <button class="invite-btn invite-btn--ghost" type="button" (click)="previewLeague()">
+              <i class="pi pi-eye"></i> Ver posiciones (sin cuenta)
+            </button>
+          }
+        </div>
       }
 
       @case ('success') {

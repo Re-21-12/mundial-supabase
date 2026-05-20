@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { SupabaseService } from './supabase-service';
+import { NotificationInboxService } from './notification-inbox.service';
 
 export type InvitationType = 'existing' | 'anonymous';
 
@@ -21,6 +22,7 @@ const EXPIRATION_HOURS = 48;
 @Injectable({ providedIn: 'root' })
 export class InvitationService {
   private readonly _db = inject(SupabaseService);
+  private readonly _notifications = inject(NotificationInboxService);
 
   // ─── Existing user ────────────────────────────────────────────────────────
 
@@ -202,7 +204,43 @@ export class InvitationService {
       .update({ status: 'used', used_at: new Date().toISOString(), used_by: userId } as any)
       .eq('magic_link_id', ml.magic_link_id);
 
+    // Notify league owner (fire-and-forget)
+    const { data: league } = await client
+      .from('LEAGUE')
+      .select('user_id, name')
+      .eq('league_id', ml.league_id)
+      .single<{ user_id: number; name: string }>();
+
+    if (league?.user_id && league.user_id !== userId) {
+      this._notifications.sendNotification(
+        {
+          userId: league.user_id,
+          leagueId: ml.league_id,
+          type: 'invitation_accepted',
+          title: 'Nuevo participante en tu liga',
+          body: `Un usuario se unió a ${league.name ?? 'tu liga'} a través de un enlace de invitación.`,
+          actionUrl: `/league/${ml.league_id}/standings`,
+          priority: 'normal',
+        },
+        userId,
+      ).catch((err) => console.warn('[Invitation] Owner notification failed:', err));
+    }
+
     return { leagueId: ml.league_id };
+  }
+
+  // ─── Public token lookup (no auth required) ──────────────────────────────
+
+  async getLeagueFromToken(token: string): Promise<{ leagueId: number; leagueName: string } | null> {
+    const { data, error } = await this._db.client
+      .from('MAGIC_LINK')
+      .select('league_id, LEAGUE(name)')
+      .eq('token', token)
+      .eq('status', 'pending')
+      .single<{ league_id: number; LEAGUE: { name: string } }>();
+
+    if (error || !data) return null;
+    return { leagueId: data.league_id, leagueName: (data as any).LEAGUE?.name ?? 'Liga' };
   }
 
   // ─── Recipient views ──────────────────────────────────────────────────────

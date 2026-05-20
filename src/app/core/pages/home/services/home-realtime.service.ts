@@ -2,8 +2,7 @@ import { Injectable, inject, signal, OnDestroy } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../services/supabase-service';
 import { DynamicService } from '../../../services/dynamic-service';
-import { PostgrestError } from '@supabase/supabase-js';
-import type { MatchRow, MatchPeriodRow, UserLeagueRow, TeamRow } from '../models/home.models';
+import type { MatchRow, MatchPeriodRow, UserLeagueRow, TeamRow, GrupoCard, GrupoTeam } from '../models/home.models';
 
 @Injectable()
 export class HomeRealtimeService implements OnDestroy {
@@ -16,6 +15,9 @@ export class HomeRealtimeService implements OnDestroy {
   readonly periods = signal<MatchPeriodRow[]>([]);
   readonly teams = signal<TeamRow[]>([]);
   readonly userLeagues = signal<UserLeagueRow[]>([]);
+  readonly grupos = signal<GrupoCard[]>([]);
+  readonly leagueMatches = signal<MatchRow[]>([]);
+  readonly leagueMatchesLoading = signal(false);
 
   async connect(): Promise<void> {
     await this.loadInitialData();
@@ -47,9 +49,65 @@ export class HomeRealtimeService implements OnDestroy {
       }),
     ]);
 
-    if (!(matchRes instanceof PostgrestError)) this.matches.set(matchRes);
-    if (!(periodRes instanceof PostgrestError)) this.periods.set(periodRes);
-    if (!(teamRes instanceof PostgrestError)) this.teams.set(teamRes);
+    if (Array.isArray(matchRes)) this.matches.set(matchRes);
+    if (Array.isArray(periodRes)) this.periods.set(periodRes);
+    if (Array.isArray(teamRes)) this.teams.set(teamRes);
+    await this.loadGrupos();
+  }
+
+  private async loadGrupos(): Promise<void> {
+    const { data, error } = await this.supabaseService.client
+      .from('GRUPO_STANDING')
+      .select(`
+        grupo_standing_id, grupo_id, team_id,
+        position, games_played, wins, draws, losses,
+        goals_for, goals_against, goal_diff, points, advances,
+        GRUPO(grupo_id, name),
+        TEAM(team_id, name)
+      `)
+      .eq('is_deleted', false)
+      .order('grupo_id', { ascending: true })
+      .order('position', { ascending: true, nullsFirst: false });
+
+    if (error || !data) return;
+
+    const map = new Map<number, GrupoCard>();
+    for (const row of data as Array<Record<string, unknown>>) {
+      const g = row['GRUPO'] as { grupo_id: number; name: string } | null;
+      const t = row['TEAM'] as { team_id: number; name: string } | null;
+      if (!g || !t) continue;
+
+      if (!map.has(g.grupo_id)) {
+        map.set(g.grupo_id, { grupo_id: g.grupo_id, name: g.name, teams: [] });
+      }
+      map.get(g.grupo_id)!.teams.push({
+        grupo_standing_id: row['grupo_standing_id'] as number,
+        team_id: t.team_id,
+        team_name: t.name,
+        position: row['position'] as number | null,
+        games_played: row['games_played'] as number,
+        wins: row['wins'] as number,
+        draws: row['draws'] as number,
+        losses: row['losses'] as number,
+        goal_diff: row['goal_diff'] as number,
+        points: row['points'] as number,
+        advances: row['advances'] as boolean | null,
+      });
+    }
+    this.grupos.set([...map.values()].sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  async loadMatchesForLeague(leagueId: number): Promise<void> {
+    this.leagueMatchesLoading.set(true);
+    const { data, error } = await this.supabaseService.client
+      .from('MATCH')
+      .select('*')
+      .eq('league_id', leagueId)
+      .eq('is_deleted', false)
+      .order('start_time', { ascending: true })
+      .limit(120);
+    if (!error && data) this.leagueMatches.set(data as MatchRow[]);
+    this.leagueMatchesLoading.set(false);
   }
 
   private openChannel(): void {
@@ -69,6 +127,11 @@ export class HomeRealtimeService implements OnDestroy {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'USER_LEAGUE' },
         (payload) => this.handleUserLeagueChange(payload),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'GRUPO_STANDING' },
+        () => this.loadGrupos(),
       )
       .subscribe();
   }

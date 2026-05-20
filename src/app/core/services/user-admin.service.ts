@@ -20,28 +20,19 @@ export class UserAdminService {
   private readonly _db = inject(SupabaseService);
 
   private get fnUrl(): string {
-    const url = (this._db.client as any).supabaseUrl ?? '';
-    return `${url}/functions/v1/admin-manage-user`;
-  }
-
-  private get anonKey(): string {
-    return (this._db.client as any).supabaseKey ?? '';
-  }
-
-  private get authToken(): string {
-    return (this._db.client as any).auth?.currentSession?.access_token ?? this.anonKey;
+    return `${this._db.supabaseUrl}/functions/v1/admin-manage-user`;
   }
 
   private async callFn(body: Record<string, unknown>): Promise<{ data?: any; error?: string }> {
     const session = await this._db.client.auth.getSession();
-    const token = session.data.session?.access_token ?? this.anonKey;
+    const token = session.data.session?.access_token ?? this._db.apiKey;
 
     const res = await fetch(this.fnUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-        apikey: this.anonKey,
+        apikey: this._db.apiKey,
       },
       body: JSON.stringify(body),
     });

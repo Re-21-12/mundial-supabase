@@ -21,10 +21,23 @@ export const routes: Routes = [
     loadComponent: () => import('./core/pages/invite/invite').then((m) => m.InvitePage),
   },
   {
-    path: 'auth/v1/callback',
+    path: 'league-preview/:id',
+    title: 'Vista previa de liga',
+    loadComponent: () =>
+      import('./core/pages/league-preview/league-preview').then((m) => m.LeaguePreviewPage),
+  },
+  {
+    // Primary callback for Google OAuth and all Supabase redirects
+    path: 'auth/callback',
     title: 'Auth Callback',
     loadComponent: () =>
       import('./shared/features/auth/callback/auth-callback').then((m) => m.AuthCallback),
+  },
+  {
+    // Legacy path kept for existing magic-link emails in circulation
+    path: 'auth/v1/callback',
+    redirectTo: 'auth/callback',
+    pathMatch: 'full',
   },
   {
     path: 'change-password',
@@ -100,7 +113,7 @@ export const routes: Routes = [
         },
         loadChildren: () => import('./core/pages/home/home.routes').then((m) => m.HOME_ROUTES),
       },
-      {
+      /*       {
         path: 'taste',
         title: 'Taste',
         data: {
@@ -109,8 +122,8 @@ export const routes: Routes = [
           requiredPermission: PERMISSIONS.LEAGUE.READ,
         },
         loadChildren: () => import('./core/pages/taste/taste.routes').then((m) => m.TASTE_ROUTES),
-      },
-      {
+      }, */
+      /*       {
         path: 'photo',
         title: 'Photo Gallery',
         data: {
@@ -120,8 +133,8 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/camera/camera').then((m) => m.CameraComponent),
-      },
-      {
+      }, */
+      /*       {
         path: 'ocr',
         title: 'OCR Scanner',
         data: {
@@ -139,7 +152,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import('./shared/features/page-error/page-error').then((m) => m.PageError),
-      },
+      }, */
       {
         path: 'teams',
         title: 'Teams',
@@ -238,6 +251,19 @@ export const routes: Routes = [
           requiredPermission: PERMISSIONS.MATCH.READ,
         },
         loadChildren: () => import('./core/pages/match/match.routes').then((m) => m.MATCH_ROUTES),
+      },
+      {
+        path: 'match-scoreboard',
+        title: 'Tablero de Marcadores',
+        data: {
+          description: 'Control de punteos por período',
+          icon: 'lucideSliders',
+          requiredPermission: PERMISSIONS.MATCH_PERIOD.UPDATE,
+        },
+        loadChildren: () =>
+          import('./core/pages/match-scoreboard/match-scoreboard.routes').then(
+            (m) => m.MATCH_SCOREBOARD_ROUTES,
+          ),
       },
       {
         path: 'match-period',
@@ -402,6 +428,17 @@ export const routes: Routes = [
           import('./core/pages/world-league/world-league.routes').then(
             (m) => m.WORLD_LEAGUE_ROUTES,
           ),
+      },
+      {
+        path: 'team-league',
+        title: 'Team League',
+        data: {
+          description: 'Equipos asignados por liga',
+          icon: 'lucideShield',
+          requiredPermission: PERMISSIONS.TEAM_LEAGUE.READ,
+        },
+        loadChildren: () =>
+          import('./core/pages/team-league/team-league.routes').then((m) => m.TEAM_LEAGUE_ROUTES),
       },
     ],
   },

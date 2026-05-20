@@ -76,4 +76,12 @@ export class SupabaseService {
   getClient() {
     return this.supabase;
   }
+
+  get apiKey(): string {
+    return environment.supabaseKey;
+  }
+
+  get supabaseUrl(): string {
+    return environment.supabaseUrl;
+  }
 }

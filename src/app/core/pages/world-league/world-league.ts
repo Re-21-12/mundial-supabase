@@ -37,6 +37,7 @@ export class WorldLeaguePage implements OnInit {
     this.tableService.initTable({
       header: 'World League',
       columns: [
+        { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },
         { field: 'deleted_at', header: 'Deleted At' },

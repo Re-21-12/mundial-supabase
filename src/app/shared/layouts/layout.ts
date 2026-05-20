@@ -28,6 +28,12 @@ import {
   lucideLogOut,
   lucideBell,
   lucideWallet,
+  lucideShield,
+  lucideSliders,
+  lucideDatabase,
+  lucideUsers,
+  lucideMapPin,
+  lucideUserCog,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
@@ -84,6 +90,12 @@ interface SidebarMenuItem {
       lucideLogOut,
       lucideBell,
       lucideWallet,
+      lucideShield,
+      lucideSliders,
+      lucideDatabase,
+      lucideUsers,
+      lucideMapPin,
+      lucideUserCog,
     }),
   ],
 })

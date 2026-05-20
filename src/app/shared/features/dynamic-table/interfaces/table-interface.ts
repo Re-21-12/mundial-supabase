@@ -21,6 +21,7 @@ export interface TableTemplateModel {
 export interface TableColumnTemplateModel {
   field: string;
   header: string;
+  type?: 'text' | 'image' | 'badge';
 }
 interface ExportColumn {
   title: string;

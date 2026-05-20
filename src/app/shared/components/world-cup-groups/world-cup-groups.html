@@ -1,0 +1,38 @@
+<div class="groups-grid">
+  @for (grupo of grupos(); track grupo.grupo_id) {
+    <div class="group-card" [style.--accent]="getAccent(grupo.name)">
+
+      <!-- Header -->
+      <div class="group-card__header">
+        <span class="group-letter">{{ grupo.name }}</span>
+        <span class="group-label">Grupo</span>
+      </div>
+
+      <!-- Teams -->
+      <ul class="group-teams" role="list">
+        @for (team of grupo.teams; track team.team_id) {
+          <li
+            class="group-team"
+            [class.group-team--advances]="team.advances === true"
+            [class.group-team--eliminated]="team.advances === false"
+          >
+            <span class="group-team__flag" aria-hidden="true">{{ getFlag(team.team_name) }}</span>
+            <span class="group-team__name">{{ team.team_name | uppercase }}</span>
+
+            @if (hasStats(grupo)) {
+              <span class="group-team__stats">
+                <span class="group-team__stat" title="Partidos jugados">{{ team.games_played }}</span>
+                <span class="group-team__stat group-team__pts" title="Puntos">{{ team.points }}</span>
+              </span>
+            }
+
+            @if (team.advances === true) {
+              <span class="group-team__badge" title="Pasa de ronda">✓</span>
+            }
+          </li>
+        }
+      </ul>
+
+    </div>
+  }
+</div>

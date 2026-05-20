@@ -35,6 +35,7 @@ export class Teams implements OnInit {
     this.tableService.initTable({
       header: 'Teams',
       columns: [
+        { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'team_id', header: 'ID' },
         { field: 'name', header: 'Name' },
         { field: 'catalog_id', header: 'Country' },

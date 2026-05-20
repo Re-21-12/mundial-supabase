@@ -112,3 +112,23 @@
   font-weight: 700;
   color: var(--primary);
 }
+
+@media (max-width: 640px) {
+  .hero-slide {
+    padding: 1.25rem 1rem;
+    min-height: 180px;
+    gap: 1rem;
+  }
+
+  .team-flag { font-size: 2rem; }
+  .team-name { font-size: 0.82rem; }
+  .score-display { font-size: 2.25rem; }
+  .score-label { font-size: 0.68rem; }
+
+  .hero-slide__prediction {
+    padding: 0.35rem 0.75rem;
+  }
+
+  .prediction-label { font-size: 0.72rem; }
+  .prediction-score { font-size: 0.82rem; }
+}

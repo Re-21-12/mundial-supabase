@@ -1,0 +1,5 @@
+<app-overlay (delete)="deleteData($event)" (pageChange)="onPageChange($event)">
+  <ng-content #form>
+    <app-dynamic-form [fields]="fields" [initialData]="editData()" [readonlyMode]="readonlyMode()" (data)="submitData($event)"></app-dynamic-form>
+  </ng-content>
+</app-overlay>

@@ -1,0 +1,139 @@
+/* ── Grid ──────────────────────────────────────────────────────── */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .groups-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .groups-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .groups-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Card ───────────────────────────────────────────────────────── */
+.group-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent, #888);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.group-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px color-mix(in oklch, var(--accent, #888) 20%, transparent);
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.group-card__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.6rem 0.875rem;
+  background: color-mix(in oklch, var(--accent, #888) 12%, var(--card));
+  border-bottom: 1px solid color-mix(in oklch, var(--accent, #888) 20%, var(--border));
+}
+
+.group-letter {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent, #888);
+  font-variant-numeric: tabular-nums;
+}
+
+.group-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent, #888);
+  opacity: 0.75;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Teams list ─────────────────────────────────────────────────── */
+.group-teams {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.group-team {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.875rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+  transition: background 0.12s;
+}
+
+.group-team:last-child {
+  border-bottom: none;
+}
+
+.group-team:hover {
+  background: color-mix(in oklch, var(--accent, #888) 6%, transparent);
+}
+
+.group-team--advances {
+  background: color-mix(in oklch, var(--accent, #888) 8%, transparent);
+}
+
+.group-team--eliminated {
+  opacity: 0.55;
+}
+
+.group-team__flag {
+  font-size: 1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.group-team__name {
+  flex: 1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ── Stats (shown once games start) ────────────────────────────── */
+.group-team__stats {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.group-team__stat {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  min-width: 1rem;
+  text-align: center;
+}
+
+.group-team__pts {
+  color: var(--accent, #888);
+  font-weight: 900;
+}
+
+/* ── Advances badge ─────────────────────────────────────────────── */
+.group-team__badge {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--accent, #888);
+  flex-shrink: 0;
+}

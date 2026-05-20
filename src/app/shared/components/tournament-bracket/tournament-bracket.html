@@ -1,0 +1,93 @@
+@if (grupos().length > 0) {
+  <section class="tb-grupos">
+    <h3 class="tb-grupos__title">Clasificación de Grupos</h3>
+    <app-world-cup-groups [grupos]="grupos()" />
+  </section>
+}
+
+@if (isLoading()) {
+  <p class="bracket-empty">Cargando bracket…</p>
+} @else if (hasError()) {
+  <p class="bracket-empty">Error al cargar el bracket.</p>
+} @else if (rounds().length === 0) {
+  <p class="bracket-empty">
+    El bracket aún no está disponible. Se generará al cierre de la fase de grupos.
+  </p>
+} @else {
+  <div class="bracket-scroll">
+    <div class="bracket">
+      @for (round of rounds(); track round.label; let rIdx = $index; let isLast = $last) {
+        <div class="b-round" [class.b-round--last]="isLast">
+          <div class="b-round__label">{{ round.label }}</div>
+          <div class="b-round__body">
+            @for (pair of round.pairs; track pair[0].matchId; let pIdx = $index) {
+              <div
+                class="b-pair"
+                [class.b-pair--connector]="!isLast"
+                [class.b-pair--single]="pair.length === 1"
+                [style.height.px]="round.slotH * pair.length"
+              >
+                @for (match of pair; track match.matchId) {
+                  <div class="b-slot" [style.height.px]="round.slotH">
+                    <!-- Match-level label (Final / Tercer Lugar) -->
+                    @if (match.matchLabel) {
+                      <span class="b-match-label">{{ match.matchLabel }}</span>
+                    }
+
+                    <div
+                      class="b-card"
+                      [class.b-card--live]="match.isLive"
+                      [class.b-card--final]="match.matchLabel === 'Final'"
+                      [class.b-card--third]="match.matchLabel === 'Tercer Lugar'"
+                    >
+                      <p class="text-center text-sm">
+                        {{ match.homeName }} vs {{ match.awayName }}
+                        <sup>{{ match.matchId }}</sup>
+                      </p>
+
+                      @if (match.isLive) {
+                        <div class="b-card__live-dot" aria-label="En vivo"></div>
+                      }
+
+                      <!-- Home team -->
+                      <div
+                        class="b-team"
+                        [class.b-team--win]="match.winner === 'home'"
+                        [class.b-team--lose]="match.winner === 'away'"
+                        [class.b-team--tbd]="match.homeTbd"
+                      >
+                        <span class="b-team__name" [title]="match.homeName">
+                          {{ match.homeTbd ? 'Por definir' : match.homeName }}
+                        </span>
+                        @if (!match.homeTbd) {
+                          <span class="b-team__score">{{ match.homeScore }}</span>
+                        }
+                      </div>
+
+                      <div class="b-sep"></div>
+
+                      <!-- Away team -->
+                      <div
+                        class="b-team"
+                        [class.b-team--win]="match.winner === 'away'"
+                        [class.b-team--lose]="match.winner === 'home'"
+                        [class.b-team--tbd]="match.awayTbd"
+                      >
+                        <span class="b-team__name" [title]="match.awayName">
+                          {{ match.awayTbd ? 'Por definir' : match.awayName }}
+                        </span>
+                        @if (!match.awayTbd) {
+                          <span class="b-team__score">{{ match.awayScore }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

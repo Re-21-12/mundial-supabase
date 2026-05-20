@@ -36,6 +36,7 @@ export class Stadium implements OnInit {
     this.tableService.initTable({
       header: 'Stadiums',
       columns: [
+        { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'stadium_id', header: 'ID' },
         { field: 'name', header: 'Name' },
         { field: 'catalog_id', header: 'Country' },
