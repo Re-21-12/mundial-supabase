@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NotificationInboxService } from '../../../core/services/notification-inbox.service';
+import { NotificationInboxService } from './notification-inbox.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';

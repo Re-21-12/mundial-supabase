@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ScheduledMatch, ScheduleService } from '../../../services/schedule.service';
+import { ScheduleService, ScheduledMatch } from '../../../services/schedule.service';
 
 type MatchDay = { date: string; matches: ScheduledMatch[] };
 

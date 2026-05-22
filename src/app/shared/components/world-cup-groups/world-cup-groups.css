@@ -137,3 +137,83 @@
   color: var(--accent, #888);
   flex-shrink: 0;
 }
+
+/* ── Group matches ──────────────────────────────────────────────── */
+.group-matches {
+  border-top: 1px solid var(--border);
+  padding: 0.3rem 0 0.1rem;
+}
+
+.group-matches__title {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent, #888);
+  opacity: 0.7;
+  padding: 0 0.875rem 0.25rem;
+}
+
+.group-match {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.22rem 0.875rem;
+  transition: background 0.1s;
+}
+
+.group-match:last-child {
+  margin-bottom: 0.1rem;
+}
+
+.group-match--live {
+  background: color-mix(in oklch, #22c55e 8%, transparent);
+}
+
+.group-match--done {
+  opacity: 0.75;
+}
+
+.gm-team {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.gm-team--home { justify-content: flex-start; }
+.gm-team--away { justify-content: flex-end; }
+
+.gm-flag { font-size: 0.9rem; flex-shrink: 0; line-height: 1; }
+
+.gm-code {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.gm-score {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--accent, #888) 12%, transparent);
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  min-width: 2.2rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.gm-score--live { color: #22c55e; }
+
+.gm-time {
+  font-size: 0.58rem;
+  color: var(--muted-foreground, #94a3b8);
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}

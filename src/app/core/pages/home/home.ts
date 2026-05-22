@@ -20,10 +20,11 @@ import { JoinLeagueComponent } from '../../../shared/components/join-league/join
 import { TournamentBracketComponent } from '../../../shared/components/tournament-bracket/tournament-bracket';
 import { WorldCupGroupsComponent } from '../../../shared/components/world-cup-groups/world-cup-groups';
 import { WorldGlobeComponent } from '../../../shared/components/world-globe/world-globe';
+import { MatchCalendarComponent } from '../../../shared/components/match-calendar/match-calendar';
 import { DigitFlowComponent } from 'ngx-digit-flow';
-import { UserLeaguesService } from '../../../core/services/user-leagues.service';
+import { UserLeaguesService } from '../user-league/user-leagues.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
-import type { UserLeagueCard, LeagueDetail } from '../../../core/services/user-leagues.service';
+import type { UserLeagueCard, LeagueDetail } from '../user-league/user-leagues.service';
 import type { MatchCard, MatchPeriodRow, GrupoCard } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
 
@@ -38,9 +39,10 @@ import type { MatchRow, TeamRow } from './models/home.models';
     CommonModule,
     JoinLeagueComponent,
     TournamentBracketComponent,
-    WorldCupGroupsComponent,
+    // WorldCupGroupsComponent,
     WorldGlobeComponent,
     DigitFlowComponent,
+    MatchCalendarComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -54,15 +56,21 @@ export class Home implements OnInit, OnDestroy {
   private readonly router = inject(Router);
 
   private readonly sanitizer = inject(DomSanitizer);
+  private clockTimer: ReturnType<typeof window.setInterval> | null = null;
 
   // ── Core state ───────────────────────────────────────────────────────────────
   protected readonly showJoinDialog = signal(false);
+  protected readonly now = signal(Date.now());
   protected readonly safeVideoUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
     'https://www.youtube.com/embed/Sd1fz57if_I?autoplay=1&controls=0&rel=0&loop=1&playlist=Sd1fz57if_I&mute=1&disablekb=1&modestbranding=1',
   );
   protected readonly userLeagues = signal<UserLeagueCard[]>([]);
   protected readonly leaguesLoading = signal(true);
-  protected readonly matchView = signal<'grid' | 'bracket'>('grid');
+  protected readonly matchView = signal<'grid' | 'bracket' | 'calendar'>('grid');
+
+  // ── Match pagination ──────────────────────────────────────────────────────────
+  protected readonly PAGE_SIZE = 6;
+  protected readonly matchPage = signal(0);
 
   // ── League filter ─────────────────────────────────────────────────────────────
   protected readonly showFilter = signal(false);
@@ -98,7 +106,14 @@ export class Home implements OnInit, OnDestroy {
     ),
   );
 
-  readonly featuredMatches = computed<MatchCard[]>(() => this.carouselMatches().slice(0, 6));
+  readonly totalMatchPages = computed(() =>
+    Math.max(1, Math.ceil(this.carouselMatches().length / this.PAGE_SIZE)),
+  );
+
+  readonly pagedMatches = computed<MatchCard[]>(() => {
+    const start = this.matchPage() * this.PAGE_SIZE;
+    return this.carouselMatches().slice(start, start + this.PAGE_SIZE);
+  });
 
   // ── Torneo (Fase de Grupos + Partidos) ───────────────────────────────────────
   readonly selectedLeagueId = signal<number | null>(null);
@@ -131,6 +146,10 @@ export class Home implements OnInit, OnDestroy {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
   async ngOnInit(): Promise<void> {
+    this.clockTimer = window.setInterval(() => {
+      this.now.set(Date.now());
+    }, 1000);
+
     await this.realtimeService.connect();
     const userId = Number(this.auth.getInternalUserId());
     if (userId) {
@@ -144,6 +163,10 @@ export class Home implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.clockTimer) {
+      window.clearInterval(this.clockTimer);
+      this.clockTimer = null;
+    }
     this.realtimeService.disconnect();
   }
 
@@ -174,6 +197,19 @@ export class Home implements OnInit, OnDestroy {
 
   isLoadingDetail(leagueId: number): boolean {
     return this.loadingDetailId() === leagueId;
+  }
+
+  setMatchView(view: 'grid' | 'bracket' | 'calendar'): void {
+    this.matchView.set(view);
+    this.matchPage.set(0);
+  }
+
+  goNextPage(): void {
+    this.matchPage.update((p) => Math.min(p + 1, this.totalMatchPages() - 1));
+  }
+
+  goPrevPage(): void {
+    this.matchPage.update((p) => Math.max(p - 1, 0));
   }
 
   // ── Filter toggle ─────────────────────────────────────────────────────────────
@@ -246,8 +282,38 @@ export class Home implements OnInit, OnDestroy {
 
   canPredictMatch(card: MatchCard): boolean {
     const now = new Date();
-    const endTime = new Date(card.match.end_time);
-    return (endTime.getTime() - now.getTime()) / 60000 > 15;
+    const startTime = new Date(card.match.start_time);
+
+
+ const differenceInMinutes = startTime.getTime() - now.getTime();
+
+  const diferenciaDias = Math.round(differenceInMinutes / (1000 * 60 * 60 * 24));
+
+    console.log('Diferencia en minutos:', differenceInMinutes);
+
+    if (differenceInMinutes < 15) {
+      return false; // El partido ya comenzó, no se puede predecir
+    }
+
+    console.log('Hora actual:', now.getDate(), now.getHours(), now.getMinutes());
+    console.log(
+      'Hora de inicio:',
+      startTime.getDate(),
+      startTime.getHours(),
+      startTime.getMinutes(),
+    );
+    console.log('Minutos restantes:', differenceInMinutes);
+
+    // Retorna true si faltan más de 15 minutos para que termine
+    return differenceInMinutes > 15;
+  }
+
+  getElapsedTime(startTime: string): { minutes: number; seconds: number } {
+    const elapsedMs = Math.max(0, this.now() - new Date(startTime).getTime());
+    return {
+      minutes: Math.floor(elapsedMs / 60000),
+      seconds: Math.floor((elapsedMs % 60000) / 1000),
+    };
   }
 
   private buildMatchCards(
@@ -277,7 +343,9 @@ export class Home implements OnInit, OnDestroy {
       const homeTeam = teamsMap.get(match.first_team_id!) ?? placeholder(match.first_team_id ?? 0);
       const awayTeam =
         teamsMap.get(match.second_team_id!) ?? placeholder(match.second_team_id ?? 0);
-      const isLive = new Date(match.start_time) <= new Date() && !match.is_deleted;
+      const now = new Date();
+      const isLive =
+        new Date(match.start_time) <= now && new Date(match.end_time) > now && !match.is_deleted;
       return { match, homeTeam, awayTeam, period, isLive };
     });
   }

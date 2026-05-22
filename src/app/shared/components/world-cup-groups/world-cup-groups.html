@@ -8,7 +8,7 @@
         <span class="group-label">Grupo</span>
       </div>
 
-      <!-- Teams -->
+      <!-- Clasificación -->
       <ul class="group-teams" role="list">
         @for (team of grupo.teams; track team.team_id) {
           <li
@@ -32,6 +32,35 @@
           </li>
         }
       </ul>
+
+      <!-- Partidos del grupo -->
+      @let groupMatches = getGroupMatches(grupo.grupo_id);
+      @if (groupMatches.length > 0) {
+        <div class="group-matches">
+          <div class="group-matches__title">Partidos</div>
+          @for (mc of groupMatches; track mc.match.match_id) {
+            <div class="group-match" [class.group-match--live]="mc.isLive" [class.group-match--done]="isFinished(mc) && !mc.isLive">
+              <span class="gm-team gm-team--home">
+                <span class="gm-flag">{{ getFlag(mc.homeTeam.name) }}</span>
+                <span class="gm-code">{{ getCode(mc.homeTeam.name) }}</span>
+              </span>
+
+              @if (mc.isLive || isFinished(mc)) {
+                <span class="gm-score" [class.gm-score--live]="mc.isLive">
+                  {{ mc.match.first_team_total }}&ndash;{{ mc.match.second_team_total }}
+                </span>
+              } @else {
+                <span class="gm-time">{{ formatMatchTime(mc) }}</span>
+              }
+
+              <span class="gm-team gm-team--away">
+                <span class="gm-code">{{ getCode(mc.awayTeam.name) }}</span>
+                <span class="gm-flag">{{ getFlag(mc.awayTeam.name) }}</span>
+              </span>
+            </div>
+          }
+        </div>
+      }
 
     </div>
   }

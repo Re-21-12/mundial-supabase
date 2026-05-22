@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
-import { InvitationService, InvitationType } from '../../../services/invitation.service';
+import { InvitationService, InvitationType } from '../../../../shared/components/notification-inbox/invitation.service';
 
 @Component({
   selector: 'app-send-invitation',

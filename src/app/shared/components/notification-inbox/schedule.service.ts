@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../../core/services/supabase-service';
 
 export type MatchStatus = 'upcoming' | 'live' | 'finished';
 

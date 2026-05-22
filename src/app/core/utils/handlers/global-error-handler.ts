@@ -1,9 +1,10 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
-import { ErrorRegistryService } from '../../../core/services/error-registry.service';
+import { ErrorRegistryService } from '../../pages/error-monitor/error-registry.service';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
   private readonly errorRegistry = inject(ErrorRegistryService);
+  private isPersisting = false;
 
   handleError(error: unknown): void {
     const normalizedError =
@@ -11,6 +12,20 @@ export class GlobalErrorHandler implements ErrorHandler {
         ? error
         : new Error(typeof error === 'string' ? error : 'Unhandled application error');
     const chunkFailedMessage = /Loading chunk [\d]+ failed/;
+
+    // Benign Supabase multi-tab lock contention — not a real error
+    if (
+      normalizedError.name === 'NavigatorLockAcquireTimeoutError' ||
+      normalizedError.name === 'LockAcquireTimeoutError' ||
+      (normalizedError.message.includes('lock') && normalizedError.message.includes('released'))
+    ) {
+      return;
+    }
+
+    if (this.isPersisting) {
+      console.error('Error detectado:', normalizedError);
+      return;
+    }
 
     void this.persistError(normalizedError);
 
@@ -26,6 +41,7 @@ export class GlobalErrorHandler implements ErrorHandler {
     const source = this.extractSource(error.stack);
 
     try {
+      this.isPersisting = true;
       await this.errorRegistry.recordError({
         errorNumber: 9001,
         integration: 'global-error-handler',
@@ -40,6 +56,8 @@ export class GlobalErrorHandler implements ErrorHandler {
       });
     } catch (loggingError) {
       console.error('No se pudo registrar el error en Supabase:', loggingError);
+    } finally {
+      this.isPersisting = false;
     }
   }
 

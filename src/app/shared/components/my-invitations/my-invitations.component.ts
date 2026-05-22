@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AuthFacade } from '../../features/auth/auth.facade';
-import { InvitationService, PendingInvitation } from '../../../core/services/invitation.service';
+import { InvitationService, PendingInvitation } from '../notification-inbox/invitation.service';
 
 @Component({
   selector: 'app-my-invitations',
@@ -20,7 +20,10 @@ export class MyInvitationsComponent implements OnInit {
 
   async ngOnInit() {
     const email = this.authFacade.currentUser()?.email ?? '';
-    if (!email) { this.isLoading.set(false); return; }
+    if (!email) {
+      this.isLoading.set(false);
+      return;
+    }
 
     const { data } = await this.invitationService.getPendingForUser(email);
     this.invitations.set(data);
@@ -30,14 +33,20 @@ export class MyInvitationsComponent implements OnInit {
   protected async accept(id: number) {
     this.actionError.set('');
     const { error } = await this.invitationService.accept(id);
-    if (error) { this.actionError.set('No se pudo aceptar. Intenta de nuevo.'); return; }
-    this.invitations.update(list => list.filter(i => i.invitation_id !== id));
+    if (error) {
+      this.actionError.set('No se pudo aceptar. Intenta de nuevo.');
+      return;
+    }
+    this.invitations.update((list) => list.filter((i) => i.invitation_id !== id));
   }
 
   protected async decline(id: number) {
     this.actionError.set('');
     const { error } = await this.invitationService.decline(id);
-    if (error) { this.actionError.set('No se pudo rechazar. Intenta de nuevo.'); return; }
-    this.invitations.update(list => list.filter(i => i.invitation_id !== id));
+    if (error) {
+      this.actionError.set('No se pudo rechazar. Intenta de nuevo.');
+      return;
+    }
+    this.invitations.update((list) => list.filter((i) => i.invitation_id !== id));
   }
 }

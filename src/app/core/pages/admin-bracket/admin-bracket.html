@@ -1,0 +1,137 @@
+<div class="bracket-admin">
+
+  <!-- Header -->
+  <div class="bracket-header">
+    <div class="bracket-header__title">
+      <h2>Administrar Bracket</h2>
+      <p class="bracket-header__sub">Asigna equipos a los partidos eliminatorios de la liga</p>
+    </div>
+
+    <div class="bracket-header__controls">
+      <p-select
+        [options]="leagueOptions()"
+        [ngModel]="selectedLeagueId()"
+        (ngModelChange)="onLeagueChange($event)"
+        placeholder="Selecciona una liga"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="bracket-loading">Cargando partidos…</div>
+  }
+
+  <!-- Content -->
+  @if (selectedLeagueId() && !loading()) {
+    @if (round1Matches().length === 0) {
+      <div class="bracket-empty">
+        Esta liga no tiene partidos de eliminatoria configurados.
+      </div>
+    } @else {
+      <!-- Actions -->
+      <div class="bracket-actions">
+        <p-button
+          label="Calcular desde Grupos"
+          icon="pi pi-bolt"
+          severity="secondary"
+          [loading]="calculating()"
+          [disabled]="calculating()"
+          (onClick)="calcularBracket()"
+          pTooltip="Auto-asigna equipos según standings de GRUPO (FIFA 2026)"
+        />
+        <p-button
+          label="Guardar Todo"
+          icon="pi pi-save"
+          severity="success"
+          [loading]="saving()"
+          [disabled]="!hasDirtyEdits() || saving()"
+          (onClick)="saveAll()"
+        />
+      </div>
+
+      <!-- Round 1 Table -->
+      <div class="bracket-section">
+        <h3 class="bracket-section__title">Dieciseisavos de Final (16avos)</h3>
+
+        <div class="bracket-table-wrap">
+          <table class="bracket-table">
+            <thead>
+              <tr>
+                <th class="col-pos">#</th>
+                <th class="col-team">Local</th>
+                <th class="col-vs" scope="col">vs</th>
+                <th class="col-team">Visitante</th>
+                <th class="col-date">Fecha</th>
+                <th class="col-action"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (match of round1Matches(); track match.match_id) {
+                @let edit = getEdit(match.match_id);
+                <tr [class.bracket-row--dirty]="edit?.dirty">
+                  <td class="col-pos">
+                    <span class="bracket-pos">{{ match.bracket_position }}</span>
+                  </td>
+                  <td class="col-team">
+                    <p-select
+                      [options]="teamOptions()"
+                      [ngModel]="edit?.homeTeamId ?? null"
+                      (ngModelChange)="setHome(match.match_id, $event)"
+                      placeholder="Local"
+                      [filter]="true"
+                      filterPlaceholder="Buscar equipo…"
+                      styleClass="team-select"
+                    />
+                  </td>
+                  <td class="col-vs"><span class="vs-badge">VS</span></td>
+                  <td class="col-team">
+                    <p-select
+                      [options]="teamOptions()"
+                      [ngModel]="edit?.awayTeamId ?? null"
+                      (ngModelChange)="setAway(match.match_id, $event)"
+                      placeholder="Visitante"
+                      [filter]="true"
+                      filterPlaceholder="Buscar equipo…"
+                      styleClass="team-select"
+                    />
+                  </td>
+                  <td class="col-date">{{ formatDate(match.start_time) }}</td>
+                  <td class="col-action">
+                    <p-button
+                      icon="pi pi-save"
+                      [text]="true"
+                      severity="success"
+                      size="small"
+                      [loading]="edit?.saving ?? false"
+                      [disabled]="!edit?.dirty || edit?.saving"
+                      (onClick)="saveMatch(match.match_id)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Read-only view of later rounds -->
+      @for (section of laterRoundSections(); track section.round) {
+        <div class="bracket-section bracket-section--readonly">
+          <h3 class="bracket-section__title">{{ section.label }}</h3>
+          <div class="bracket-chips">
+            @for (m of section.matches; track m.match_id) {
+              <span class="bracket-chip">
+                {{ getTeamName(m.first_team_id) }}
+                <span class="bracket-chip__vs">vs</span>
+                {{ getTeamName(m.second_team_id) }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+
+</div>

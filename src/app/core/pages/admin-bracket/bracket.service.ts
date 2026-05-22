@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../services/supabase-service';
 
 export interface BracketMatchRaw {
   match_id: number;
@@ -74,6 +74,7 @@ export class BracketService {
       .from('MATCH')
       .select(QUERY_SELECT)
       .eq('league_id', leagueId)
+      .is('grupo_id', null)
       .not('round', 'is', null)
       .eq('is_deleted', false)
       .order('round', { ascending: true })

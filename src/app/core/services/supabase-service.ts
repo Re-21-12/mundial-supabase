@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   AuthChangeEvent,
   createClient,
@@ -19,33 +20,49 @@ export class SupabaseService {
   private supabase: SupabaseClient;
   private readonly loadingService = inject(HttpLoadingService);
   private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       global: {
         fetch: async (input, init) => {
-          this.loadingService.start();
+          // Internal Supabase requests (auth token refresh, realtime handshakes) must
+          // NOT trigger the loading overlay — they run silently in the background and
+          // can hang during network hiccups, which would freeze the entire UI.
+          const url = typeof input === 'string' ? input : ((input as Request).url ?? '');
+          const isInternal =
+            url.includes('/auth/v1/') ||
+            url.includes('/realtime/v1/') ||
+            url.includes('/rest/v1/ERROR_LOG') ||
+            url.includes('/rest/v1/ERROR_CATALOG');
+
+          if (!isInternal) this.loadingService.start();
           try {
             const response = await fetch(input, init);
 
-            if (!response.ok && this.shouldNotify(response.status)) {
+            if (!response.ok && !isInternal && this.shouldNotify(response.status)) {
               this.notificationService.notify(
                 'error',
                 'Atención',
                 this.getMessageByStatus(response.status),
               );
+              if (response.status === 401) {
+                void this.router.navigate(['/auth']);
+              }
             }
 
             return response;
           } catch (error) {
-            this.notificationService.notify(
-              'error',
-              'Atención',
-              'No hay conexión a internet o el servidor está caído.',
-            );
+            if (!isInternal) {
+              this.notificationService.notify(
+                'error',
+                'Atención',
+                'No hay conexión a internet o el servidor está caído.',
+              );
+            }
             throw error;
           } finally {
-            this.loadingService.stop();
+            if (!isInternal) this.loadingService.stop();
           }
         },
       },

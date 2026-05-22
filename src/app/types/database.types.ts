@@ -1894,6 +1894,7 @@ export type Database = {
           created_by: number | null;
           deleted_at: string | null;
           deleted_by: number | null;
+          league_reward_id: number | null;
           is_deleted: boolean;
           league_user_reward_id: number;
           payment_date: string | null;
@@ -1908,6 +1909,7 @@ export type Database = {
           created_by?: number | null;
           deleted_at?: string | null;
           deleted_by?: number | null;
+          league_reward_id?: number | null;
           is_deleted?: boolean;
           league_user_reward_id?: number;
           payment_date?: string | null;
@@ -1922,6 +1924,7 @@ export type Database = {
           created_by?: number | null;
           deleted_at?: string | null;
           deleted_by?: number | null;
+          league_reward_id?: number | null;
           is_deleted?: boolean;
           league_user_reward_id?: number;
           payment_date?: string | null;
@@ -1931,6 +1934,13 @@ export type Database = {
           user_league_id?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'USER_LEAGUE_REWARD_league_reward_id_fkey';
+            columns: ['league_reward_id'];
+            isOneToOne: false;
+            referencedRelation: 'LEAGUE_REWARD';
+            referencedColumns: ['league_reward_id'];
+          },
           {
             foreignKeyName: 'USER_LEAGUE_REWARD_user_league_id_fkey';
             columns: ['user_league_id'];

@@ -121,9 +121,12 @@ export class WorldGlobeComponent implements AfterViewInit, OnChanges, OnDestroy 
         const iso = (feat as Record<string, Record<string, string>> | null)?.['properties']?.['ISO_A3'];
         const team = iso ? this.isoTeamMap.get(iso) : undefined;
         const group = iso ? this.isoGroupMap.get(iso) : undefined;
-        this.zone.run(() =>
-          this.hoveredInfo.set(team ? { team, group: group ?? '' } : null),
-        );
+        const next = team ? { team, group: group ?? '' } : null;
+        const current = this.hoveredInfo();
+        // Avoid redundant signal writes — globe.gl fires this on every animation frame
+        if (current?.team !== next?.team || current?.group !== next?.group) {
+          this.zone.run(() => this.hoveredInfo.set(next));
+        }
       });
 
       if (this._grupos.length) {

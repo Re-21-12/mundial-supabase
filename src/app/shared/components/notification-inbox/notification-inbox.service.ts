@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../../core/services/supabase-service';
 
 export type NotificationType =
   | 'match_reminder'
@@ -534,8 +534,8 @@ export class NotificationInboxService {
         leagueId,
         matchId,
         type: 'match_reminder',
-        title: '⚽ Partido por comenzar',
-        body: `${teamsInfo} en 15 minutos. ¡Haz tu predicción!`,
+        title: '⏰ Últimos 15 minutos',
+        body: `${teamsInfo}: ya no se podrán realizar más predicciones en 15 minutos.`,
         icon: '/assets/icons/match-icon.png',
         actionUrl: `/league/${leagueId}/predictions`,
         priority: 'high',

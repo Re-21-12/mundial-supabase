@@ -6,6 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TagModule } from 'primeng/tag';
@@ -44,12 +45,40 @@ export class PreditcionClient implements OnInit {
   protected readonly focusedMatchId = signal<number | null>(null);
   protected readonly expandedMatchId = signal<number | null>(null);
 
+  protected readonly initialDataByMatch = computed(() => {
+    const map = new Map<number, Record<string, any>>();
+
+    for (const card of this.cards()) {
+      if (!card.prediction) continue;
+
+      map.set(card.matchId, {
+        first_team_score: card.prediction.firstTeamScore,
+        second_team_score: card.prediction.secondTeamScore,
+        wager_amount: card.prediction.wagerAmount,
+      });
+    }
+
+    return map;
+  });
+
   protected readonly isPaidLeague = computed(() => (this.league()?.buy_in_amount ?? 0) > 0);
 
   // Form fields: include wager_amount only for paid leagues
   protected readonly scoreFields = computed(() => {
     const all = formFields['predictionClientForm'].fields;
-    return this.isPaidLeague() ? all : all.filter((f) => f.key !== 'wager_amount');
+    if (!this.isPaidLeague()) {
+      return all.filter((f) => f.key !== 'wager_amount');
+    }
+
+    return all.map((field) =>
+      field.key === 'wager_amount'
+        ? {
+            ...field,
+            state: { ...field.state, required: true },
+            rules: [Validators.required, Validators.min(1)],
+          }
+        : field,
+    );
   });
 
   protected readonly groupedCards = computed(() => {
@@ -102,12 +131,7 @@ export class PreditcionClient implements OnInit {
   }
 
   getInitialData(card: PredictionMatchCard): Record<string, any> | null {
-    if (!card.prediction) return null;
-    return {
-      first_team_score: card.prediction.firstTeamScore,
-      second_team_score: card.prediction.secondTeamScore,
-      wager_amount: card.prediction.wagerAmount,
-    };
+    return this.initialDataByMatch().get(card.matchId) ?? null;
   }
 
   async onSubmitPrediction(card: PredictionMatchCard, jsonData: string): Promise<void> {
@@ -120,12 +144,17 @@ export class PreditcionClient implements OnInit {
     const data = JSON.parse(jsonData);
     this.submitting.set(card.matchId);
 
+    const league = this.league()!;
+    const wagerAmount = this.isPaidLeague() ? Math.max(0, Number(data.wager_amount) || 0) : 0;
     const ok = await this.svc.upsertPrediction({
       matchId: card.matchId,
       userLeagueId,
       firstTeamScore: Math.max(0, Number(data.first_team_score) || 0),
       secondTeamScore: Math.max(0, Number(data.second_team_score) || 0),
-      wagerAmount: Math.max(0, Number(data.wager_amount) || 0),
+      wagerAmount,
+      leagueId: league.league_id,
+      buyInAmount: league.buy_in_amount,
+      leagueName: league.name,
     });
 
     this.submitting.set(null);
@@ -140,7 +169,7 @@ export class PreditcionClient implements OnInit {
                   predictionId: c.prediction?.predictionId ?? null,
                   firstTeamScore: Number(data.first_team_score) || 0,
                   secondTeamScore: Number(data.second_team_score) || 0,
-                  wagerAmount: Number(data.wager_amount) || 0,
+                  wagerAmount,
                 },
               }
             : c,

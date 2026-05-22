@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { SupabaseService } from './supabase-service';
-import { MagicLinkService } from './magic-link.service';
-import { NotificationInboxService } from './notification-inbox.service';
+import { SupabaseService } from '../../services/supabase-service';
+import { MagicLinkService } from '../../../shared/components/notification-inbox/magic-link.service';
+import { NotificationInboxService } from '../../../shared/components/notification-inbox/notification-inbox.service';
+
+const MATCH_DURATION_MINUTES = 120;
+const PREDICTION_CLOSE_MINUTES = 15;
 
 export interface LeagueCreationPayload {
   name: string;
@@ -22,7 +25,7 @@ export interface LeagueInvitePayload {
 export interface PredictionLockInfo {
   matchId: number;
   isLocked: boolean;
-  timeUntilStart: number; // in minutes
+  timeUntilEnd: number; // in minutes
   lockReason?: string;
 }
 
@@ -115,8 +118,13 @@ export class LeagueCreationService {
         },
         {
           dimension: 'prediction_window',
-          value: '15_minutes_before_match',
-          description: 'Ventana de predicción: Cierra 15 minutos antes del partido',
+          value: '15_minutes_before_match_end',
+          description: 'Ventana de predicción: Cierra 15 minutos antes de terminar el partido',
+        },
+        {
+          dimension: 'match_duration',
+          value: `${MATCH_DURATION_MINUTES}_minutes`,
+          description: `Duración del partido: ${MATCH_DURATION_MINUTES} minutos`,
         },
         {
           dimension: 'league_type',
@@ -349,23 +357,23 @@ export class LeagueCreationService {
     try {
       const client = this.supabaseService.getClient();
       if (!client) {
-        return { matchId, isLocked: false, timeUntilStart: 0 };
+        return { matchId, isLocked: false, timeUntilEnd: 0 };
       }
 
-      // Get match start time
+      // Get match end time; predictions close 15 minutes before the final whistle.
       const { data: match, error: matchError } = await client
         .from('MATCH')
-        .select('start_time')
+        .select('start_time, end_time')
         .eq('match_id', matchId)
         .maybeSingle();
 
       if (matchError || !match) {
-        return { matchId, isLocked: false, timeUntilStart: 0 };
+        return { matchId, isLocked: false, timeUntilEnd: 0 };
       }
 
-      const startTime = new Date(match.start_time);
+      const endTime = new Date(match.end_time ?? match.start_time);
       const now = new Date();
-      const minutesUntilStart = (startTime.getTime() - now.getTime()) / (1000 * 60);
+      const minutesUntilEnd = (endTime.getTime() - now.getTime()) / (1000 * 60);
 
       // Check if lock exists
       const { data: lock } = await client
@@ -379,30 +387,30 @@ export class LeagueCreationService {
         return {
           matchId,
           isLocked: true,
-          timeUntilStart: Math.max(0, minutesUntilStart),
+          timeUntilEnd: Math.max(0, minutesUntilEnd),
           lockReason: lock.lock_reason,
         };
       }
 
-      // Auto-lock if within 15 minutes
-      if (minutesUntilStart <= 15 && minutesUntilStart > 0) {
+      // Auto-lock if within the final 15 minutes of the match.
+      if (minutesUntilEnd <= PREDICTION_CLOSE_MINUTES && minutesUntilEnd > 0) {
         await this.lockPredictions(matchId, 'auto_15min');
         return {
           matchId,
           isLocked: true,
-          timeUntilStart: minutesUntilStart,
+          timeUntilEnd: minutesUntilEnd,
           lockReason: 'auto_15min',
         };
       }
 
       return {
         matchId,
-        isLocked: minutesUntilStart <= 0,
-        timeUntilStart: Math.max(0, minutesUntilStart),
+        isLocked: minutesUntilEnd <= 0,
+        timeUntilEnd: Math.max(0, minutesUntilEnd),
       };
     } catch (error) {
       console.error('Error checking prediction lock:', error);
-      return { matchId, isLocked: false, timeUntilStart: 0 };
+      return { matchId, isLocked: false, timeUntilEnd: 0 };
     }
   }
 
@@ -476,7 +484,7 @@ export class LeagueCreationService {
               matchId,
               type: 'prediction_locked',
               title: '🔒 Predicciones bloqueadas',
-              body: 'Las predicciones se cerraron 15 minutos antes del partido',
+              body: 'Ya no se pueden realizar más predicciones: faltan 15 minutos para que termine el partido',
               actionUrl: `/league/${leagues.league_id}`,
               priority: 'high',
             },

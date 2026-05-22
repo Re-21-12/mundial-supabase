@@ -12,6 +12,8 @@ import { formFields } from './match-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 
+const MATCH_DURATION_MINUTES = 120;
+
 @Component({
   selector: 'app-match',
   imports: [DynamicForm, Overlay],
@@ -117,17 +119,41 @@ export class MatchPage implements OnInit {
   };
 
   insertData = async (data: Partial<Database['public']['Tables']['MATCH']['Insert']>) => {
-    const response = await this.dynamicService.insertData('MATCH', data);
+    const response = await this.dynamicService.insertData(
+      'MATCH',
+      this.normalizeMatchDuration(data),
+    );
     return response;
   };
 
   updateData = async (data: Partial<Database['public']['Tables']['MATCH']['Update']>) => {
-    const response = await this.dynamicService.updateData('MATCH', data, {
-      field: 'match_id',
-      value: this.id()!,
-    });
+    const response = await this.dynamicService.updateData(
+      'MATCH',
+      this.normalizeMatchDuration(data),
+      {
+        field: 'match_id',
+        value: this.id()!,
+      },
+    );
     return response;
   };
+
+  private normalizeMatchDuration(
+    data:
+      | Partial<Database['public']['Tables']['MATCH']['Insert']>
+      | Partial<Database['public']['Tables']['MATCH']['Update']>,
+  ) {
+    if (!data.start_time) return data;
+
+    const startTime = new Date(data.start_time);
+    if (Number.isNaN(startTime.getTime())) return data;
+
+    return {
+      ...data,
+      end_time: new Date(startTime.getTime() + MATCH_DURATION_MINUTES * 60 * 1000).toISOString(),
+    };
+  }
+
   deleteData = async (rowId: string) => {
     const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
       header: 'Confirmar eliminación',
@@ -154,6 +180,3 @@ export class MatchPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

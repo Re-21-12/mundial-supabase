@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { DecimalPipe } from '@angular/common';
 import { Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { WalletService, WalletSummary } from '../../services/wallet.service';
+import { WalletService, WalletSummary } from '../wallet/wallet.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { SupabaseService } from '../../services/supabase-service';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';

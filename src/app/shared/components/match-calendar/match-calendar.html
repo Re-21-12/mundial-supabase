@@ -1,0 +1,73 @@
+<div class="mcal">
+
+  <!-- Navigation -->
+  <div class="mcal__nav">
+    <button type="button" class="mcal__nav-btn" (click)="prevMonth()" title="Mes anterior">
+      <i class="pi pi-chevron-left"></i>
+    </button>
+    <span class="mcal__month-label">{{ monthLabel() }}</span>
+    <button type="button" class="mcal__nav-btn" (click)="nextMonth()" title="Mes siguiente">
+      <i class="pi pi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Day-of-week headers -->
+  <div class="mcal__dow-row">
+    @for (dow of DOW_LABELS; track dow) {
+      <div class="mcal__dow">{{ dow }}</div>
+    }
+  </div>
+
+  <!-- Calendar weeks -->
+  <div class="mcal__grid">
+    @for (week of weeks(); track $index) {
+      @for (day of week; track day.date.getTime()) {
+        <button
+          type="button"
+          class="mcal__day"
+          [class.mcal__day--other-month]="!day.isCurrentMonth"
+          [class.mcal__day--today]="day.isToday"
+          [class.mcal__day--has-matches]="day.matches.length > 0"
+          [class.mcal__day--selected]="(selectedDay()?.date?.getTime() ?? -1) === day.date.getTime()"
+          [class.mcal__day--past]="day.isPast && !day.isToday"
+          [disabled]="day.matches.length === 0"
+          (click)="selectDay(day)"
+        >
+          <span class="mcal__day-num">{{ day.date.getDate() }}</span>
+          @if (day.matches.length > 0) {
+            <span class="mcal__badge">{{ day.matches.length }}</span>
+          }
+        </button>
+      }
+    }
+  </div>
+
+  <!-- Selected day match panel -->
+  @if (selectedDay(); as day) {
+    <div class="mcal__panel">
+      <div class="mcal__panel-header">
+        <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+        <span class="mcal__panel-date">
+          {{ day.date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }) }}
+        </span>
+        <span class="mcal__panel-count">
+          {{ day.matches.length }} partido{{ day.matches.length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+      <div class="mcal__panel-list">
+        @for (card of day.matches; track card.match.match_id) {
+          <div class="mcal__match-row" [class.mcal__match-row--live]="card.isLive">
+            <span class="mcal__match-time">{{ formatTime(card.match.start_time) }}</span>
+            <span class="mcal__match-home">{{ card.homeTeam.name }}</span>
+            <span class="mcal__match-vs">vs</span>
+            <span class="mcal__match-away">{{ card.awayTeam.name }}</span>
+            @if (card.isLive) {
+              <span class="mcal__live-pip" aria-label="En vivo"></span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

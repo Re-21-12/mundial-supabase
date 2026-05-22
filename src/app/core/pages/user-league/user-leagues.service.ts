@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../services/supabase-service';
 
 export interface UserLeagueCard {
   user_league_id: number;

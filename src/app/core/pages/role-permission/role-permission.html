@@ -1,6 +1,111 @@
-<app-overlay (delete)="deleteData($event)" (pageChange)="onPageChange($event)">
-  <ng-content #form>
-    <app-dynamic-form [fields]="fields" [initialData]="editData()" [readonlyMode]="readonlyMode()" (data)="submitData($event)"></app-dynamic-form>
-  </ng-content>
-</app-overlay>
+<div class="rp-page">
 
+  <!-- ── Header ───────────────────────────────────────────────────────── -->
+  <div class="rp-header">
+    <div>
+      <h2 class="rp-title">Roles & Permisos</h2>
+      <p class="rp-subtitle">Asigna roles y permisos a usuarios del sistema</p>
+    </div>
+  </div>
+
+  @if (loadingInit()) {
+    <div class="rp-loading">
+      <p-progressSpinner class="rp-spinner" />
+    </div>
+  } @else {
+
+    <!-- ── User selector ─────────────────────────────────────────────── -->
+    <div class="rp-user-bar">
+      <label class="rp-user-label">Usuario</label>
+      <p-select
+        [options]="userOptions()"
+        [ngModel]="selectedUserId()"
+        (ngModelChange)="onUserChange($event)"
+        placeholder="Selecciona un usuario…"
+        [filter]="true"
+        filterPlaceholder="Buscar por nombre o email"
+        class="rp-user-select"
+      />
+      @if (loadingUser()) {
+        <p-progressSpinner styleClass="rp-spinner rp-spinner--sm" />
+      }
+    </div>
+
+    <!-- ── Tree ──────────────────────────────────────────────────────── -->
+    <div class="rp-tree">
+      @for (role of roles(); track role.role_id) {
+        <div class="tree-role" [class.tree-role--active]="userHasRole(role.role_id)">
+
+          <!-- Role row -->
+          <div class="tree-role__row">
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="userHasRole(role.role_id)"
+              [disabled]="!selectedUserId() || isSaving('ur-' + role.role_id)"
+              (ngModelChange)="toggleUserRole(role.role_id, $event)"
+              pTooltip="{{ selectedUserId() ? 'Asignar/quitar rol al usuario' : 'Selecciona un usuario primero' }}"
+              tooltipPosition="right"
+            />
+
+            <span class="tree-role__name" (click)="toggleExpand(role.role_id)">
+              {{ role.name }}
+            </span>
+
+            <span
+              class="tree-role__count"
+              [class.tree-role__count--zero]="getRolePermCount(role.role_id) === 0"
+            >
+              {{ getRolePermCount(role.role_id) }} permisos
+            </span>
+
+            <button
+              type="button"
+              class="tree-expand-btn"
+              (click)="toggleExpand(role.role_id)"
+              [title]="isExpanded(role.role_id) ? 'Colapsar permisos' : 'Expandir permisos'"
+            >
+              <i
+                class="pi"
+                [class.pi-chevron-down]="isExpanded(role.role_id)"
+                [class.pi-chevron-right]="!isExpanded(role.role_id)"
+              ></i>
+            </button>
+          </div>
+
+          <!-- Permissions tree (expanded) -->
+          @if (isExpanded(role.role_id)) {
+            <div class="tree-perms">
+              @for (group of permGroups(); track group.key) {
+                <div class="perm-group">
+                  <div class="perm-group__header">
+                    <span class="perm-group__key">{{ group.key }}</span>
+                    <span class="perm-group__meta">{{ group.perms.length }} acciones</span>
+                  </div>
+                  <div class="perm-group__items">
+                    @for (perm of group.perms; track perm.permission_id) {
+                      <div
+                        class="perm-item"
+                        [class.perm-item--active]="roleHasPerm(role.role_id, perm.permission_id)"
+                      >
+                        <p-checkbox
+                          [binary]="true"
+                          [ngModel]="roleHasPerm(role.role_id, perm.permission_id)"
+                          [disabled]="isSaving('rp-' + role.role_id + '-' + perm.permission_id)"
+                          (ngModelChange)="toggleRolePerm(role.role_id, perm.permission_id, $event)"
+                        />
+                        <span class="perm-item__action">{{ perm.action }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

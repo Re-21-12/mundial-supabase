@@ -118,21 +118,26 @@
             <p-inputgroup-addon>
               <i [class]="fieldProps().icon"></i>
             </p-inputgroup-addon>
-            <p-inputnumber
+            <input
+              type="number"
               [formControl]="formControl()"
-              [useGrouping]="false"
+              inputmode="numeric"
+              step="1"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
               class="w-full"
-              inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+              pInputText
+              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
         } @else {
-          <p-inputnumber
+          <input
+            type="number"
             [formControl]="formControl()"
-            [useGrouping]="false"
+            inputmode="numeric"
+            step="1"
             [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
-            class="w-full"
-            inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            pInputText
           />
         }
         <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />

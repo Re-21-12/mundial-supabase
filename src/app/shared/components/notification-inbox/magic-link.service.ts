@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { SupabaseService } from './supabase-service';
-import { Database } from '../../../app/types/database.types';
 import { v4 as uuidv4 } from 'uuid';
+import { SupabaseService } from '../../../core/services/supabase-service';
 
 export interface MagicLinkPayload {
   token: string;

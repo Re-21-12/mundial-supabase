@@ -87,7 +87,12 @@
               Filtrar
             } @else {
               {{ leagueFilter() }}
-              <i class="pi pi-times filter-btn__clear" (click)="$event.stopPropagation(); selectFilter('all')"></i>
+              <i
+                class="pi pi-times filter-btn__clear"
+                title="Quitar filtro"
+                aria-label="Quitar filtro"
+                (click)="$event.stopPropagation(); selectFilter('all')"
+              ></i>
             }
           </button>
 
@@ -177,11 +182,13 @@
                   <button
                     class="league-card__expand-btn"
                     type="button"
-                    [title]="isExpanded(card.league_id) ? 'Cerrar' : 'Ver posiciones'"
                     [attr.aria-label]="isExpanded(card.league_id) ? 'Cerrar posiciones' : 'Ver posiciones de la liga'"
                     (click)="toggleLeagueDetail(card.league_id)"
                   >
                     <i [class]="isExpanded(card.league_id) ? 'pi pi-chevron-up' : 'pi pi-chart-bar'"></i>
+                    <span class="sr-only">
+                      {{ isExpanded(card.league_id) ? 'Cerrar posiciones' : 'Ver posiciones de la liga' }}
+                    </span>
                   </button>
                   <button
                     class="league-card__nav-btn"
@@ -384,16 +391,25 @@
           [class.view-toggle__btn--active]="matchView() === 'grid'"
           type="button"
           title="Vista grilla"
-          (click)="matchView.set('grid')"
+          (click)="setMatchView('grid')"
         >
           <i class="pi pi-th-large"></i>
+        </button>
+        <button
+          class="view-toggle__btn"
+          [class.view-toggle__btn--active]="matchView() === 'calendar'"
+          type="button"
+          title="Vista calendario"
+          (click)="setMatchView('calendar')"
+        >
+          <i class="pi pi-calendar"></i>
         </button>
         <button
           class="view-toggle__btn"
           [class.view-toggle__btn--active]="matchView() === 'bracket'"
           type="button"
           title="Vista bracket"
-          (click)="matchView.set('bracket')"
+          (click)="setMatchView('bracket')"
         >
           <i class="pi pi-sitemap"></i>
         </button>
@@ -405,6 +421,8 @@
         <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
         <p>No hay partidos programados por el momento.</p>
       </div>
+    } @else if (matchView() === 'calendar') {
+      <app-match-calendar [matches]="carouselMatches()" />
     } @else if (matchView() === 'bracket') {
       @if (filteredLeagues().length === 0) {
         <p class="bracket-empty">Únete a una liga para ver su bracket.</p>
@@ -426,12 +444,12 @@
         </div>
 
         @if (selectedLeagueId(); as lid) {
-          <app-tournament-bracket [leagueId]="lid" [grupos]="grupos()" />
+          <app-tournament-bracket [leagueId]="lid" [grupos]="grupos()" [matchCards]="leagueMatchCards()" />
         }
       }
     } @else {
       <div class="matches-grid">
-        @for (card of featuredMatches(); track card.match.match_id) {
+        @for (card of pagedMatches(); track card.match.match_id) {
           <article
             class="match-card"
             [class.match-card--live]="card.isLive"
@@ -445,6 +463,22 @@
                 [value]="getLiveLabel(card)"
                 styleClass="match-status-tag"
               />
+              @if (card.isLive) {
+                @let elapsed = getElapsedTime(card.match.start_time);
+                <span class="match-card__elapsed" aria-live="polite">
+                  <i class="pi pi-clock" aria-hidden="true"></i>
+                  <span class="match-card__elapsed-label">Transcurrido</span>
+                  <span class="match-card__elapsed-value">
+                    <ngx-digit-flow [value]="elapsed.minutes" [continuous]="true" />
+                    <span>:</span>
+                    <ngx-digit-flow
+                      [value]="elapsed.seconds"
+                      [continuous]="true"
+                      [prefix]="elapsed.seconds < 10 ? '0' : ''"
+                    />
+                  </span>
+                </span>
+              }
               <div class="match-card__header-actions">
                 <span class="match-date">
                   @if (!card.isLive) { {{ formatMatchDate(card.match.start_time) }} }
@@ -526,6 +560,34 @@
           </article>
         }
       </div>
+
+      <!-- Paginator -->
+      @if (totalMatchPages() > 1) {
+        <div class="match-pager" role="navigation" aria-label="Navegación de partidos">
+          <button
+            type="button"
+            class="match-pager__btn"
+            [disabled]="matchPage() === 0"
+            (click)="goPrevPage()"
+            title="Página anterior"
+          >
+            <i class="pi pi-chevron-left"></i>
+          </button>
+          <span class="match-pager__info">
+            {{ matchPage() + 1 }} / {{ totalMatchPages() }}
+            <span class="match-pager__total">· {{ carouselMatches().length }} partidos</span>
+          </span>
+          <button
+            type="button"
+            class="match-pager__btn"
+            [disabled]="matchPage() >= totalMatchPages() - 1"
+            (click)="goNextPage()"
+            title="Página siguiente"
+          >
+            <i class="pi pi-chevron-right"></i>
+          </button>
+        </div>
+      }
     }
   </section>
 

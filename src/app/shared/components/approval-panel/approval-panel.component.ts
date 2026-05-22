@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ApprovalService, PendingParticipant } from '../../../core/services/approval.service';
+import { ApprovalService, PendingParticipant } from '../../../core/pages/league/approval.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 
 @Component({

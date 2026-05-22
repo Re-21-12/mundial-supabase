@@ -11,7 +11,7 @@ import {
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ThemeService } from '../services/theme-service';
-import { WalletService } from '../../core/services/wallet.service';
+import { WalletService } from '../../core/pages/wallet/wallet.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideSun,
@@ -44,7 +44,7 @@ import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthFacade } from '../features/auth/auth.facade';
-import { NotificationInboxService } from '../../core/services/notification-inbox.service';
+import { NotificationInboxService } from '../components/notification-inbox/notification-inbox.service';
 import { NotificationInboxComponent } from '../components/notification-inbox/notification-inbox.component';
 import { GlobalSearchComponent } from '../components/global-search/global-search.component';
 

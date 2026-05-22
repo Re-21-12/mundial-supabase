@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Database } from '../../types/database.types';
-import { SupabaseService } from './supabase-service';
+import { Database } from '../../../types/database.types';
+import { SupabaseService } from '../../services/supabase-service';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 

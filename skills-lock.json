@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "ngx-digit-flow": {
+      "source": "ayangabryl/ngx-digit-flow",
+      "sourceType": "github",
+      "skillPath": "skills/ngx-digit-flow/SKILL.md",
+      "computedHash": "745b2f0c19ea7771e0d4ccef9dce7e6fde2b00e11df396a9891eb49cf43d1628"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

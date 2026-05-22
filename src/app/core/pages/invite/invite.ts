@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
-import { InvitationService } from '../../services/invitation.service';
 import { SupabaseService } from '../../services/supabase-service';
+import { InvitationService } from '../../../shared/components/notification-inbox/invitation.service';
 
 type InviteState = 'loading' | 'processing' | 'success' | 'error' | 'unauthenticated';
 

@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { JoinLeagueService } from '../../../core/services/join-league.service';
+import { JoinLeagueService } from '../../../core/pages/league/join-league.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 
 @Component({

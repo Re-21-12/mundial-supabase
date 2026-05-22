@@ -2,7 +2,14 @@ import { Injectable, inject, signal, OnDestroy } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../services/supabase-service';
 import { DynamicService } from '../../../services/dynamic-service';
-import type { MatchRow, MatchPeriodRow, UserLeagueRow, TeamRow, GrupoCard, GrupoTeam } from '../models/home.models';
+import type {
+  MatchRow,
+  MatchPeriodRow,
+  UserLeagueRow,
+  TeamRow,
+  GrupoCard,
+  GrupoTeam,
+} from '../models/home.models';
 
 @Injectable()
 export class HomeRealtimeService implements OnDestroy {
@@ -10,6 +17,7 @@ export class HomeRealtimeService implements OnDestroy {
   private readonly dynamicService = inject(DynamicService);
 
   private channel: RealtimeChannel | null = null;
+  private channelSubscribed = false;
 
   readonly matches = signal<MatchRow[]>([]);
   readonly periods = signal<MatchPeriodRow[]>([]);
@@ -25,14 +33,14 @@ export class HomeRealtimeService implements OnDestroy {
   }
 
   private async loadInitialData(): Promise<void> {
-    const [matchRes, periodRes, teamRes] = await Promise.all([
-      this.dynamicService.fetchData<MatchRow>({
-        table: 'MATCH',
-        order: 'asc',
-        limit: 20,
-        page: 0,
-        columns: '*',
-      }),
+    const { data: matchData } = await this.supabaseService.client
+      .from('MATCH')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('start_time', { ascending: true })
+      .limit(200);
+
+    const [periodRes, teamRes] = await Promise.all([
       this.dynamicService.fetchData<MatchPeriodRow>({
         table: 'MATCH_PERIOD',
         order: 'asc',
@@ -45,11 +53,11 @@ export class HomeRealtimeService implements OnDestroy {
         order: 'asc',
         limit: 200,
         page: 0,
-        columns: 'team_id, name, catalog_id, created_at, created_by, deleted_at, deleted_by, is_deleted, updated_at, updated_by',
+        columns:
+          'team_id, name, catalog_id, created_at, created_by, deleted_at, deleted_by, is_deleted, updated_at, updated_by',
       }),
     ]);
-
-    if (Array.isArray(matchRes)) this.matches.set(matchRes);
+    if (matchData) this.matches.set(matchData as MatchRow[]);
     if (Array.isArray(periodRes)) this.periods.set(periodRes);
     if (Array.isArray(teamRes)) this.teams.set(teamRes);
     await this.loadGrupos();
@@ -58,13 +66,15 @@ export class HomeRealtimeService implements OnDestroy {
   private async loadGrupos(): Promise<void> {
     const { data, error } = await this.supabaseService.client
       .from('GRUPO_STANDING')
-      .select(`
+      .select(
+        `
         grupo_standing_id, grupo_id, team_id,
         position, games_played, wins, draws, losses,
         goals_for, goals_against, goal_diff, points, advances,
         GRUPO(grupo_id, name),
         TEAM(team_id, name)
-      `)
+      `,
+      )
       .eq('is_deleted', false)
       .order('grupo_id', { ascending: true })
       .order('position', { ascending: true, nullsFirst: false });
@@ -113,27 +123,27 @@ export class HomeRealtimeService implements OnDestroy {
   private openChannel(): void {
     this.channel = this.supabaseService.client
       .channel('home-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'MATCH' },
-        (payload) => this.handleMatchChange(payload),
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'MATCH' }, (payload) =>
+        this.handleMatchChange(payload),
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'MATCH_PERIOD' },
-        (payload) => this.handlePeriodChange(payload),
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'MATCH_PERIOD' }, (payload) =>
+        this.handlePeriodChange(payload),
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'USER_LEAGUE' },
-        (payload) => this.handleUserLeagueChange(payload),
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'USER_LEAGUE' }, (payload) =>
+        this.handleUserLeagueChange(payload),
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'GRUPO_STANDING' },
-        () => this.loadGrupos(),
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'GRUPO_STANDING' }, () =>
+        this.loadGrupos(),
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          if (this.channelSubscribed) {
+            // Reconnected after a WS drop — reload to recover any missed events
+            void this.loadInitialData();
+          }
+          this.channelSubscribed = true;
+        }
+      });
   }
 
   private handleMatchChange(payload: { eventType: string; new: unknown; old: unknown }): void {
@@ -181,9 +191,7 @@ export class HomeRealtimeService implements OnDestroy {
         return [...current, incoming];
       }
       if (payload.eventType === 'UPDATE') {
-        return current.map((ul) =>
-          ul.user_league_id === incoming.user_league_id ? incoming : ul,
-        );
+        return current.map((ul) => (ul.user_league_id === incoming.user_league_id ? incoming : ul));
       }
       if (payload.eventType === 'DELETE') {
         return current.filter((ul) => ul.user_league_id !== removed.user_league_id);
@@ -197,6 +205,7 @@ export class HomeRealtimeService implements OnDestroy {
       this.channel.unsubscribe();
       this.channel = null;
     }
+    this.channelSubscribed = false;
   }
 
   ngOnDestroy(): void {

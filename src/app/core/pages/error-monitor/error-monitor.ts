@@ -13,7 +13,7 @@ import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ErrorRegistryService, ErrorSeverity } from '../../services/error-registry.service';
+import { ErrorRegistryService, ErrorSeverity } from './error-registry.service';
 import { Database } from '../../../types/database.types';
 
 @Component({

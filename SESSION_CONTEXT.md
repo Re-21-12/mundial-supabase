@@ -8,6 +8,13 @@
 
 This session implemented a complete system for league creation with magic links for anonymous users, push notifications, and automatic prediction locking. All features follow the PDF project requirements for audit logging, soft delete compliance, and security.
 
+## Current Session Note - 2026-05-21
+
+- Match duration is now normalized to 120 minutes when saving matches, and live/finished status uses that same duration.
+- Prediction locking now tracks the last 15 minutes before match end, which is the window used to create the inbox warning.
+- The prediction page now triggers lock evaluation for matches entering that final window so the persisted inbox notification is created.
+- League creation rules now document both the 15-minute prediction window and the 120-minute match duration.
+
 ## What Was Accomplished
 
 ### 1. Database Schema Enhancements ✅
@@ -418,6 +425,13 @@ git commit -m "docs: add changelog and session context for phase 3"
 - [x] 4 new tables with full audit support
 - [x] Magic link generation and consumption
 - [x] Push subscription management
+
+## Current Session Note - 2026-05-21
+
+- Prediction wager flow now shows an amount field for paid leagues and validates it as required.
+- User wager is debited from WALLET and accumulated into LEAGUE_REWARD.total_collected_amount as the league cashbox.
+- Final settlement remains league-scoped and idempotent via v3.26 migration trigger on LEAGUE.status = 'finished'.
+- Added league_reward_id relation to USER_LEAGUE_REWARD for traceability of payouts.
 - [x] Prediction lock automation
 - [x] Integration with existing services
 - [x] Soft delete compliance

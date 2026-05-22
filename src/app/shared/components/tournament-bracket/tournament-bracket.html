@@ -1,7 +1,7 @@
 @if (grupos().length > 0) {
   <section class="tb-grupos">
     <h3 class="tb-grupos__title">Clasificación de Grupos</h3>
-    <app-world-cup-groups [grupos]="grupos()" />
+    <app-world-cup-groups [grupos]="grupos()" [matchCards]="matchCards()" />
   </section>
 }
 

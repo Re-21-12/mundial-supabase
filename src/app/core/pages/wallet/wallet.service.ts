@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../services/supabase-service';
 
 export type WalletSummary = { wallet_id: number; balance: number; status: string };
 
@@ -22,6 +22,16 @@ export class WalletService {
       .select('wallet_id, balance, status')
       .eq('user_id', userId)
       .single<WalletSummary>();
+  }
+
+  async withdraw(
+    walletId: number,
+    userId: number,
+    amount: number,
+    catalogId: number,
+    description: string,
+  ): Promise<{ error: string | null }> {
+    return this.deposit(walletId, userId, -amount, catalogId, description);
   }
 
   async deposit(

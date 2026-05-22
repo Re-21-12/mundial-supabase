@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, inject, OnInit, signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AdminUser, UserAdminService } from '../../services/user-admin.service';
+import { AdminUser, UserAdminService } from './user-admin.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 
 type Panel = 'none' | 'create' | 'reset';

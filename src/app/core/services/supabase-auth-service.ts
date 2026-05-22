@@ -6,6 +6,7 @@ import { DynamicService } from './dynamic-service';
 import { UserAgentService } from './user-agent-service';
 import { Router } from '@angular/router';
 import { AuthFacade } from '../../shared/features/auth/auth.facade';
+import { NotificationService } from '../../shared/services/notification-service';
 import { jwtDecode } from 'jwt-decode';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -41,6 +42,7 @@ export class SupabaseAuthService {
   private readonly _dynamicService = inject(DynamicService);
   private readonly _userAgentService = inject(UserAgentService);
   private readonly _injector = inject(Injector);
+  private readonly _notificationService = inject(NotificationService);
   //#endregion
 
   //#region Signals - Single Source of Truth
@@ -60,6 +62,8 @@ export class SupabaseAuthService {
   private authReadyResolve!: () => void;
   /** Tracks the session_id of the active USER_SESSION row so sign-out can UPDATE it */
   private activeSessionId: string | null = null;
+  /** Set to true when the user explicitly calls signOut() to suppress the "session expired" toast */
+  private _explicitSignOut = false;
 
   constructor() {
     // Initialize readiness promise
@@ -187,6 +191,14 @@ export class SupabaseAuthService {
 
       case 'SIGNED_OUT':
         console.log('[Auth] SIGNED_OUT - clearing state');
+        if (!this._explicitSignOut) {
+          this._notificationService.notify(
+            'warn',
+            'Sesión expirada',
+            'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+          );
+        }
+        this._explicitSignOut = false;
         // logSessionEnd() was already called inside signOut() before clearing state.
         // Calling it again here would fail because internalUserId is already null.
         this._clearSessionState();
@@ -390,9 +402,11 @@ export class SupabaseAuthService {
   //#region Sign Out & Session
   async signOut() {
     try {
+      this._explicitSignOut = true;
       await this.logSessionEnd();
       await this._supabaseService.client.auth.signOut();
     } catch (err) {
+      this._explicitSignOut = false;
       console.error('[Auth] signOut error:', err);
     }
   }

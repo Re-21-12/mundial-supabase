@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SupabaseService } from './supabase-service';
+import { SupabaseService } from '../../services/supabase-service';
 
 @Injectable({ providedIn: 'root' })
 export class JoinLeagueService {

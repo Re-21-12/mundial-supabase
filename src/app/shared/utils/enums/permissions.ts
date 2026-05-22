@@ -160,4 +160,18 @@ export const PERMISSIONS = {
     DELETE: 'world_league:delete',
     RESTORE: 'world_league:restore',
   },
+  BRACKET: {
+    CREATE: 'bracket:create',
+    READ: 'bracket:read',
+    UPDATE: 'bracket:update',
+    DELETE: 'bracket:delete',
+    RESTORE: 'bracket:restore',
+  },
+  ADMIN: {
+    CREATE: 'admin:create',
+    READ: 'admin:read',
+    UPDATE: 'admin:update',
+    DELETE: 'admin:delete',
+    RESTORE: 'admin:restore',
+  },
 };

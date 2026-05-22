@@ -15,7 +15,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { DatePickerModule } from 'primeng/datepicker';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { PasswordModule } from 'primeng/password';
@@ -57,7 +56,6 @@ import { CatalogOptionsService } from '../services/catalog-options.service';
     CheckboxModule,
     RadioButtonModule,
     DatePickerModule,
-    InputNumberModule,
     MultiSelectModule,
     ToggleSwitchModule,
     PasswordModule,

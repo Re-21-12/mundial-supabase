@@ -80,12 +80,25 @@ export const routes: Routes = [
           import('./core/pages/user-admin/user-admin.routes').then((m) => m.USER_ADMIN_ROUTES),
       },
       {
+        path: 'admin/bracket',
+        title: 'Bracket Eliminatorias',
+        data: {
+          description: 'Asignar equipos al bracket eliminatorio',
+          icon: 'lucideTrophy',
+          requiredPermission: PERMISSIONS.BRACKET.UPDATE,
+        },
+        loadChildren: () =>
+          import('./core/pages/admin-bracket/admin-bracket.routes').then(
+            (m) => m.ADMIN_BRACKET_ROUTES,
+          ),
+      },
+      {
         path: 'admin/migrations',
         title: 'Migraciones',
         data: {
           description: 'Historial de migraciones de base de datos',
           icon: 'lucideDatabase',
-          requiredPermission: 'ADMIN',
+          requiredPermission: PERMISSIONS.ADMIN.READ,
         },
         loadChildren: () =>
           import('./core/pages/admin-migrations/admin-migrations.routes').then(
@@ -440,6 +453,7 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./core/pages/team-league/team-league.routes').then((m) => m.TEAM_LEAGUE_ROUTES),
       },
+      { path: '**', redirectTo: '/login' },
     ],
   },
 ];

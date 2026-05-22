@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, resource } from '@angular/core';
-import { BracketService, type BracketMatchRaw } from '../../../core/services/bracket.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  resource,
+} from '@angular/core';
+import { BracketService, type BracketMatchRaw } from '../../../core/pages/admin-bracket/bracket.service';
 import { WorldCupGroupsComponent } from '../world-cup-groups/world-cup-groups';
-import type { GrupoCard } from '../../../core/pages/home/models/home.models';
+import type { GrupoCard, MatchCard } from '../../../core/pages/home/models/home.models';
 
 export interface BracketMatch {
   matchId: number;
@@ -52,6 +60,7 @@ const BASE_SLOT_H = 92;
 export class TournamentBracketComponent {
   readonly leagueId = input.required<number>();
   readonly grupos = input<GrupoCard[]>([]);
+  readonly matchCards = input<MatchCard[]>([]);
 
   private readonly bracketService = inject(BracketService);
 
@@ -85,6 +94,7 @@ export class TournamentBracketComponent {
 
   private buildRounds(raw: BracketMatchRaw[]): BracketRound[] {
     const byRound = new Map<number, BracketMatchRaw[]>();
+    console.log('Raw bracket matches:', raw);
     for (const m of raw) {
       const r = m.round ?? 999;
       if (!byRound.has(r)) byRound.set(r, []);
@@ -101,11 +111,12 @@ export class TournamentBracketComponent {
 
     return roundNums.map((roundNum, i) => {
       const isLast = i === total - 1;
-      const roundMatches = byRound.get(roundNum)!.sort(
-        (a, b) => (a.bracket_position ?? 0) - (b.bracket_position ?? 0),
-      );
+      const roundMatches = byRound
+        .get(roundNum)!
+        .sort((a, b) => (a.bracket_position ?? 0) - (b.bracket_position ?? 0));
 
       const matches = roundMatches.map((m) => this.toMatch(m, roundNum));
+
       const pairs = this.toPairs(matches);
       const slotH = isLast ? maxSlotH : BASE_SLOT_H * Math.pow(2, i);
 
@@ -126,9 +137,7 @@ export class TournamentBracketComponent {
       winner = raw.winner_team_id === raw.first_team_id ? 'home' : 'away';
     }
 
-    const matchLabel = roundNum === 5
-      ? FINAL_MATCH_LABELS[raw.bracket_position ?? 0]
-      : undefined;
+    const matchLabel = roundNum === 5 ? FINAL_MATCH_LABELS[raw.bracket_position ?? 0] : undefined;
 
     return {
       matchId: raw.match_id,
