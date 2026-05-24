@@ -45,6 +45,7 @@ export class LeaguePage implements OnInit {
         { field: 'is_deleted', header: 'Is Deleted' },
         { field: 'league_id', header: 'League Id' },
         { field: 'name', header: 'Name' },
+        { field: 'buy_in_amount', header: 'Buy In Amount' },
         { field: 'status', header: 'Status' },
         { field: 'updated_at', header: 'Updated At' },
         { field: 'updated_by', header: 'Updated By' },
@@ -152,5 +153,3 @@ export class LeaguePage implements OnInit {
     await this.getData();
   };
 }
-
-

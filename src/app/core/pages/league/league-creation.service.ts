@@ -73,6 +73,15 @@ export class LeagueCreationService {
         return { success: false, error: 'No active World League found' };
       }
 
+      const buyInAmount = payload.leagueType === 'apuesta' ? Number(payload.entryPrice ?? 0) : 0;
+
+      if (payload.leagueType === 'apuesta' && buyInAmount <= 0) {
+        return {
+          success: false,
+          error: 'La liga de apuesta debe incluir una cuota de participación mayor a 0.',
+        };
+      }
+
       // Create league
       const { data: leagueData, error: leagueError } = await client
         .from('LEAGUE')
@@ -81,6 +90,7 @@ export class LeagueCreationService {
           user_id: payload.createdBy,
           name: payload.name,
           catalog_id: catalogData.catalog_id,
+          buy_in_amount: buyInAmount,
           status: 'active',
           created_by: payload.createdBy,
           created_at: new Date().toISOString(),
@@ -96,7 +106,7 @@ export class LeagueCreationService {
       const leagueId = leagueData?.[0]?.league_id;
 
       // Create LEAGUE_REWARD entry
-      if (payload.leagueType === 'apuesta' && payload.entryPrice) {
+      if (buyInAmount > 0) {
         await client.from('LEAGUE_REWARD').insert({
           league_id: leagueId,
           mundial_id: 1, // 2026 World Cup
@@ -392,6 +402,10 @@ export class LeagueCreationService {
         };
       }
 
+      if (minutesUntilEnd <= 16 && minutesUntilEnd > 15) {
+        await this.send15MinuteReminder(matchId);
+      }
+
       // Auto-lock if within the final 15 minutes of the match.
       if (minutesUntilEnd <= PREDICTION_CLOSE_MINUTES && minutesUntilEnd > 0) {
         await this.lockPredictions(matchId, 'auto_15min');
@@ -484,7 +498,7 @@ export class LeagueCreationService {
               matchId,
               type: 'prediction_locked',
               title: '🔒 Predicciones bloqueadas',
-              body: 'Ya no se pueden realizar más predicciones: faltan 15 minutos para que termine el partido',
+              body: 'Las predicciones quedaron cerradas. El partido entró en su ventana final.',
               actionUrl: `/league/${leagues.league_id}`,
               priority: 'high',
             },
@@ -534,5 +548,58 @@ export class LeagueCreationService {
       console.error('Error in getUserLeagues:', error);
       return [];
     }
+  }
+
+  private async send15MinuteReminder(matchId: number): Promise<void> {
+    const client = this.supabaseService.getClient();
+    if (!client) return;
+
+    const { data: matchRow, error: matchErr } = await client
+      .from('MATCH')
+      .select(
+        'match_id, league_id, first_team_id, second_team_id, home:TEAM!MATCH_first_team_id_fkey(name), away:TEAM!MATCH_second_team_id_fkey(name)',
+      )
+      .eq('match_id', matchId)
+      .maybeSingle();
+
+    if (matchErr || !matchRow?.league_id) return;
+
+    const { data: existingReminder } = await client
+      .from('NOTIFICATION_INBOX')
+      .select('notification_id')
+      .eq('league_id', matchRow.league_id)
+      .eq('match_id', matchId)
+      .eq('notification_type', 'match_reminder')
+      .eq('is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingReminder) return;
+
+    const { data: members } = await client
+      .from('USER_LEAGUE')
+      .select('user_id')
+      .eq('league_id', matchRow.league_id)
+      .eq('is_deleted', false);
+
+    if (!members || members.length === 0) return;
+
+    const teamsInfo = `${(matchRow as any).home?.name ?? 'Equipo local'} vs ${(matchRow as any).away?.name ?? 'Equipo visitante'}`;
+    const userIds = (members as Array<{ user_id: number }>).map((m) => m.user_id);
+
+    await this.notificationService.sendBulkNotifications(
+      matchRow.league_id,
+      userIds,
+      {
+        leagueId: matchRow.league_id,
+        matchId,
+        type: 'match_reminder',
+        title: '⏰ Quedan 15 minutos',
+        body: `${teamsInfo}: en 15 minutos se cerrarán las predicciones.`,
+        actionUrl: `/league/${matchRow.league_id}`,
+        priority: 'high',
+      },
+      1,
+    );
   }
 }

@@ -79,6 +79,15 @@ export class PredictionClientService {
     const userId = Number(this.auth.getInternalUserId());
     if (!userId) return null;
 
+    const { data: userRow, error: userErr } = await this.db.client
+      .from('USER')
+      .select('user_id')
+      .eq('user_id', userId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+
+    if (userErr || !userRow) return null;
+
     // Load match to get league_id
     const { data: matchRow, error: matchErr } = await this.db.client
       .from('MATCH')
@@ -124,6 +133,7 @@ export class PredictionClientService {
     };
 
     const userLeagueId: number | null = (userLeagueRes.data as any)?.user_league_id ?? null;
+    if (!userLeagueId) return null;
 
     // Load predictions for this user_league (if member)
     let predictions: any[] = [];
@@ -179,7 +189,7 @@ export class PredictionClientService {
       cards
         .filter((card) => {
           const minutesUntilEnd = (new Date(card.endTime).getTime() - now.getTime()) / 60000;
-          return minutesUntilEnd <= 15 && minutesUntilEnd > 0;
+          return minutesUntilEnd <= 16 && minutesUntilEnd > 0;
         })
         .map((card) => this.leagueRules.isPredictionLocked(card.matchId)),
     );

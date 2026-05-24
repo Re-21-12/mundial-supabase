@@ -279,20 +279,21 @@ export class Home implements OnInit, OnDestroy {
       minute: '2-digit',
     });
   }
-
   canPredictMatch(card: MatchCard): boolean {
     const now = new Date();
     const startTime = new Date(card.match.start_time);
 
+    // 1. Obtener la diferencia en milisegundos
+    const differenceInMs = startTime.getTime() - now.getTime();
 
- const differenceInMinutes = startTime.getTime() - now.getTime();
+    // 2. Convertir los milisegundos a minutos reales
+    const differenceInMinutes = differenceInMs / (1000 * 60);
 
-  const diferenciaDias = Math.round(differenceInMinutes / (1000 * 60 * 60 * 24));
+    console.log('Diferencia en minutos:', Math.round(differenceInMinutes));
 
-    console.log('Diferencia en minutos:', differenceInMinutes);
-
+    // Si faltan menos de 15 minutos (o el número es negativo porque ya empezó)
     if (differenceInMinutes < 15) {
-      return false; // El partido ya comenzó, no se puede predecir
+      return false;
     }
 
     console.log('Hora actual:', now.getDate(), now.getHours(), now.getMinutes());
@@ -304,8 +305,8 @@ export class Home implements OnInit, OnDestroy {
     );
     console.log('Minutos restantes:', differenceInMinutes);
 
-    // Retorna true si faltan más de 15 minutos para que termine
-    return differenceInMinutes > 15;
+    // Retorna true si faltan más de 15 minutos para que empiece el partido
+    return differenceInMinutes >= 15;
   }
 
   getElapsedTime(startTime: string): { minutes: number; seconds: number } {

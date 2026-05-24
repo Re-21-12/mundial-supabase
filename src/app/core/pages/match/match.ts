@@ -1,7 +1,6 @@
 import { Database } from './../../../types/database.types';
 import { Component, inject, model, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -11,6 +10,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from './match-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { LeagueScoringService } from '../league/league-scoring.service';
 
 const MATCH_DURATION_MINUTES = 120;
 
@@ -34,6 +34,7 @@ export class MatchPage implements OnInit {
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
   private readonly dialogService = inject(DialogService);
+  private readonly scoringService = inject(LeagueScoringService);
 
   ngOnInit() {
     this.tableService.initTable({
@@ -127,14 +128,20 @@ export class MatchPage implements OnInit {
   };
 
   updateData = async (data: Partial<Database['public']['Tables']['MATCH']['Update']>) => {
-    const response = await this.dynamicService.updateData(
-      'MATCH',
-      this.normalizeMatchDuration(data),
-      {
-        field: 'match_id',
-        value: this.id()!,
-      },
-    );
+    const normalized = this.normalizeMatchDuration(data);
+    const response = await this.dynamicService.updateData('MATCH', normalized, {
+      field: 'match_id',
+      value: this.id()!,
+    });
+
+    // Si el update incluye marcadores finales, evaluar predicciones
+    // El servicio es idempotente: no re-evalúa si scored_at ya está seteado
+    const hasScores =
+      normalized.first_team_total !== undefined && normalized.second_team_total !== undefined;
+    if (!(response instanceof PostgrestError) && hasScores && this.id()) {
+      await this.scoringService.evaluatePredictionsForMatch(Number(this.id()));
+    }
+
     return response;
   };
 

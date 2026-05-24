@@ -33,6 +33,7 @@ BEGIN
   v_login := split_part(NEW.email, '@', 1);
 
   INSERT INTO public."USER" (
+    uuid,
     name,
     login,
     email,
@@ -42,6 +43,7 @@ BEGIN
     created_at
   )
   VALUES (
+    NEW.id,
     v_name,
     v_login,
     NEW.email,
@@ -59,13 +61,35 @@ BEGIN
   LIMIT 1;
 
   IF v_role_id IS NOT NULL THEN
-    INSERT INTO public."USER_ROLE" (user_id, role_id)
-    VALUES (v_user_id, v_role_id);
+    INSERT INTO public."USER_ROLE" (
+      user_id,
+      role_id,
+      created_by,
+      created_at
+    )
+    VALUES (
+      v_user_id,
+      v_role_id,
+      v_user_id,
+      NOW()
+    );
   END IF;
 
   -- Bootstrap wallet at zero balance
-  INSERT INTO public."WALLET" (user_id, balance, status)
-  VALUES (v_user_id, 0, 'active');
+  INSERT INTO public."WALLET" (
+    user_id,
+    balance,
+    status,
+    created_by,
+    created_at
+  )
+  VALUES (
+    v_user_id,
+    0,
+    'active',
+    v_user_id,
+    NOW()
+  );
 
   RETURN NEW;
 END;

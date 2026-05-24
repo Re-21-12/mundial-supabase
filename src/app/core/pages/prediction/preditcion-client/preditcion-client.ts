@@ -103,7 +103,9 @@ export class PreditcionClient implements OnInit {
 
     const ctx = await this.svc.loadContext(matchId);
     if (!ctx) {
-      this.error.set('No se pudo cargar la información del partido.');
+      this.error.set(
+        'No tienes acceso a esta liga. Debes estar registrado e inscrito para ver partidos y apostar.',
+      );
       this.loading.set(false);
       return;
     }

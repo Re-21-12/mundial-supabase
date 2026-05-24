@@ -40,7 +40,10 @@
       "mcp__supabase__execute_sql",
       "Bash(node -e \"const fs = require\\('fs'\\); const content = fs.readFileSync\\('c:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\victo\\\\\\\\\\\\\\\\Mundial\\\\\\\\\\\\\\\\node_modules\\\\\\\\\\\\\\\\ngx-digit-flow\\\\\\\\\\\\\\\\fesm2022\\\\\\\\\\\\\\\\ngx-digit-flow.mjs', 'utf8'\\); const start = content.indexOf\\('afterEveryRender'\\); const end = content.indexOf\\('}\\)', start\\) + 3; console.log\\(content.slice\\(start, start + 2000\\)\\);\")",
       "mcp__supabase__list_projects",
-      "Bash(Select-String -Pattern \"admin-bracket\")"
+      "Bash(Select-String -Pattern \"admin-bracket\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\victo\\\\Mundial\\\\supabase\\\\migrations\" -File)",
+      "Bash(Select-Object Name)",
+      "Bash(Sort-Object Name)"
     ]
   }
 }

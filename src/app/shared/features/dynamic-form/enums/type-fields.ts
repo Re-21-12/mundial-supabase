@@ -14,4 +14,5 @@ export enum TypeFields {
   TOGGLE = 'TOGGLE',
   MULTISELECT = 'MULTISELECT',
   IMAGE_UPLOAD = 'IMAGE_UPLOAD',
+  DATETIME = 'DATETIME',
 }

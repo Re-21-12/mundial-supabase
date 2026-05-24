@@ -66,10 +66,15 @@ export class UserLeaguesService {
   private readonly _db = inject(SupabaseService);
 
   async loadUserLeagues(userId: number): Promise<UserLeagueCard[]> {
+    // Keep league status in sync on app entry, including auto-close when no active matches remain.
+    await (this._db.client as any).rpc('close_finished_leagues');
+
     const [leagueRes, catalogRes] = await Promise.all([
       this._db.client
         .from('USER_LEAGUE')
-        .select('user_league_id, league_id, accumulated_points, LEAGUE(name, status, is_deleted, catalog_id)')
+        .select(
+          'user_league_id, league_id, accumulated_points, LEAGUE(name, status, is_deleted, catalog_id)',
+        )
         .eq('user_id', userId)
         .eq('is_deleted', false),
       this._db.client
@@ -90,12 +95,10 @@ export class UserLeaguesService {
       ]),
     );
 
-    const activeEntries = (leagueRes.data as any[]).filter(
-      (ul) => ul.LEAGUE?.status === 'active' && !ul.LEAGUE?.is_deleted,
-    );
+    const visibleEntries = (leagueRes.data as any[]).filter((ul) => !ul.LEAGUE?.is_deleted);
 
     const cards = await Promise.all(
-      activeEntries.map(async (ul) => {
+      visibleEntries.map(async (ul) => {
         const { data: members } = await this._db.client
           .from('USER_LEAGUE')
           .select('user_id, accumulated_points')
@@ -121,7 +124,11 @@ export class UserLeaguesService {
       }),
     );
 
-    return cards.sort((a, b) => a.position - b.position);
+    return cards.sort((a, b) => {
+      if (a.status === 'active' && b.status !== 'active') return -1;
+      if (a.status !== 'active' && b.status === 'active') return 1;
+      return a.position - b.position;
+    });
   }
 
   async loadLeagueDetail(leagueId: number): Promise<LeagueDetail> {
@@ -135,16 +142,14 @@ export class UserLeaguesService {
         .limit(8),
       this._db.client
         .from('TEAM_LEAGUE')
-        .select('team_id, points, games_played, wins, draws, losses, goals_for, goals_against, TEAM(name)')
+        .select(
+          'team_id, points, games_played, wins, draws, losses, goals_for, goals_against, TEAM(name)',
+        )
         .eq('league_id', leagueId)
         .eq('is_deleted', false)
         .order('points', { ascending: false })
         .limit(8),
-      this._db.client
-        .from('LEAGUE')
-        .select('world_league_id')
-        .eq('league_id', leagueId)
-        .single(),
+      this._db.client.from('LEAGUE').select('world_league_id').eq('league_id', leagueId).single(),
     ]);
 
     const users: UserStanding[] = ((usersRes.data ?? []) as any[]).map((row, i) => ({

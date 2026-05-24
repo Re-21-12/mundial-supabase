@@ -320,6 +320,45 @@
       </div>
     }
 
+    <!-- DATETIME -->
+    @case (TypeFields.DATETIME) {
+      <div class="">
+        <ng-container
+          *ngTemplateOutlet="labelTemplate; context: { defaultLabel: 'Fecha y Hora' }"
+        ></ng-container>
+        @if (hasIcon()) {
+          <p-inputgroup class="w-full">
+            <p-inputgroup-addon>
+              <i [class]="fieldProps().icon"></i>
+            </p-inputgroup-addon>
+            <p-datepicker
+              [formControl]="formControl()"
+              [placeholder]="fieldProps().placeholder || 'Selecciona fecha y hora'"
+              [showIcon]="true"
+              iconDisplay="input"
+              [showTime]="true"
+              [hourFormat]="'24'"
+              class="w-full"
+              inputStyleClass="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            />
+          </p-inputgroup>
+        } @else {
+          <p-datepicker
+            [formControl]="formControl()"
+            [placeholder]="fieldProps().placeholder || 'Selecciona fecha y hora'"
+            [showIcon]="true"
+            iconDisplay="input"
+            [showTime]="true"
+            [hourFormat]="'24'"
+            class="w-full"
+            inputStyleClass="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+          />
+        }
+        <app-dynamic-hint [hint]="fieldProps().hint || null" [field]="formControl()" />
+        <app-dynamic-errors [field]="formControl()"></app-dynamic-errors>
+      </div>
+    }
+
     <!-- TEXTAREA -->
     @case (TypeFields.TEXTAREA) {
       <div class="">

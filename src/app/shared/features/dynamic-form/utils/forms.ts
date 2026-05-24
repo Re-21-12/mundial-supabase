@@ -752,7 +752,7 @@ export const formFields: FormFields = {
       {
         icon: 'pi pi-database',
         key: 'start_time',
-        type: TypeFields.DATE,
+        type: TypeFields.DATETIME,
         label: 'Start Time',
         placeholder: 'Ingresa start time',
         state: {
@@ -766,13 +766,13 @@ export const formFields: FormFields = {
         value: '',
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.DATE,
+        controlType: TypeFields.DATETIME,
         order: 7,
       },
       {
         icon: 'pi pi-calendar-times',
         key: 'end_time',
-        type: TypeFields.DATE,
+        type: TypeFields.DATETIME,
         label: 'Fecha fin del partido',
         placeholder: '',
         state: {
@@ -1124,8 +1124,8 @@ export const formFields: FormFields = {
           table: 'USER_LEAGUE',
           valueField: 'user_league_id',
           filterField: 'user_league_id',
-          labelField: 'name',
-          orderBy: 'name',
+          labelField: 'user_league_id',
+          orderBy: 'user_league_id',
           order: 'asc',
           includeDeleted: false,
         },

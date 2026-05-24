@@ -783,6 +783,7 @@ export type Database = {
           match_id: number;
           next_match_id: number | null;
           round: number | null;
+          scored_at: string | null;
           second_team_id: number | null;
           second_team_total: number;
           stadium_id: number;
@@ -807,6 +808,7 @@ export type Database = {
           match_id?: number;
           next_match_id?: number | null;
           round?: number | null;
+          scored_at?: string | null;
           second_team_id?: number | null;
           second_team_total: number;
           stadium_id: number;
@@ -830,6 +832,7 @@ export type Database = {
           match_id?: number;
           next_match_id?: number | null;
           round?: number | null;
+          scored_at?: string | null;
           second_team_id?: number | null;
           second_team_total?: number;
           stadium_id?: number;
@@ -2291,6 +2294,7 @@ export type Database = {
           created_by: number | null;
           deleted_at: string | null;
           deleted_by: number | null;
+          global_prizes_distributed_at: string | null;
           is_deleted: boolean;
           logo_url: string | null;
           name: string | null;
@@ -2303,6 +2307,7 @@ export type Database = {
           created_by?: number | null;
           deleted_at?: string | null;
           deleted_by?: number | null;
+          global_prizes_distributed_at?: string | null;
           is_deleted?: boolean;
           logo_url?: string | null;
           name?: string | null;
@@ -2315,6 +2320,7 @@ export type Database = {
           created_by?: number | null;
           deleted_at?: string | null;
           deleted_by?: number | null;
+          global_prizes_distributed_at?: string | null;
           is_deleted?: boolean;
           logo_url?: string | null;
           name?: string | null;

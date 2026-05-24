@@ -349,6 +349,30 @@ if (link) {
 - [ ] A/B testing for notification timing
 - [ ] Machine learning for optimal notification delivery
 
+## Pruebas actuales
+
+### Alcance de esta tanda
+
+- Registro de usuario en `/auth` con un usuario de prueba.
+- Validacion de que el trigger de Supabase no rompe el alta de `auth.users`.
+- Verificacion de que un usuario no registrado no pueda ver partidos ni apostar en una liga.
+- Verificacion del cierre automatico de ligas sin partidos activos.
+- Verificacion del reparto de recompensas y del flujo de wallet/transactions.
+
+### Estado esperado
+
+- El registro debe completar sin `Database error saving new user`.
+- Las ligas de prueba deben cargar sin errores de llaves unicas o secuencias desincronizadas.
+- La vista de partidos y apuestas debe bloquearse para usuarios sin membresia.
+- El cierre y la liquidacion de premios deben ejecutarse sin intervencion manual.
+
+### Resultado parcial actual
+
+- El acceso directo a `/prediction/prediction-client/1` redirige de vuelta a `/auth`.
+- El acceso directo a `/league/1/schedule` tambien redirige de vuelta a `/auth`.
+- La pantalla de autenticacion sigue fallando en el registro con `Database error saving new user`.
+- El mismo error aparece incluso con un correo nuevo de prueba, asi que no parece ser un duplicado.
+
 ## Testing Commands
 
 ```bash
