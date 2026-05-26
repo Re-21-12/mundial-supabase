@@ -1,0 +1,105 @@
+<div class="chat-wrap">
+
+  <!-- ── Header ── -->
+  <header class="chat-header">
+    <div class="chat-header__info">
+      <i class="pi pi-comments chat-header__icon"></i>
+      <div>
+        <h2 class="chat-header__title">Chat de liga</h2>
+        @if (leagueName()) {
+          <span class="chat-header__league">{{ leagueName() }}</span>
+        }
+      </div>
+    </div>
+    <span class="chat-live-badge">
+      <span class="chat-live-dot"></span>
+      En vivo
+    </span>
+  </header>
+
+  <!-- ── Messages ── -->
+  <div class="chat-messages" #msgList>
+
+    @if (loading()) {
+      <div class="chat-loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        Cargando mensajes…
+      </div>
+    } @else if (messages().length === 0) {
+      <div class="chat-empty">
+        <i class="pi pi-comments"></i>
+        <p>Sé el primero en escribir en este chat.</p>
+      </div>
+    } @else {
+      @for (msg of messages(); track msg.message_id; let i = $index) {
+
+        <!-- Day separator -->
+        @if (i === 0 || !isSameDay(messages()[i - 1], msg)) {
+          <div class="chat-day-sep">
+            <span>{{ formatDay(msg.created_at) }}</span>
+          </div>
+        }
+
+        <!-- Message bubble -->
+        <div class="chat-msg" [class.chat-msg--own]="msg.is_own">
+
+          @if (!msg.is_own) {
+            <div class="chat-avatar" [attr.aria-label]="msg.user_name">
+              {{ initials(msg.user_name) }}
+            </div>
+          }
+
+          <div class="chat-bubble-wrap">
+            @if (!msg.is_own) {
+              <span class="chat-sender">{{ msg.user_name }}</span>
+            }
+            <div class="chat-bubble">
+              <p class="chat-text">{{ msg.content }}</p>
+              <span class="chat-time">{{ formatTime(msg.created_at) }}</span>
+            </div>
+          </div>
+
+        </div>
+
+      }
+    }
+
+  </div><!-- /chat-messages -->
+
+  <!-- ── Input ── -->
+  <div class="chat-input-area">
+    @if (!canChat()) {
+      <p class="chat-no-access">
+        <i class="pi pi-lock"></i>
+        Debes ser miembro aprobado para participar en el chat.
+      </p>
+    } @else {
+      <div class="chat-composer">
+        <textarea
+          class="chat-textarea"
+          [(ngModel)]="text"
+          placeholder="Escribe un mensaje… (Enter para enviar)"
+          rows="1"
+          maxlength="1000"
+          [disabled]="sending()"
+          (keydown)="onEnter($event)"
+          aria-label="Mensaje"
+        ></textarea>
+        <button
+          class="chat-send-btn"
+          type="button"
+          [disabled]="!text.trim() || sending()"
+          (click)="send()"
+          aria-label="Enviar mensaje"
+        >
+          @if (sending()) {
+            <i class="pi pi-spin pi-spinner"></i>
+          } @else {
+            <i class="pi pi-send"></i>
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+</div>

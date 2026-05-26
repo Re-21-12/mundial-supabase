@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { ProfileService, UserProfileData, WalletData } from '../../services/profile.service';
+import { SupabaseAuthService } from '../../services/supabase-auth-service';
 
 @Component({
   selector: 'app-profile-page',
@@ -13,6 +14,7 @@ import { ProfileService, UserProfileData, WalletData } from '../../services/prof
 })
 export class ProfilePage implements OnInit {
   protected readonly authFacade = inject(AuthFacade);
+  private readonly supabaseAuthService = inject(SupabaseAuthService);
   private readonly profileService = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
 
@@ -39,6 +41,15 @@ export class ProfilePage implements OnInit {
   }
 
   async ngOnInit() {
+    const session = await this.supabaseAuthService.ensureActiveSession({
+      redirectOnFail: true,
+      notifyOnFail: true,
+    });
+    if (!session?.user) {
+      this.isLoading.set(false);
+      return;
+    }
+
     const userId = Number(this.authFacade.getInternalUserId());
     if (!userId) {
       this.errorMessage.set('No se pudo identificar al usuario.');
@@ -85,7 +96,10 @@ export class ProfilePage implements OnInit {
     this.successMessage.set('');
 
     try {
-      const { data, error } = await this.profileService.updateProfile(userId, this.form.getRawValue());
+      const { data, error } = await this.profileService.updateProfile(
+        userId,
+        this.form.getRawValue(),
+      );
       if (error) {
         this.errorMessage.set('No se pudo guardar. Intenta nuevamente.');
         return;

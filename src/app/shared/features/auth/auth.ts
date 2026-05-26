@@ -81,10 +81,13 @@ export class Auth implements OnInit {
           return;
         }
         this.registrationError.set(null);
-        const { error } = await this.authFacade.signUpWithPassword(email, password, name);
+        const { data, error } = await this.authFacade.signUpWithPassword(email, password, name);
         if (error) {
-          this.registrationError.set((error as any)?.message ?? 'Error al registrar. Intenta de nuevo.');
+          this.registrationError.set(
+            (error as any)?.message ?? 'Error al registrar. Intenta de nuevo.',
+          );
         } else {
+          console.log('Registro exitoso:', data);
           this.registrationSuccess.set(true);
         }
         return;

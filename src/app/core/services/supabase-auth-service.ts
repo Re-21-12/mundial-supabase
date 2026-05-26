@@ -408,6 +408,10 @@ export class SupabaseAuthService {
     } catch (err) {
       this._explicitSignOut = false;
       console.error('[Auth] signOut error:', err);
+      // Ensure local state is cleared even if remote signOut fails.
+      this._clearSessionState();
+      this._clearOAuthTokens();
+      this._router.navigate(['/login']);
     }
   }
 
@@ -435,6 +439,7 @@ export class SupabaseAuthService {
       const { data, error } = await this._supabaseService.client.auth.getSession();
       if (error) {
         console.error('[Auth] Error refreshing session:', error);
+        this._clearSessionState();
         return { data: { session: null }, error };
       }
       if (data?.session) {
@@ -446,8 +451,60 @@ export class SupabaseAuthService {
       return { data: { session: data?.session ?? null }, error: null };
     } catch (err) {
       console.error('[Auth] Exception refreshing session:', err);
+      this._clearSessionState();
       return { data: { session: null }, error: err };
     }
+  }
+
+  /**
+   * Ensure there is an active valid session.
+   * Tries cached session first, then refreshes once.
+   * If session cannot be restored, optionally signs out locally and redirects.
+   */
+  async ensureActiveSession(options?: {
+    redirectOnFail?: boolean;
+    notifyOnFail?: boolean;
+  }): Promise<Session | null> {
+    const redirectOnFail = options?.redirectOnFail ?? true;
+    const notifyOnFail = options?.notifyOnFail ?? true;
+
+    try {
+      await this.waitForAuthReady(3000);
+    } catch (err) {
+      console.error('[Auth] ensureActiveSession waitForAuthReady error:', err);
+    }
+
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const cached = this.session();
+    const hasValidCachedSession =
+      Boolean(cached?.user) && (!cached?.expires_at || cached.expires_at > nowInSeconds + 15);
+
+    if (hasValidCachedSession) {
+      return cached;
+    }
+
+    const { data } = await this.refreshSession();
+    if (data.session?.user) {
+      return data.session;
+    }
+
+    // Refresh token is likely expired or invalid: clear and redirect.
+    this._clearSessionState();
+    this._clearOAuthTokens();
+
+    if (notifyOnFail) {
+      this._notificationService.notify(
+        'warn',
+        'Sesion expirada',
+        'Tu sesion expiro. Inicia sesion nuevamente.',
+      );
+    }
+
+    if (redirectOnFail) {
+      this._router.navigate(['/login']);
+    }
+
+    return null;
   }
   //#endregion
 

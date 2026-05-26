@@ -50,7 +50,7 @@ export class GlobalPrizeService {
 
     if (leagueErr || !leagues || (leagues as any[]).length === 0) return false;
 
-    const allClosed = (leagues as any[]).every((l) => l.status === 'closed');
+    const allClosed = (leagues as any[]).every((l) => l.status === 'finished');
     if (!allClosed) return false;
 
     const leagueIds = (leagues as any[]).map((l) => Number(l.league_id));

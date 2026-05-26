@@ -161,6 +161,24 @@ export class DynamicField {
     return field.options || [];
   });
 
+  logSelectChange(value: unknown): void {
+    console.debug('[DynamicField] select changed', {
+      fieldKey: this.fieldProps().key,
+      value,
+      controlValue: this.formControl()?.value,
+      options: this.resolvedOptions(),
+    });
+  }
+
+  logMultiSelectChange(value: unknown): void {
+    console.debug('[DynamicField] multiselect changed', {
+      fieldKey: this.fieldProps().key,
+      value,
+      controlValue: this.formControl()?.value,
+      options: this.resolvedOptions(),
+    });
+  }
+
   // Computed para verificar si el campo tiene ícono
   hasIcon = computed(() => {
     const icon = this.fieldProps().icon;

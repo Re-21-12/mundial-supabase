@@ -2,12 +2,14 @@ import { inject, Injectable, Signal } from '@angular/core';
 import { AuthChangeEvent, Provider, Session, User } from '@supabase/supabase-js';
 import { SupabaseAuthService } from '../../../core/services/supabase-auth-service';
 import { IAuthFacade } from './interface/iauth-interface-facade';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthFacade implements IAuthFacade {
   private readonly _supabaseAuthService = inject(SupabaseAuthService);
+  private readonly _router = inject(Router);
 
   //#region Public Signals from SupabaseAuthService
   readonly session: Signal<Session | null> = this._supabaseAuthService.session;
@@ -28,7 +30,6 @@ export class AuthFacade implements IAuthFacade {
     // SupabaseAuthService handles all state initialization
     this._supabaseAuthService.stateAuthChanges();
   }
-
 
   uploadAvatar(
     filePath: string,
@@ -75,7 +76,11 @@ export class AuthFacade implements IAuthFacade {
     return this._supabaseAuthService.signInWithPassword(email, password);
   }
 
-  async signUpWithPassword(email: string, password: string, name?: string): Promise<{ data: any; error: any }> {
+  async signUpWithPassword(
+    email: string,
+    password: string,
+    name?: string,
+  ): Promise<{ data: any; error: any }> {
     return this._supabaseAuthService.signUpWithPassword(email, password, name);
   }
 
@@ -88,6 +93,7 @@ export class AuthFacade implements IAuthFacade {
   }
 
   async signOut() {
+    this._router.navigate(['/auth']);
     return this._supabaseAuthService.signOut();
   }
 

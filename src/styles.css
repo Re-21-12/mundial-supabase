@@ -43,6 +43,17 @@
   --sidebar-accent-foreground: oklch(0.24 0.038 258.36);
   --sidebar-border: oklch(0.9 0.013 255.51);
   --sidebar-ring: oklch(0.64 0.125 182);
+  /* UI/layout constants (avoid hard-coded values in components) */
+  --dialog-width: min(95vw, 56rem);
+  --dialog-max-width: 56rem;
+  --table-col-min-small: 3.5rem;
+  --table-col-min-medium: 7.5rem;
+  --table-col-min-large: 9rem;
+  --gap-small: 0.5rem;
+  --gap-medium: 1rem;
+  /* avatar sizes */
+  --avatar-size: 3.5rem;
+  --avatar-size-mobile: 2.75rem;
 }
 
 .dark {

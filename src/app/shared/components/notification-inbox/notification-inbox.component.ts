@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationInboxService } from './notification-inbox.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
-import { Subject, interval } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-notification-inbox',
@@ -295,11 +295,13 @@ import { takeUntil } from 'rxjs/operators';
     `,
   ],
 })
-export class NotificationInboxComponent implements OnInit, OnDestroy {
+export class NotificationInboxComponent implements OnInit {
   private notificationService = inject(NotificationInboxService);
   private authFacade = inject(AuthFacade);
-  private destroy$ = new Subject<void>();
-  private get userId(): number { return Number(this.authFacade.getInternalUserId()) || 0; }
+  private destroyRef = inject(DestroyRef);
+  private get userId(): number {
+    return Number(this.authFacade.getInternalUserId()) || 0;
+  }
 
   notifications = signal<any[]>([]);
   unreadCount = signal(0);
@@ -308,13 +310,8 @@ export class NotificationInboxComponent implements OnInit, OnDestroy {
     this.loadNotifications();
     // Cargar cada 30 segundos
     interval(30000)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadNotifications());
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private async loadNotifications() {

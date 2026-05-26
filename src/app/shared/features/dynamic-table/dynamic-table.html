@@ -1,104 +1,159 @@
-<p-table
-  #data_table
-  [paginator]="true"
-  [lazy]="true"
-  [scrollable]="true"
-  [columns]="tableProps().columns"
-  [value]="tableProps().data"
-  [rows]="tableProps().rows"
-  [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
-  [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
-  [tableStyle]="{ 'min-width': '50rem' , 'background-color': 'white' } "
-  [size]="'small'"
-  (onPage)="onPageChange($event)"
->
-  <ng-template #caption>
-    <div class="text-end pb-4">
-      <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" [disabled]="tableProps().data.length === 0" />
-    </div>
-  </ng-template>
+<div class="dynamic-table-shell">
+  <p-table
+    #data_table
+    styleClass="dynamic-table"
+    [paginator]="true"
+    [lazy]="true"
+    [scrollable]="true"
+    [columns]="tableProps().columns"
+    [value]="tableProps().data"
+    [rows]="tableProps().rows"
+    [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
+    [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
+    [tableStyle]="{ 'min-width': '100%', 'background-color': 'white' }"
+    [size]="'small'"
+    (onPage)="onPageChange($event)"
+  >
+    <ng-template #caption>
+      <div class="text-end pb-4 table-caption-actions">
+        <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" [disabled]="tableProps().data.length === 0" />
+        <p-button
+          icon="pi pi-upload"
+          label="Carga masiva"
+          styleClass="ml-2"
+          (click)="fileInput.click()"
+          [disabled]="tableProps().data.length === 0"
+        />
+        <input
+          #fileInput
+          type="file"
+          accept=".csv,.tsv,.txt,.xlsx,.xls"
+          hidden
+          (change)="handleFileChange($event)"
+          aria-label="Seleccionar archivo para carga masiva"
+        />
+      </div>
+    </ng-template>
 
-  <ng-template #header let-columns>
-    <tr>
-      @for (col of columns; track col) {
-        <th pSortableColumn="">
-          {{ col.header }}
-        </th>
-      }
-      @if (hasAnyAction) {
-        <th class="text-center">Acciones</th>
-      }
-    </tr>
-  </ng-template>
-  <ng-template #body let-rowData let-columns="columns">
-    <tr>
-      @for (col of columns; track col) {
-        <td>
-          @let cellValue = rowData[col.field];
-          @if (col.type === 'image') {
-            @if (cellValue) {
-              <img [src]="cellValue" [alt]="col.header" [title]="col.header" class="dt-img-thumb" loading="lazy" />
+    <p-dialog header="Previsualización de carga masiva" [(visible)]="previewVisible" [modal]="true" [style]="{ width: '800px' }">
+      <div class="mapping-grid">
+        <h3>Mapeo de columnas</h3>
+          <div *ngFor="let col of tableProps().columns" class="mapping-row">
+            <label>{{ col.header }} ({{ col.field }})</label>
+            <select [(ngModel)]="mappings[col.field]" aria-label="Mapear {{ col.field }}">
+              <option [ngValue]="null">-- seleccionar columna del archivo --</option>
+              <option *ngFor="let h of detectedHeaders" [ngValue]="h">{{ h }}</option>
+            </select>
+            <span *ngIf="col.required" class="required" aria-hidden="true">*</span>
+          </div>
+
+        <h3>Previsualización (primeras 10 filas)</h3>
+        <div class="preview-table">
+          <table>
+            <thead>
+              <tr>
+                <th *ngFor="let f of previewHeaders">{{ f }}</th>
+                <th>Errores</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of parsedRows.slice(0,10); let i = index">
+                <td *ngFor="let f of previewHeaders">{{ r[f] }}</td>
+                <td>{{ validationResults[i]?.join(', ') || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="dialog-actions">
+          <button pButton type="button" title="Cancelar" (click)="previewVisible=false">Cancelar</button>
+          <button pButton type="button" title="Confirmar importación" (click)="confirmImport()" [disabled]="!canConfirm()" class="p-button-success">Confirmar importación</button>
+        </div>
+      </div>
+    </p-dialog>
+
+    <ng-template #header let-columns>
+      <tr>
+        @for (col of columns; track col) {
+          <th pSortableColumn="">
+            {{ col.header }}
+          </th>
+        }
+        @if (hasAnyAction) {
+          <th class="text-center">Acciones</th>
+        }
+      </tr>
+    </ng-template>
+    <ng-template #body let-rowData let-columns="columns">
+      <tr>
+        @for (col of columns; track col) {
+          <td>
+            @let cellValue = rowData[col.field];
+            @if (col.type === 'image') {
+              @if (cellValue) {
+                <img [src]="cellValue" alt="{{ col.header }}" title="{{ col.header }}" [attr.aria-label]="col.header" class="dt-img-thumb" loading="lazy" />
+              } @else {
+                <span class="dt-img-empty"><i class="pi pi-image"></i></span>
+              }
+            } @else if (shouldRenderAsBadge(cellValue)) {
+              <p-tag [value]="getBadgeLabel(cellValue)" [severity]="getBadgeSeverity(cellValue)" />
             } @else {
-              <span class="dt-img-empty"><i class="pi pi-image"></i></span>
+              {{ formatCellValue(cellValue) }}
             }
-          } @else if (shouldRenderAsBadge(cellValue)) {
-            <p-tag [value]="getBadgeLabel(cellValue)" [severity]="getBadgeSeverity(cellValue)" />
-          } @else {
-            {{ formatCellValue(cellValue) }}
-          }
-        </td>
-      } @empty {
-        <td>No data found.</td>
-      }
-      @if (hasAnyAction) {
-        <td class="flex gap-2 justify-center">
-          @if (hasAction('view')) {
-            <p-button
-              icon="pi pi-eye"
-              size="small"
-              severity="secondary"
-              text="true"
-              (click)="goToDetail(rowData)"
-              title="Detalle"
-            />
-          }
-          @if (hasAction('update')) {
-            <p-button
-              icon="pi pi-pencil"
-              size="small"
-              severity="info"
-              text="true"
-              (click)="goToEdit(rowData)"
-              title="Editar"
-            />
-          }
-          @if (hasAction('delete')) {
-            <p-button
-              icon="pi pi-trash"
-              size="small"
-              severity="danger"
-              text="true"
-              (click)="onDelete(rowData)"
-              title="Eliminar"
-            />
-          }
-          @for (ra of rowActions; track ra.label) {
-            <p-button
-              [icon]="ra.icon"
-              size="small"
-              [severity]="ra.severity ?? 'secondary'"
-              text="true"
-              (click)="ra.action(rowData)"
-              [title]="ra.label"
-            />
-          }
-        </td>
-      }
-    </tr>
-  </ng-template>
-  <ng-template #footer>
-    <tr>
-      <td colspan="100%">In total there are {{ tableProps().totalRecords ?? tableProps().data.length }} items.</td>
-    </tr>
-  </ng-template>
-</p-table>
+          </td>
+        } @empty {
+          <td>No data found.</td>
+        }
+        @if (hasAnyAction) {
+          <td class="flex gap-2 justify-center actions-cell">
+            @if (hasAction('view')) {
+              <p-button
+                icon="pi pi-eye"
+                size="small"
+                severity="secondary"
+                text="true"
+                (click)="goToDetail(rowData)"
+                title="Detalle"
+              />
+            }
+            @if (hasAction('update')) {
+              <p-button
+                icon="pi pi-pencil"
+                size="small"
+                severity="info"
+                text="true"
+                (click)="goToEdit(rowData)"
+                title="Editar"
+              />
+            }
+            @if (hasAction('delete')) {
+              <p-button
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                text="true"
+                (click)="onDelete(rowData)"
+                title="Eliminar"
+              />
+            }
+            @for (ra of rowActions; track ra.label) {
+              <p-button
+                [icon]="ra.icon"
+                size="small"
+                [severity]="ra.severity ?? 'secondary'"
+                text="true"
+                (click)="ra.action(rowData)"
+                [title]="ra.label"
+              />
+            }
+          </td>
+        }
+      </tr>
+    </ng-template>
+    <ng-template #footer>
+      <tr>
+        <td colspan="100%">In total there are {{ tableProps().totalRecords ?? tableProps().data.length }} items.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

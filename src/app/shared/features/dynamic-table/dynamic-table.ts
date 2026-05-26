@@ -7,6 +7,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DynamicTableService } from './services/dynamic-table.service';
+import { DialogModule } from 'primeng/dialog';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { SelectModule } from 'primeng/select';
 
 type BadgeSeverity =
   | 'success'
@@ -19,16 +23,35 @@ type BadgeSeverity =
   | undefined;
 @Component({
   selector: 'app-dynamic-table',
-  imports: [TableModule, PaginatorModule, SkeletonModule, ButtonModule, TagModule],
+  imports: [
+    TableModule,
+    PaginatorModule,
+    SkeletonModule,
+    ButtonModule,
+    TagModule,
+    DialogModule,
+    FormsModule,
+    CommonModule,
+    SelectModule,
+  ],
   templateUrl: './dynamic-table.html',
-  styleUrl: './dynamic-table.css',
+  styleUrls: ['./dynamic-table.css'],
 })
 export class DynamicTable {
   tableService = inject(DynamicTableService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   delete = output<string>(); /* Para eliminar registros */
+  bulkUpload = output<any[]>(); /* Emite los registros parseados para carga masiva */
   pageChange = output<{ first: number; rows: number }>(); /* Para cambios de página */
+
+  // Estado para previsualización y mapeo
+  parsedRows: Record<string, unknown>[] = [];
+  detectedHeaders: string[] = [];
+  mappings: Record<string, string | null> = {};
+  previewVisible = false;
+  previewHeaders: string[] = [];
+  validationResults: Record<number, string[]> = {};
 
   get tableProps() {
     return this.tableService.tableProps;
@@ -91,6 +114,11 @@ export class DynamicTable {
       'error',
       'failed',
       'fallido',
+      'finished',
+      'finalizado',
+      'finalizada',
+      'draft',
+      'borrador',
     ]);
 
     return knownStatuses.has(normalized);
@@ -160,7 +188,11 @@ export class DynamicTable {
       'error',
       'failed',
       'fallido',
+      'finished',
+      'finalizado',
+      'finalizada',
     ];
+    const secondaryStatuses = ['draft', 'borrador'];
 
     if (successStatuses.includes(normalized)) {
       return 'success';
@@ -172,6 +204,10 @@ export class DynamicTable {
 
     if (dangerStatuses.includes(normalized)) {
       return 'danger';
+    }
+
+    if (secondaryStatuses.includes(normalized)) {
+      return 'secondary';
     }
 
     return 'secondary';
@@ -264,5 +300,189 @@ export class DynamicTable {
   onPageChange(event: { first: number; rows: number }) {
     this.tableService.onPageChange(event);
     this.pageChange.emit(event);
+  }
+
+  /** Manejo del input de archivo desde la plantilla */
+  async handleFileChange(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    try {
+      const rows = await this.parseFileToObjects(file);
+      this.openPreview(rows);
+    } catch (err) {
+      console.error('Error parseando archivo:', err);
+      alert('Error al procesar el archivo. Revisa el formato y vuelve a intentarlo.');
+    } finally {
+      // limpiar input para permitir recarga del mismo archivo si es necesario
+      input.value = '';
+    }
+  }
+
+  private async parseFileToObjects(file: File): Promise<Record<string, unknown>[]> {
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.csv') || name.endsWith('.txt') || name.endsWith('.tsv')) {
+      const text = await file.text();
+      return this.parseDelimitedText(text);
+    }
+
+    // Intentar XLSX mediante import dinámico de sheetjs; si no está instalado, lanzar error amigable
+    if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
+      try {
+        const XLSX = await import(/* webpackIgnore: true */ 'xlsx');
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: null }) as any[];
+        return json;
+      } catch (e) {
+        throw new Error('Librería XLSX no disponible. Ejecuta `npm install xlsx` o sube CSV/TSV.');
+      }
+    }
+
+    throw new Error('Formato de archivo no soportado. Usa .csv, .tsv, .txt, .xls o .xlsx');
+  }
+
+  private parseDelimitedText(text: string): Record<string, unknown>[] {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length === 0) return [];
+
+    // Detectar separador: tab, comma, semicolon
+    const first = lines[0];
+    let sep = ',';
+    if (first.indexOf('\t') >= 0) sep = '\t';
+    else if (first.indexOf(';') >= 0) sep = ';';
+
+    const headers = lines[0].split(sep).map((h) => h.trim());
+    const rows: Record<string, unknown>[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(sep);
+      const row: Record<string, unknown> = {};
+      for (let j = 0; j < headers.length; j++) {
+        row[headers[j]] = cols[j] !== undefined ? cols[j].trim() : null;
+      }
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  private openPreview(rows: Record<string, unknown>[]) {
+    this.parsedRows = rows;
+    this.detectedHeaders = rows.length > 0 ? Object.keys(rows[0]) : [];
+    // inicializar mappings (por defecto mapear por nombre idéntico)
+    this.mappings = {};
+    for (const col of this.tableProps().columns) {
+      const field = col.field;
+      const match = this.detectedHeaders.find((h) => h.toLowerCase() === field.toLowerCase());
+      this.mappings[field] = match ?? null;
+    }
+    this.previewHeaders = this.detectedHeaders.slice();
+    this.runValidation();
+    this.previewVisible = true;
+  }
+
+  canConfirm(): boolean {
+    // verificar que todos los campos requeridos estén mapeados y que no haya errores críticos
+    const requiredMissing = this.tableProps()
+      .columns.filter((c: any) => c.required)
+      .some((c: any) => !this.mappings[c.field]);
+    if (requiredMissing) return false;
+    // No permitir confirmación si hay errores en las primeras filas
+    const hasErrors = Object.values(this.validationResults).some((errs) => errs && errs.length > 0);
+    return !hasErrors;
+  }
+
+  private runValidation() {
+    this.validationResults = {};
+    const schemaFromProps = this.tableProps().dbSchema ?? {};
+    const columns = this.tableProps().columns;
+    for (let i = 0; i < this.parsedRows.length; i++) {
+      const row = this.parsedRows[i];
+      const rowErrors: string[] = [];
+      for (const col of columns) {
+        const field = col.field;
+        const mapped = this.mappings[field];
+        if (!mapped) {
+          if (col.required) rowErrors.push(`${field} no mapeado`);
+          continue;
+        }
+        const val = row[mapped];
+        const expected = col.dataType ?? schemaFromProps[field] ?? this.inferTypeFromName(field);
+        const err = this.validateValue(val, expected, field);
+        if (err) rowErrors.push(err);
+      }
+      this.validationResults[i] = rowErrors;
+    }
+  }
+
+  private inferTypeFromName(field: string): 'string' | 'number' | 'boolean' | 'date' | 'any' {
+    if (field.endsWith('_id') || field === 'id' || field.endsWith('Id')) return 'number';
+    if (field.endsWith('_at') || field.includes('date') || field.includes('Date')) return 'date';
+    if (field.startsWith('is_') || field.startsWith('has_') || field.startsWith('is'))
+      return 'boolean';
+    return 'string';
+  }
+
+  private validateValue(val: unknown, expected: string, field: string): string | null {
+    if (val === null || val === undefined || String(val).trim() === '') {
+      return null; // aceptar vacío, si es requerido ya se chequea mapeo
+    }
+    const s = String(val).trim();
+    switch (expected) {
+      case 'number':
+        if (!/^-?\d+$/.test(s)) return `${field} debe ser entero`;
+        return null;
+      case 'date':
+        if (isNaN(Date.parse(s))) return `${field} fecha inválida`;
+        return null;
+      case 'boolean':
+        if (!/^(true|false|si|no|1|0|activo|inactivo)$/i.test(s))
+          return `${field} boolean inválido`;
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  confirmImport() {
+    // convertir y emitir los objetos mapeados aplicando tipos
+    const finalObjs: Record<string, unknown>[] = [];
+    for (const row of this.parsedRows) {
+      const obj: Record<string, unknown> = {};
+      for (const col of this.tableProps().columns) {
+        const field = col.field;
+        const mapped = this.mappings[field];
+        if (!mapped) continue;
+        const raw = row[mapped];
+        const expected =
+          col.dataType ?? this.tableProps().dbSchema?.[field] ?? this.inferTypeFromName(field);
+        obj[field] = this.castValue(raw, expected);
+      }
+      finalObjs.push(obj);
+    }
+    this.bulkUpload.emit(finalObjs);
+    this.previewVisible = false;
+    // limpiar estado
+    this.parsedRows = [];
+    this.detectedHeaders = [];
+    this.mappings = {};
+    this.previewHeaders = [];
+    this.validationResults = {};
+  }
+
+  private castValue(raw: unknown, expected: string) {
+    if (raw === null || raw === undefined) return null;
+    const s = String(raw).trim();
+    switch (expected) {
+      case 'number':
+        return parseInt(s, 10);
+      case 'date':
+        return new Date(s).toISOString();
+      case 'boolean':
+        return /^(true|si|1|activo)$/i.test(s);
+      default:
+        return s;
+    }
   }
 }

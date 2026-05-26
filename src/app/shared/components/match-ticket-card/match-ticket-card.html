@@ -1,0 +1,92 @@
+@let c = card();
+
+<article class="ticket" [class.ticket--live]="c.status === 'live'" [class.ticket--finished]="c.status === 'finished'">
+
+  <!-- ── Top bar ── -->
+  <div class="ticket__top">
+    <span class="ticket__badge" [class.ticket__badge--live]="c.status === 'live'" [class.ticket__badge--finished]="c.status === 'finished'">
+      @if (c.status === 'live') {
+        <span class="ticket__live-dot"></span>
+      }
+      {{ statusLabel() }}
+    </span>
+    <span class="ticket__date">
+      <span class="ticket__date-day">{{ dateLabel() }}</span>
+      <span class="ticket__date-time">{{ timeLabel() }}</span>
+    </span>
+  </div>
+
+  <!-- ── Teams + score ── -->
+  <div class="ticket__match">
+
+    <!-- Home team -->
+    <div class="ticket__team ticket__team--home">
+      <div class="ticket__logo">
+        @if (c.homeTeam.logoUrl) {
+          <img [src]="c.homeTeam.logoUrl" [alt]="c.homeTeam.name" loading="lazy" />
+        } @else {
+          <span class="ticket__logo-initials">{{ initials(c.homeTeam.name) }}</span>
+        }
+      </div>
+      <span class="ticket__team-name">{{ c.homeTeam.name }}</span>
+      <span class="ticket__team-label">Local</span>
+    </div>
+
+    <!-- Score / VS -->
+    <div class="ticket__score">
+      @if (hasScore()) {
+        <span class="ticket__score-value">{{ c.homeScore }}</span>
+        <span class="ticket__score-sep">:</span>
+        <span class="ticket__score-value">{{ c.awayScore }}</span>
+      } @else {
+        <span class="ticket__vs">VS</span>
+      }
+    </div>
+
+    <!-- Away team -->
+    <div class="ticket__team ticket__team--away">
+      <div class="ticket__logo">
+        @if (c.awayTeam.logoUrl) {
+          <img [src]="c.awayTeam.logoUrl" [alt]="c.awayTeam.name" loading="lazy" />
+        } @else {
+          <span class="ticket__logo-initials">{{ initials(c.awayTeam.name) }}</span>
+        }
+      </div>
+      <span class="ticket__team-name">{{ c.awayTeam.name }}</span>
+      <span class="ticket__team-label">Visitante</span>
+    </div>
+
+  </div>
+
+  <!-- ── Perforated tear line ── -->
+  <div class="ticket__tear"></div>
+
+  <!-- ── Footer ── -->
+  <div class="ticket__footer">
+    <div class="ticket__meta">
+      @if (c.stadiumName) {
+        <span class="ticket__meta-item">
+          <i class="pi pi-map-marker"></i>
+          {{ c.stadiumName }}
+        </span>
+      }
+      @if (c.leagueName) {
+        <span class="ticket__meta-item">
+          <i class="pi pi-trophy"></i>
+          {{ c.leagueName }}
+        </span>
+      }
+    </div>
+
+    <button
+      class="ticket__cta"
+      type="button"
+      [disabled]="!c.canPredict"
+      (click)="onPredict()"
+    >
+      <i class="pi pi-bolt"></i>
+      Predecir
+    </button>
+  </div>
+
+</article>

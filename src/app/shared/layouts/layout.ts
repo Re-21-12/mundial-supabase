@@ -1,4 +1,5 @@
-import { Component, signal, inject, OnInit, OnDestroy, effect } from '@angular/core';
+import { Component, signal, inject, OnInit, effect, DestroyRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -40,13 +41,14 @@ import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
 import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
 import { Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
-import { Subject, interval } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthFacade } from '../features/auth/auth.facade';
 import { NotificationInboxService } from '../components/notification-inbox/notification-inbox.service';
 import { NotificationInboxComponent } from '../components/notification-inbox/notification-inbox.component';
 import { GlobalSearchComponent } from '../components/global-search/global-search.component';
+import { SupabaseAuthService } from '../../core/services/supabase-auth-service';
 
 const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
 
@@ -59,6 +61,7 @@ interface SidebarMenuItem {
 @Component({
   selector: 'app-layout',
   imports: [
+    CommonModule,
     HlmSidebarImports,
     HlmButtonImports,
     NgIcon,
@@ -99,12 +102,14 @@ interface SidebarMenuItem {
     }),
   ],
 })
-export class LayoutComponent implements OnInit, OnDestroy {
+export class LayoutComponent implements OnInit {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private notificationService = inject(NotificationInboxService);
   private walletService = inject(WalletService);
-  private destroy$ = new Subject<void>();
+  private supabaseAuthService = inject(SupabaseAuthService);
+  private destroyRef = inject(DestroyRef);
+  private sessionCheckInProgress = false;
   readonly authFacade = inject(AuthFacade);
 
   protected readonly menuItems = signal<SidebarMenuItem[]>([]);
@@ -151,6 +156,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     return ['/', path];
   }
 
+  protected trackByPath(_: number, item: SidebarMenuItem): string {
+    return item.path;
+  }
+
   protected toggleNotifications(): void {
     this.showNotifications.update((v) => !v);
   }
@@ -162,12 +171,33 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.headerUnreadCount.set(count);
   }
 
+  private async verifyActiveSession(): Promise<void> {
+    if (this.sessionCheckInProgress) {
+      return;
+    }
+
+    this.sessionCheckInProgress = true;
+    try {
+      await this.supabaseAuthService.ensureActiveSession({
+        redirectOnFail: true,
+        notifyOnFail: true,
+      });
+    } finally {
+      this.sessionCheckInProgress = false;
+    }
+  }
+
   private canSeeRoute(route: Route, userPermissions: string[]): boolean {
     const routePath = route.path ?? '';
     const isPublicRoute = Boolean(route.data?.['publicRoute']) || PUBLIC_MENU_PATHS.has(routePath);
 
     if (isPublicRoute) {
       return true;
+    }
+
+    // Rutas marcadas adminOnly solo aparecen para administradores
+    if (route.data?.['adminOnly'] === true && this.authFacade.role() !== 'admin') {
+      return false;
     }
 
     const requiredPermission =
@@ -183,7 +213,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    await this.authFacade.getSession();
+    await this.verifyActiveSession();
+    if (!this.authFacade.isLoggedIn()) {
+      return;
+    }
 
     await this.refreshUnreadCount();
 
@@ -194,12 +227,19 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }
 
     interval(60000)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refreshUnreadCount());
+
+    // Keep session healthy in background; if refresh token is expired, user is logged out.
+    interval(300000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        void this.verifyActiveSession();
+      });
 
     this.router.events
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         filter((event) => event instanceof NavigationEnd),
       )
       .subscribe(() => {
@@ -217,10 +257,5 @@ export class LayoutComponent implements OnInit, OnDestroy {
           this.titleService.setTitle(pageTitle);
         }
       });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

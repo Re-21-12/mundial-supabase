@@ -1,11 +1,11 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StandingRow, StandingsService } from '../../../services/standings.service';
 import { SendInvitationComponent } from '../../invitation/send-invitation/send-invitation';
 
 @Component({
   selector: 'app-standings',
-  imports: [SendInvitationComponent],
+  imports: [SendInvitationComponent, RouterLink],
   templateUrl: './standings.html',
   styleUrl: './standings.css',
 })

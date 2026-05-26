@@ -21,75 +21,61 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_user_id  INT;
-  v_role_id  INT;
-  v_name     TEXT;
-  v_login    TEXT;
+  v_user_id    INT;
+  v_role_id    INT;
+  v_name       TEXT;
+  v_login      TEXT;
+  v_base_login TEXT;
+  v_counter    INT := 0;
 BEGIN
-  v_name  := COALESCE(
-               NULLIF(TRIM(NEW.raw_user_meta_data->>'name'), ''),
-               split_part(NEW.email, '@', 1)
-             );
-  v_login := split_part(NEW.email, '@', 1);
+  v_name       := COALESCE(
+                    NULLIF(TRIM(NEW.raw_user_meta_data->>'name'), ''),
+                    split_part(NEW.email, '@', 1)
+                  );
+  v_base_login := split_part(NEW.email, '@', 1);
+  v_login      := v_base_login;
+
+  -- ── Si el email ya existe en public.USER (seed / intento previo) ────────────
+  -- Solo vincula el uuid de auth y sale; la wallet ya existe.
+  SELECT user_id INTO v_user_id FROM public."USER" WHERE email = NEW.email LIMIT 1;
+
+  IF v_user_id IS NOT NULL THEN
+    UPDATE public."USER"
+    SET uuid       = NEW.id,
+        updated_at = NOW()
+    WHERE user_id  = v_user_id;
+
+    INSERT INTO public."WALLET" (user_id, balance, status, created_by, created_at)
+    VALUES (v_user_id, 0, 'active', v_user_id, NOW())
+    ON CONFLICT (user_id) DO NOTHING;
+
+    RETURN NEW;
+  END IF;
+
+  -- ── Usuario nuevo: garantizar login único ────────────────────────────────────
+  WHILE EXISTS (SELECT 1 FROM public."USER" WHERE login = v_login) LOOP
+    v_counter := v_counter + 1;
+    v_login   := v_base_login || '_' || v_counter;
+  END LOOP;
 
   INSERT INTO public."USER" (
-    uuid,
-    name,
-    login,
-    email,
-    password_hash,
-    registration_date,
-    status,
-    created_at
+    uuid, name, login, email, password_hash, registration_date, status, created_at
   )
   VALUES (
-    NEW.id,
-    v_name,
-    v_login,
-    NEW.email,
-    'supabase_managed',
-    NOW(),
-    'active',
-    NOW()
+    NEW.id, v_name, v_login, NEW.email, 'supabase_managed', NOW(), 'active', NOW()
   )
   RETURNING user_id INTO v_user_id;
 
-  -- Assign default role; silently skips when role does not exist
-  SELECT role_id INTO v_role_id
-  FROM public."ROLE"
-  WHERE name = 'user'
-  LIMIT 1;
-
+  -- Rol por defecto (silencioso si no existe)
+  SELECT role_id INTO v_role_id FROM public."ROLE" WHERE name = 'user' LIMIT 1;
   IF v_role_id IS NOT NULL THEN
-    INSERT INTO public."USER_ROLE" (
-      user_id,
-      role_id,
-      created_by,
-      created_at
-    )
-    VALUES (
-      v_user_id,
-      v_role_id,
-      v_user_id,
-      NOW()
-    );
+    INSERT INTO public."USER_ROLE" (user_id, role_id, created_by, created_at)
+    VALUES (v_user_id, v_role_id, v_user_id, NOW());
   END IF;
 
-  -- Bootstrap wallet at zero balance
-  INSERT INTO public."WALLET" (
-    user_id,
-    balance,
-    status,
-    created_by,
-    created_at
-  )
-  VALUES (
-    v_user_id,
-    0,
-    'active',
-    v_user_id,
-    NOW()
-  );
+  -- Wallet inicial en cero
+  INSERT INTO public."WALLET" (user_id, balance, status, created_by, created_at)
+  VALUES (v_user_id, 0, 'active', v_user_id, NOW());
 
   RETURN NEW;
 END;

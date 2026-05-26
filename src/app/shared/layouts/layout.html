@@ -10,28 +10,26 @@
       <div hlmSidebarGroup>
         <div hlmSidebarGroupLabel>Menú</div>
         <ul hlmSidebarMenu>
-          @for (item of menuItems(); track item.path) {
-            <li hlmSidebarMenuItem>
-              <a
-                hlmSidebarMenuButton
-                [routerLink]="getRouteLink(item.path)"
-                routerLinkActive="active"
-                #rla="routerLinkActive"
-                [attr.data-active]="rla.isActive"
-                [tooltip]="item.title"
-              >
-                <ng-icon hlm [name]="item.icon" />
-                <span>{{ item.title }}</span>
-              </a>
-            </li>
-          }
+          <li *ngFor="let item of menuItems(); trackBy: trackByPath" hlmSidebarMenuItem>
+            <a
+              hlmSidebarMenuButton
+              [routerLink]="getRouteLink(item.path)"
+              routerLinkActive="active"
+              #rla="routerLinkActive"
+              [attr.data-active]="rla.isActive"
+              [tooltip]="item.title"
+            >
+              <ng-icon hlm [name]="item.icon" />
+              <span>{{ item.title }}</span>
+            </a>
+          </li>
         </ul>
       </div>
     </sidebar>
   </hlm-sidebar>
   <!-- End Side bar -->
  <!-- Wfull y display flex  -->
-  <main hlmSidebarInset class="flex flex-col min-h-screen">
+  <main hlmSidebarInset class="flex flex-col min-h-screen min-w-0 overflow-x-hidden">
     <header class="flex h-12 items-center justify-between px-4 border-b">
       <div class="flex items-center gap-2">
         <!-- Toggle -->
@@ -118,7 +116,7 @@
       </div>
     </header>
 
-    <div class="flex-1 overflow-auto p-2 sm:p-4">
+    <div class="flex-1 min-w-0 overflow-auto p-2 sm:p-4">
       <router-outlet />
     </div>
   </main>

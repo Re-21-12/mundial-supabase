@@ -11,6 +11,9 @@
 npm-debug.log
 yarn-error.log
 
+#supabase
+db/script/v3.29-match-reminder-cron.sql
+
 # IDEs and editors
 .idea/
 .project

@@ -17,11 +17,17 @@ export interface TableTemplateModel {
   routeBase?: string;
   rowIdField?: string;
   rowActions?: RowAction[];
+  /** Optional runtime schema: field -> data type ('string'|'number'|'boolean'|'date'|'any') */
+  dbSchema?: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'any'>;
 }
 export interface TableColumnTemplateModel {
   field: string;
   header: string;
   type?: 'text' | 'image' | 'badge';
+  /** Optional: expected data type for this column */
+  dataType?: 'string' | 'number' | 'boolean' | 'date' | 'any';
+  /** Optional: whether this column is required during bulk import */
+  required?: boolean;
 }
 interface ExportColumn {
   title: string;

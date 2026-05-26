@@ -22,8 +22,8 @@
 }
 
 .avatar-circle {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
   border-radius: 999px;
   background: var(--primary);
   color: var(--primary-foreground);
@@ -212,8 +212,8 @@
   }
 
   .avatar-circle {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: var(--avatar-size-mobile);
+    height: var(--avatar-size-mobile);
     font-size: 0.95rem;
   }
 

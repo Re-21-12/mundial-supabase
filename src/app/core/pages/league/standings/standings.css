@@ -97,6 +97,23 @@
 
 .medal { font-size: 1.1rem; }
 
+.chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--ring);
+  background: var(--accent);
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.chat-btn:hover { background: var(--sidebar-accent); }
+
 .invite-btn {
   margin-left: auto;
   display: flex;

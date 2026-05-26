@@ -453,6 +453,7 @@
               [options]="resolvedOptions()"
               optionLabel="value"
               optionValue="key"
+              (onChange)="logSelectChange($event.value)"
               [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
 
             />
@@ -463,6 +464,7 @@
             [options]="resolvedOptions()"
             optionLabel="value"
             optionValue="key"
+            (onChange)="logSelectChange($event.value)"
             [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
 
           />
@@ -538,6 +540,7 @@
               [options]="resolvedOptions()"
               optionLabel="value"
               optionValue="key"
+              (onChange)="logMultiSelectChange($event.value)"
               [placeholder]="fieldProps().placeholder || 'Selecciona opciones'"
               display="chip"
               class="w-full"
@@ -550,6 +553,7 @@
             [options]="resolvedOptions()"
             optionLabel="value"
             optionValue="key"
+            (onChange)="logMultiSelectChange($event.value)"
             [placeholder]="fieldProps().placeholder || 'Selecciona opciones'"
             display="chip"
             class="w-full"

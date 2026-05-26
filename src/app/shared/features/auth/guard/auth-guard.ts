@@ -9,15 +9,12 @@ export const authGuard: CanActivateFn = async (route, state) => {
   inject(AuthFacade);
   const router = inject(Router);
 
-  // Ensure initial auth resolved
-  try {
-    await supabaseAuthService.waitForAuthReady(3000);
-  } catch (err) {
-    console.error('[AuthGuard] waitForAuthReady error', err);
-  }
+  const session = await supabaseAuthService.ensureActiveSession({
+    redirectOnFail: false,
+    notifyOnFail: false,
+  });
+  const user = session?.user ?? null;
 
-  const { data } = await supabaseAuthService.getUser();
-  const user = data?.user;
   if (!user) {
     return router.createUrlTree(['/login']);
   }

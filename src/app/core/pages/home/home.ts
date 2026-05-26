@@ -87,6 +87,10 @@ export class Home implements OnInit, OnDestroy {
       : this.userLeagues().filter((l) => l.league_type === filter);
   });
 
+  readonly allowedLeagueIds = computed<Set<number>>(
+    () => new Set(this.userLeagues().map((l) => l.league_id)),
+  );
+
   // ── League detail (standings) ─────────────────────────────────────────────────
   protected readonly expandedLeagueId = signal<number | null>(null);
   protected readonly loadingDetailId = signal<number | null>(null);
@@ -100,7 +104,9 @@ export class Home implements OnInit, OnDestroy {
   // ── Match data ────────────────────────────────────────────────────────────────
   readonly carouselMatches = computed<MatchCard[]>(() =>
     this.buildMatchCards(
-      this.realtimeService.matches(),
+      this.realtimeService
+        .matches()
+        .filter((m) => m.league_id != null && this.allowedLeagueIds().has(m.league_id)),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
     ),

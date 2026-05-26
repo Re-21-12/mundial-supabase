@@ -27,4 +27,9 @@ export const LEAGUE_ROUTES: Routes = [
     title: 'Calendario',
     loadComponent: () => import('./schedule/schedule').then((m) => m.SchedulePage),
   },
+  {
+    path: ':id/chat',
+    title: 'Chat de liga',
+    loadComponent: () => import('./chat/league-chat').then((m) => m.LeagueChatComponent),
+  },
 ];

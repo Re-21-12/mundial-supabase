@@ -7,7 +7,8 @@ import { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilderService } from './services/form-builder.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { HttpLoadingService } from '../../../core/services/http-loading-service';
-import { CatalogOptionsService } from './services/catalog-options.service';
+import { CatalogOption, CatalogOptionsService } from './services/catalog-options.service';
+import { TypeFields } from './enums/type-fields';
 @Component({
   selector: 'app-dynamic-form',
   imports: [DynamicField, Button, TooltipModule],
@@ -30,13 +31,23 @@ export class DynamicForm {
   );
 
   payLoad = '';
+  private hydratedInitialDataSignature: string | null = null;
 
   constructor() {
     // Modo edición: parchea los valores del form cuando llega initialData
     effect(() => {
       const data = this.initialData();
       if (data) {
+        const signature = JSON.stringify(data);
+        if (signature === this.hydratedInitialDataSignature) {
+          console.debug('[DynamicForm] initialData skipped (same signature)', data);
+          return;
+        }
+
+        this.hydratedInitialDataSignature = signature;
+        console.debug('[DynamicForm] initialData received', data);
         this.form().patchValue(data);
+        this.normalizeSelectableFields();
       }
     });
 
@@ -54,7 +65,12 @@ export class DynamicForm {
 
       fields.forEach((field) => {
         if (field.optionsSource) {
+          console.debug('[DynamicForm] loading options for field', field.key, field.optionsSource);
           void this.catalogOptionsService.loadOptions(field.key, field.optionsSource);
+        }
+
+        if (this.isSelectableField(field)) {
+          this.syncSelectableFieldValue(field);
         }
       });
     });
@@ -108,5 +124,81 @@ export class DynamicForm {
 
   isRepeatableField(field: FieldBase<string>): boolean {
     return field.state.repeatible.repeat === true;
+  }
+
+  private normalizeSelectableFields(): void {
+    const fields = this.fields() ?? [];
+
+    fields.forEach((field) => this.syncSelectableFieldValue(field));
+  }
+
+  private syncSelectableFieldValue(field: FieldBase<string>): void {
+    if (!this.isSelectableField(field)) {
+      return;
+    }
+
+    const control = this.form().get(field.key);
+    if (!control) {
+      return;
+    }
+
+    const options = this.getSelectableOptions(field);
+    if (options.length === 0) {
+      console.debug('[DynamicForm] selectable field has no options yet', field.key, control.value);
+      return;
+    }
+
+    const currentValue = control.value;
+    const normalizedValue = this.normalizeSelectableValue(currentValue, options);
+
+    console.debug('[DynamicForm] syncing selectable field', {
+      fieldKey: field.key,
+      currentValue,
+      normalizedValue,
+      options,
+    });
+
+    if (!this.areSelectableValuesEqual(currentValue, normalizedValue)) {
+      control.setValue(normalizedValue, { emitEvent: false });
+    }
+  }
+
+  private getSelectableOptions(field: FieldBase<string>): CatalogOption[] {
+    if (field.optionsSource) {
+      return this.catalogOptionsService.getOptions(field.key);
+    }
+
+    return field.options || [];
+  }
+
+  private isSelectableField(field: FieldBase<string>): boolean {
+    return [TypeFields.SELECT, TypeFields.MULTISELECT, TypeFields.RADIO].includes(
+      field.type as TypeFields,
+    );
+  }
+
+  private normalizeSelectableValue(value: unknown, options: CatalogOption[]): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.normalizeSelectableValue(item, options));
+    }
+
+    const matchedOption = options.find((option) => String(option.key) === String(value));
+    return matchedOption ? matchedOption.key : value;
+  }
+
+  private areSelectableValuesEqual(left: unknown, right: unknown): boolean {
+    if (Array.isArray(left) && Array.isArray(right)) {
+      if (left.length !== right.length) {
+        return false;
+      }
+
+      return left.every((item, index) => String(item) === String(right[index]));
+    }
+
+    return String(left) === String(right);
   }
 }

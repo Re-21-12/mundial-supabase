@@ -622,6 +622,54 @@ export type Database = {
           },
         ];
       };
+      LEAGUE_MESSAGE: {
+        Row: {
+          message_id: number;
+          league_id: number;
+          user_id: number;
+          content: string;
+          created_at: string;
+          is_deleted: boolean;
+          deleted_at: string | null;
+          deleted_by: number | null;
+        };
+        Insert: {
+          message_id?: number;
+          league_id: number;
+          user_id: number;
+          content: string;
+          created_at?: string;
+          is_deleted?: boolean;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+        };
+        Update: {
+          message_id?: number;
+          league_id?: number;
+          user_id?: number;
+          content?: string;
+          created_at?: string;
+          is_deleted?: boolean;
+          deleted_at?: string | null;
+          deleted_by?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'LEAGUE_MESSAGE_league_id_fkey';
+            columns: ['league_id'];
+            isOneToOne: false;
+            referencedRelation: 'LEAGUE';
+            referencedColumns: ['league_id'];
+          },
+          {
+            foreignKeyName: 'LEAGUE_MESSAGE_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'USER';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
       LEAGUE_REWARD: {
         Row: {
           created_at: string;

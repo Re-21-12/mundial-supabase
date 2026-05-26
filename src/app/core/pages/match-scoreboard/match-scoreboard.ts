@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../services/supabase-service';
 import { DynamicService } from '../../services/dynamic-service';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import type { Database } from '../../../types/database.types';
 
 type MatchRow = Database['public']['Tables']['MATCH']['Row'];
@@ -32,6 +33,7 @@ interface PeriodEdit {
 export class MatchScoreboardPage implements OnInit, OnDestroy {
   private readonly supabase = inject(SupabaseService);
   private readonly dynamicService = inject(DynamicService);
+  private readonly authFacade = inject(AuthFacade);
   private channel: RealtimeChannel | null = null;
 
   // ── Filter state ──────────────────────────────────────────────────────────────
@@ -61,9 +63,31 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
   // ── Load helpers ──────────────────────────────────────────────────────────────
   private async loadLeagues(): Promise<void> {
+    // Only load leagues the current user has joined
+    await this.authFacade.waitForAuthReady();
+    const internalUserId = this.authFacade.getInternalUserId();
+    if (!internalUserId) {
+      this.leagues.set([]);
+      return;
+    }
+
+    // Get league ids from USER_LEAGUE
+    const { data: ulData } = await this.supabase.client
+      .from('USER_LEAGUE')
+      .select('league_id')
+      .eq('user_id', Number(internalUserId))
+      .eq('is_deleted', false);
+
+    const leagueIds = (ulData ?? []).map((r: any) => r.league_id).filter(Boolean);
+    if (!leagueIds || leagueIds.length === 0) {
+      this.leagues.set([]);
+      return;
+    }
+
     const { data } = await this.supabase.client
       .from('LEAGUE')
       .select('*')
+      .in('league_id', leagueIds)
       .eq('is_deleted', false)
       .order('name');
     if (data) this.leagues.set(data as LeagueRow[]);
@@ -85,7 +109,16 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     this.edits.set(new Map());
     this.channel?.unsubscribe();
 
-    if (!leagueId) { this.matches.set([]); return; }
+    if (!leagueId) {
+      this.matches.set([]);
+      return;
+    }
+
+    // Prevent loading matches for leagues the user hasn't joined
+    if (!this.leagues().some((l) => l.league_id === leagueId)) {
+      this.matches.set([]);
+      return;
+    }
 
     this.loadingMatches.set(true);
     const { data } = await this.supabase.client
@@ -125,37 +158,45 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
       next.set(matchId, (data ?? []) as PeriodRow[]);
       return next;
     });
-    this.loadingPeriods.update((s) => { const n = new Set(s); n.delete(matchId); return n; });
+    this.loadingPeriods.update((s) => {
+      const n = new Set(s);
+      n.delete(matchId);
+      return n;
+    });
   }
 
   // ── Realtime ──────────────────────────────────────────────────────────────────
   private subscribeRealtime(leagueId: number): void {
     this.channel = this.supabase.client
       .channel(`scoreboard-league-${leagueId}`)
-      .on('postgres_changes',
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'MATCH', filter: `league_id=eq.${leagueId}` },
-        (payload) => this.handleMatchChange(payload))
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'MATCH_PERIOD' },
-        (payload) => this.handlePeriodChange(payload))
+        (payload) => this.handleMatchChange(payload),
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'MATCH_PERIOD' }, (payload) =>
+        this.handlePeriodChange(payload),
+      )
       .subscribe();
   }
 
   private handleMatchChange(payload: { eventType: string; new: unknown; old: unknown }): void {
     const incoming = payload.new as MatchRow;
-    const removed  = payload.old as Partial<MatchRow>;
+    const removed = payload.old as Partial<MatchRow>;
     this.matches.update((list) => {
       if (payload.eventType === 'INSERT') return [...list, incoming];
-      if (payload.eventType === 'UPDATE') return list.map((m) => m.match_id === incoming.match_id ? incoming : m);
-      if (payload.eventType === 'DELETE') return list.filter((m) => m.match_id !== removed.match_id);
+      if (payload.eventType === 'UPDATE')
+        return list.map((m) => (m.match_id === incoming.match_id ? incoming : m));
+      if (payload.eventType === 'DELETE')
+        return list.filter((m) => m.match_id !== removed.match_id);
       return list;
     });
   }
 
   private handlePeriodChange(payload: { eventType: string; new: unknown; old: unknown }): void {
     const incoming = payload.new as PeriodRow;
-    const removed  = payload.old as Partial<PeriodRow>;
-    const matchId  = incoming?.match_id ?? removed?.match_id;
+    const removed = payload.old as Partial<PeriodRow>;
+    const matchId = incoming?.match_id ?? removed?.match_id;
     if (!matchId) return;
 
     this.periodsMap.update((m) => {
@@ -163,8 +204,10 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
       const next = new Map(m);
       let list = [...(next.get(matchId) ?? [])];
       if (payload.eventType === 'INSERT') list = [...list, incoming];
-      if (payload.eventType === 'UPDATE') list = list.map((p) => p.period_id === incoming.period_id ? incoming : p);
-      if (payload.eventType === 'DELETE') list = list.filter((p) => p.period_id !== removed.period_id);
+      if (payload.eventType === 'UPDATE')
+        list = list.map((p) => (p.period_id === incoming.period_id ? incoming : p));
+      if (payload.eventType === 'DELETE')
+        list = list.filter((p) => p.period_id !== removed.period_id);
       next.set(matchId, list);
       return next;
     });
@@ -196,13 +239,24 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     const defaultCatalog = this.catalogs()[0]?.catalog_id ?? 1;
     this.edits.update((m) => {
       const next = new Map(m);
-      next.set(key, { periodId: null, matchId, catalogId: defaultCatalog, home: 0, away: 0, saving: false });
+      next.set(key, {
+        periodId: null,
+        matchId,
+        catalogId: defaultCatalog,
+        home: 0,
+        away: 0,
+        saving: false,
+      });
       return next;
     });
   }
 
   cancelEdit(key: string): void {
-    this.edits.update((m) => { const n = new Map(m); n.delete(key); return n; });
+    this.edits.update((m) => {
+      const n = new Map(m);
+      n.delete(key);
+      return n;
+    });
   }
 
   getEdit(matchId: number, periodId: number | null): PeriodEdit | undefined {
@@ -217,7 +271,11 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     const edit = this.edits().get(key);
     if (!edit) return;
 
-    this.edits.update((m) => { const n = new Map(m); n.set(key, { ...edit, saving: true }); return n; });
+    this.edits.update((m) => {
+      const n = new Map(m);
+      n.set(key, { ...edit, saving: true });
+      return n;
+    });
 
     const payload = {
       match_id: edit.matchId,
@@ -262,6 +320,6 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
   getCatalogName(catalogId: number): string {
     const c = this.catalogs().find((cat) => cat.catalog_id === catalogId);
-    return c ? (c.description || c.value) : `Período ${catalogId}`;
+    return c ? c.description || c.value : `Período ${catalogId}`;
   }
 }

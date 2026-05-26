@@ -18,10 +18,10 @@ SELECT cron.schedule(
   $cron$
   SELECT
     net.http_post(
-      url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/match-reminder',
+      url     := 'https://mwflkwazlhvrtckbbkpi.supabase.co/functions/v1/match-reminder',
       headers := jsonb_build_object(
         'Content-Type',  'application/json',
-        'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
+        'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Zmxrd2F6bGh2cnRja2Jia3BpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDI5NTMzMSwiZXhwIjoyMDg5ODcxMzMxfQ.LGRu5grxW1mh_AhnMQod1YZNlTOPaX_cEkSLksRJm7w'
       ),
       body    := '{}'::jsonb
     );

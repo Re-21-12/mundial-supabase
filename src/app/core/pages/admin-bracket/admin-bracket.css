@@ -101,11 +101,11 @@
 .col-pos { width: 3rem; text-align: center; }
 .col-vs { width: 3rem; text-align: center; }
 .col-date {
-  width: 9rem;
+  width: var(--table-col-min-large);
   white-space: nowrap;
   color: var(--muted-foreground);
 }
-.col-action { width: 3.5rem; text-align: right; }
+.col-action { width: var(--table-col-min-small); text-align: right; }
 .col-team { min-width: 220px; }
 
 .bracket-pos {

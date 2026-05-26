@@ -1,3 +1,48 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.dynamic-table-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+:host ::ng-deep .dynamic-table-shell .p-datatable {
+  max-width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .dynamic-table-shell .p-datatable-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .dynamic-table-shell .p-datatable-table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.dynamic-table-shell .table-caption-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.dynamic-table-shell .actions-cell {
+  min-width: var(--table-col-min-large);
+  flex-wrap: wrap;
+}
+
 .dt-img-thumb {
   width: 36px;
   height: 36px;
@@ -20,14 +65,31 @@
 }
 
 .p-tag {
-	min-width: 3.5rem;
+  min-width: var(--table-col-min-small);
 	justify-content: center;
 }
 
 @media (max-width: 640px) {
+  .dynamic-table-shell {
+    border-radius: 0.5rem;
+  }
+
+  .dynamic-table-shell .table-caption-actions {
+    justify-content: stretch;
+  }
+
+  .dynamic-table-shell .table-caption-actions > * {
+    width: 100%;
+  }
+
   .p-datatable .p-datatable-thead > tr > th,
   .p-datatable .p-datatable-tbody > tr > td {
     padding: 0.5rem 0.625rem;
     font-size: 0.8125rem;
+  }
+
+  .dynamic-table-shell .actions-cell {
+    gap: 0.25rem;
+    min-width: var(--table-col-min-medium);
   }
 }

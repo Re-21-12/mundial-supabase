@@ -3,6 +3,7 @@ import { SupabaseService } from './supabase-service';
 import { DynamicQuery, DynamicQueryFilter } from '../interfaces/dynamic-query-interface';
 import { PostgrestError } from '@supabase/supabase-js';
 import { AuthFacade } from '../../shared/features/auth/auth.facade';
+import { NotificationService } from '../../shared/services/notification-service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ export class DynamicService {
   items: any[] = [];
   supabaseService = inject(SupabaseService);
   private injector = inject(Injector);
+  private readonly notifier = inject(NotificationService);
 
   async fetchData<T>(
     query: DynamicQuery,
@@ -68,9 +70,11 @@ export class DynamicService {
 
     if (error) {
       console.error('Error inserting data:', error);
+      this.notifier.notify('error', 'No se pudo guardar', this.getErrorDetail(error));
       return error;
     } else {
       console.log('Data inserted successfully:', insertedRecord);
+      this.notifier.notify('success', 'Guardado', 'El registro se guardó correctamente.');
     }
 
     return insertedRecord as T;
@@ -90,9 +94,11 @@ export class DynamicService {
 
     if (error) {
       console.error('Error updating data:', error);
+      this.notifier.notify('error', 'No se pudo actualizar', this.getErrorDetail(error));
       return error;
     } else {
       console.log('Data updated successfully:', updatedRecord);
+      this.notifier.notify('success', 'Actualizado', 'El registro se actualizó correctamente.');
     }
 
     return updatedRecord as T;
@@ -119,9 +125,11 @@ export class DynamicService {
 
     if (error) {
       console.error('Error deleting data:', error);
+      this.notifier.notify('error', 'No se pudo eliminar', this.getErrorDetail(error));
       return error;
     } else {
       console.log('Data deleted successfully:', deletedRecord);
+      this.notifier.notify('success', 'Eliminado', 'El registro se eliminó correctamente.');
     }
 
     return deletedRecord as T;
@@ -144,4 +152,8 @@ export class DynamicService {
   /*
 npx supabase gen types typescript --project-id mwflkwazlhvrtckbbkpi > src/app/types/database.types.ts
 */
+
+  private getErrorDetail(error: PostgrestError): string {
+    return error.message || 'Ocurrió un error inesperado.';
+  }
 }

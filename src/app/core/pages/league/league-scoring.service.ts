@@ -118,7 +118,7 @@ export class LeagueScoringService {
       .eq('league_id', leagueId)
       .single();
 
-    if (!league || (league as any).status === 'closed') return false;
+    if (!league || (league as any).status === 'finished') return false;
 
     const { data: matches, error } = await this.db.client
       .from('MATCH')
@@ -136,7 +136,7 @@ export class LeagueScoringService {
 
     await this.db.client
       .from('LEAGUE')
-      .update({ status: 'closed', updated_at: now, updated_by: operatorId })
+      .update({ status: 'finished', updated_at: now, updated_by: operatorId })
       .eq('league_id', leagueId);
 
     // Distribuir premios de liga (aplica sólo si es liga de apuesta)
@@ -261,7 +261,12 @@ export class LeagueScoringService {
   // Helpers privados
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private calcPoints(predHome: number, predAway: number, actualHome: number, actualAway: number): number {
+  private calcPoints(
+    predHome: number,
+    predAway: number,
+    actualHome: number,
+    actualAway: number,
+  ): number {
     // Marcador exacto → 3 puntos
     if (predHome === actualHome && predAway === actualAway) return 3;
     // Resultado correcto (ganador o empate) → 1 punto
@@ -299,10 +304,14 @@ export class LeagueScoringService {
       g1.forEach((s) => allocs.push({ ...s, amount: firstShare, rank: '1er lugar (empate)' }));
 
       // Último sólo si no está en el grupo 1
-      const lastNotInFirst = gLast.filter((l) => !g1.some((f) => f.userLeagueId === l.userLeagueId));
+      const lastNotInFirst = gLast.filter(
+        (l) => !g1.some((f) => f.userLeagueId === l.userLeagueId),
+      );
       if (lastNotInFirst.length > 0) {
         const lastShare = round2((total * 0.1) / lastNotInFirst.length);
-        lastNotInFirst.forEach((s) => allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }));
+        lastNotInFirst.forEach((s) =>
+          allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }),
+        );
       }
       return allocs;
     }
@@ -321,7 +330,9 @@ export class LeagueScoringService {
       const secondShare = round2((total * 0.35) / g2.length);
       g2.forEach((s) => allocs.push({ ...s, amount: secondShare, rank: '2do lugar (empate)' }));
 
-      const lastNotIn2nd = gLast.filter((l) => !g2.some((s2) => s2.userLeagueId === l.userLeagueId));
+      const lastNotIn2nd = gLast.filter(
+        (l) => !g2.some((s2) => s2.userLeagueId === l.userLeagueId),
+      );
       if (lastNotIn2nd.length > 0) {
         const lastShare = round2((total * 0.1) / lastNotIn2nd.length);
         lastNotIn2nd.forEach((s) => allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }));
@@ -346,7 +357,9 @@ export class LeagueScoringService {
       const thirdShare = round2((total * 0.1) / g3.length);
       g3.forEach((s) => allocs.push({ ...s, amount: thirdShare, rank: '3er lugar (empate)' }));
 
-      const lastNotIn3rd = gLast.filter((l) => !g3.some((s3) => s3.userLeagueId === l.userLeagueId));
+      const lastNotIn3rd = gLast.filter(
+        (l) => !g3.some((s3) => s3.userLeagueId === l.userLeagueId),
+      );
       if (lastNotIn3rd.length > 0) {
         const lastShare = round2((total * 0.1) / lastNotIn3rd.length);
         lastNotIn3rd.forEach((s) => allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }));

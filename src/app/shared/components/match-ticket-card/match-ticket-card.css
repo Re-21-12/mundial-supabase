@@ -1,0 +1,279 @@
+/* ─── Base ticket ──────────────────────────────────────────────── */
+.ticket {
+  --ticket-fg: #fff;
+  --ticket-fg-muted: rgba(255, 255, 255, 0.5);
+  --ticket-border: rgba(255, 255, 255, 0.09);
+  --ticket-bg-circle: oklch(from var(--background) calc(l - 0.03) c h);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Dark gradient — intencional: el ticket es siempre oscuro para
+     resaltar visualmente sobre el fondo del tema (light o dark) */
+  background: linear-gradient(145deg,
+    oklch(0.22 0.055 265) 0%,
+    oklch(0.16 0.04 262) 60%,
+    oklch(0.12 0.035 260) 100%);
+  border-radius: 20px;
+  overflow: visible;
+  color: var(--ticket-fg);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+.ticket:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+/* Live glow */
+.ticket--live {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 0 0 1.5px rgba(239, 68, 68, 0.5),
+    0 0 24px rgba(239, 68, 68, 0.18);
+}
+.ticket--live:hover {
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1.5px rgba(239, 68, 68, 0.7),
+    0 0 36px rgba(239, 68, 68, 0.28);
+}
+
+/* ─── Top bar ──────────────────────────────────────────────────── */
+.ticket__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+}
+
+/* Status badge */
+.ticket__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #a5b4fc;
+  border: 1px solid rgba(165, 180, 252, 0.25);
+}
+.ticket__badge--live {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.ticket__badge--finished {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Live pulsing dot */
+.ticket__live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: livePulse 1.4s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* Date + time */
+.ticket__date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.ticket__date-day {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+.ticket__date-time {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* ─── Match section ────────────────────────────────────────────── */
+.ticket__match {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 16px 20px 20px;
+  gap: 12px;
+}
+
+/* Team block */
+.ticket__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Team logo circle */
+.ticket__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ticket__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ticket__logo-initials {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #c7d2fe;
+  letter-spacing: 0.04em;
+}
+
+.ticket__team-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 90px;
+}
+.ticket__team-label {
+  font-size: 0.63rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Score / VS */
+.ticket__score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ticket__score-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  min-width: 24px;
+  text-align: center;
+}
+.ticket__score-sep {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #475569;
+  line-height: 1;
+}
+.ticket__vs {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Perforated tear line ─────────────────────────────────────── */
+.ticket__tear {
+  position: relative;
+  margin: 0 -1px;
+  height: 0;
+  border-top: 2px dashed rgba(255, 255, 255, 0.1);
+}
+/* Semicircle cutouts */
+.ticket__tear::before,
+.ticket__tear::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--background, #09090b);
+}
+.ticket__tear::before { left: -10px; }
+.ticket__tear::after  { right: -10px; }
+
+/* ─── Footer ───────────────────────────────────────────────────── */
+.ticket__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 16px;
+  gap: 12px;
+}
+
+.ticket__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.ticket__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ticket__meta-item .pi {
+  font-size: 0.7rem;
+  color: #4f6272;
+  flex-shrink: 0;
+}
+
+/* CTA button */
+.ticket__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.ticket__cta:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: scale(1.04);
+}
+.ticket__cta:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+.ticket__cta .pi {
+  font-size: 0.78rem;
+}

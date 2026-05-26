@@ -2,6 +2,10 @@
   <header class="standings-header">
     <h2 class="standings-title">Tabla de Posiciones</h2>
     <span class="live-badge" aria-label="Actualización en tiempo real">● Live</span>
+    <a class="chat-btn" [routerLink]="['/league', leagueId, 'chat']" aria-label="Ir al chat de la liga">
+      <i class="pi pi-comments"></i>
+      Chat
+    </a>
     <button
       class="invite-btn"
       type="button"

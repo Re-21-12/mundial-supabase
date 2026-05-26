@@ -30,8 +30,8 @@ export class JoinLeagueService {
 
     const league = data as any;
 
-    if (league.status === 'closed') {
-      return { error: 'Esta liga ya está cerrada y no acepta nuevos participantes.' };
+    if (league.status === 'finished' || league.status === 'inactive') {
+      return { error: 'Esta liga ya no acepta nuevos participantes.' };
     }
 
     return {

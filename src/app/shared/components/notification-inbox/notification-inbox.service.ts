@@ -4,6 +4,7 @@ import { SupabaseService } from '../../../core/services/supabase-service';
 export type NotificationType =
   | 'match_reminder'
   | 'league_update'
+  | 'league_finished'
   | 'prediction_locked'
   | 'result_posted'
   | 'invitation_received'

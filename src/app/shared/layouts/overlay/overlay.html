@@ -1,11 +1,23 @@
-<div class="w-full flex flex-col">
+<div class="w-full min-w-0 flex flex-col overflow-x-hidden">
   <p-button (click)="visible.set(true)" icon="pi pi-plus" class="self-end"/>
 
-  <p-drawer header="{{ 'Add ' + tableProps().header }}" [(visible)]="visible" position="right" styleClass="!w-full md:!w-80 lg:!w-[40rem]">
+  <p-dialog
+    [header]="dialogHeader"
+    [(visible)]="visible"
+    [modal]="true"
+    [dismissableMask]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style.width]="UI.DIALOG_WIDTH"
+    [breakpoints]="{ '960px': '92vw', '640px': '96vw' }"
+    (onHide)="onDialogHide()"
+  >
     <ng-content #form>
 
     </ng-content>
-  </p-drawer>
+  </p-dialog>
 
-  <app-selected-display (delete)="deletedFn($event)" (pageChange)="onPageChange($event)"></app-selected-display>
+  <div class="w-full min-w-0 overflow-x-hidden">
+    <app-selected-display (delete)="deletedFn($event)" (pageChange)="onPageChange($event)"></app-selected-display>
+  </div>
 </div>

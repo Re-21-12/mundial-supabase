@@ -173,6 +173,7 @@ export const routes: Routes = [
           description: 'List of teams',
           icon: 'lucideUsers',
           requiredPermission: PERMISSIONS.TEAM.READ,
+          adminOnly: true,
         },
         loadChildren: () => import('./core/pages/teams/teams.routes').then((m) => m.TEAMS_ROUTES),
       },
@@ -183,6 +184,7 @@ export const routes: Routes = [
           description: 'List of catalogs',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.CATALOG.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/catalog/catalog.routes').then((m) => m.CATALOG_ROUTES),
@@ -194,6 +196,7 @@ export const routes: Routes = [
           description: 'List of stadiums',
           icon: 'lucideMapPin',
           requiredPermission: PERMISSIONS.STADIUM.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/stadium/stadium.routes').then((m) => m.STADIUM_ROUTES),
@@ -262,6 +265,7 @@ export const routes: Routes = [
           description: 'List of match',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.MATCH.READ,
+          adminOnly: true,
         },
         loadChildren: () => import('./core/pages/match/match.routes').then((m) => m.MATCH_ROUTES),
       },
@@ -272,6 +276,7 @@ export const routes: Routes = [
           description: 'Control de punteos por período',
           icon: 'lucideSliders',
           requiredPermission: PERMISSIONS.MATCH_PERIOD.UPDATE,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/match-scoreboard/match-scoreboard.routes').then(
@@ -285,6 +290,7 @@ export const routes: Routes = [
           description: 'List of match period',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.MATCH_PERIOD.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/match-period/match-period.routes').then(
@@ -356,6 +362,7 @@ export const routes: Routes = [
           description: 'List of transaction',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.TRANSACTION.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/transaction/transaction.routes').then((m) => m.TRANSACTION_ROUTES),
@@ -425,6 +432,7 @@ export const routes: Routes = [
           description: 'List of wallet',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.WALLET.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
@@ -436,11 +444,81 @@ export const routes: Routes = [
           description: 'List of world league',
           icon: 'lucideDatabase',
           requiredPermission: PERMISSIONS.WORLD_LEAGUE.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/world-league/world-league.routes').then(
             (m) => m.WORLD_LEAGUE_ROUTES,
           ),
+      },
+
+      // ── Vistas cliente (solo lectura, filtradas por RLS) ─────────────────────
+      {
+        path: 'mis-partidos',
+        title: 'Mis Partidos',
+        data: {
+          description: 'Partidos de mis ligas',
+          icon: 'lucideSliders',
+          requiredPermission: PERMISSIONS.MATCH.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/mis-partidos/mis-partidos').then((m) => m.MisPartidosPage),
+      },
+      {
+        path: 'mis-transacciones',
+        title: 'Mis Transacciones',
+        data: {
+          description: 'Historial de movimientos',
+          icon: 'lucideWallet',
+          requiredPermission: PERMISSIONS.TRANSACTION.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/mis-transacciones/mis-transacciones').then(
+            (m) => m.MisTransaccionesPage,
+          ),
+      },
+      {
+        path: 'mis-ligas',
+        title: 'Mis Ligas',
+        data: {
+          description: 'Ligas a las que perteneces',
+          icon: 'lucideTrophy',
+          requiredPermission: PERMISSIONS.LEAGUE.READ,
+        },
+        loadComponent: () => import('./core/pages/mis-ligas/mis-ligas').then((m) => m.MisLigasPage),
+      },
+      {
+        path: 'mis-grupos',
+        title: 'Mis Grupos',
+        data: {
+          description: 'Grupos de tus ligas',
+          icon: 'lucideUsers',
+          requiredPermission: PERMISSIONS.LEAGUE.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/mis-grupos/mis-grupos').then((m) => m.MisGruposPage),
+      },
+      {
+        path: 'mis-equipos',
+        title: 'Mis Equipos',
+        data: {
+          description: 'Equipos en tus ligas',
+          icon: 'lucideUsers',
+          requiredPermission: PERMISSIONS.TEAM.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/mis-equipos/mis-equipos').then((m) => m.MisEquiposPage),
+      },
+      {
+        path: 'mis-estadios',
+        title: 'Mis Estadios',
+        data: {
+          description: 'Estadios de tus ligas',
+          icon: 'lucideMapPin',
+          requiredPermission: PERMISSIONS.STADIUM.READ,
+        },
+        loadComponent: () =>
+          import('./core/pages/mis-estadios/mis-estadios').then((m) => m.MisEstadiosPage),
       },
       {
         path: 'team-league',

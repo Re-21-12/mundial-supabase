@@ -92,7 +92,7 @@ export const formFields: FormFields = {
           table: 'CATALOG',
           valueField: 'value',
           filterField: 'table_id',
-          filterValue: 22,
+          filterValue: 60,
           labelField: 'description',
           orderBy: 'description',
           order: 'asc',
