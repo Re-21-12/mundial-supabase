@@ -85,6 +85,9 @@ export class JoinLeagueService {
     });
 
     if (error) {
+      if ((error as any).code === '23505') {
+        return { error: 'Ya eres miembro de esta liga o tienes una solicitud pendiente.' };
+      }
       return { error: error.message || 'No se pudo unir a la liga.' };
     }
 

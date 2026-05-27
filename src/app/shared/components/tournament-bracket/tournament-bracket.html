@@ -80,6 +80,13 @@
                           <span class="b-team__score">{{ match.awayScore }}</span>
                         }
                       </div>
+
+                      @if (showPredictAction() && !match.homeTbd && !match.awayTbd) {
+                        <button type="button" class="b-card__predict" (click)="onPredict(match.matchId)">
+                          <i class="pi pi-bolt"></i>
+                          Predecir
+                        </button>
+                      }
                     </div>
                   </div>
                 }

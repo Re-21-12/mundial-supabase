@@ -4,7 +4,7 @@ import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { SupabaseService } from '../../services/supabase-service';
 import { InvitationService } from '../../../shared/components/notification-inbox/invitation.service';
 
-type InviteState = 'loading' | 'processing' | 'success' | 'error' | 'unauthenticated';
+type InviteState = 'loading' | 'processing' | 'success' | 'pending_approval' | 'error' | 'unauthenticated';
 
 @Component({
   selector: 'app-invite',
@@ -83,6 +83,9 @@ export class InvitePage implements OnInit {
     if (result.error) {
       this.state.set('error');
       this.errorMsg.set(result.error);
+    } else if (result.pendingApproval) {
+      this.leagueId = result.leagueId!;
+      this.state.set('pending_approval');
     } else {
       this.leagueId = result.leagueId!;
       this.state.set('success');

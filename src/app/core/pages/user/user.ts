@@ -38,7 +38,19 @@ export class UserPage implements OnInit {
       header: 'User',
       columns: [
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'email', header: 'Email' },
         { field: 'is_deleted', header: 'Is Deleted' },
@@ -48,7 +60,19 @@ export class UserPage implements OnInit {
         { field: 'registration_date', header: 'Registration Date' },
         { field: 'status', header: 'Status' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_id', header: 'User Id' },
         { field: 'uuid', header: 'Uuid' },
       ],
@@ -153,6 +177,3 @@ export class UserPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

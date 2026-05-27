@@ -61,6 +61,21 @@ export interface LeagueDetail {
   grupos: GrupoGroup[];
 }
 
+export interface LeagueForHome {
+  league_id: number;
+  name: string;
+  status: string | null;
+  logo_url: string | null;
+  buy_in_amount: number;
+  invitation_code: string | null;
+  league_type: string;
+  league_type_desc: string;
+  total_participants: number;
+  is_joined: boolean;
+  accumulated_points: number;
+  position: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserLeaguesService {
   private readonly _db = inject(SupabaseService);
@@ -129,6 +144,72 @@ export class UserLeaguesService {
       if (a.status !== 'active' && b.status === 'active') return 1;
       return a.position - b.position;
     });
+  }
+
+  async loadLeaguesForHome(userId: number): Promise<LeagueForHome[]> {
+    await (this._db.client as any).rpc('close_finished_leagues');
+
+    const [leagueRes, catalogRes] = await Promise.all([
+      this._db.client
+        .from('LEAGUE')
+        .select('league_id, name, status, logo_url, buy_in_amount, invitation_code, catalog_id')
+        .eq('is_deleted', false)
+        .order('name'),
+      this._db.client
+        .from('CATALOG')
+        .select('catalog_id, value, description')
+        .eq('is_deleted', false),
+    ]);
+
+    if (!leagueRes.data?.length) return [];
+
+    const catalogMap = new Map<number, { value: string; description: string }>(
+      ((catalogRes.data ?? []) as any[]).map((c) => [
+        c.catalog_id,
+        { value: c.value ?? 'Sin tipo', description: c.description ?? '' },
+      ]),
+    );
+
+    const leagues = await Promise.all(
+      (leagueRes.data as any[]).map(async (l) => {
+        const { data: members } = await this._db.client
+          .from('USER_LEAGUE')
+          .select('user_id, accumulated_points')
+          .eq('league_id', l.league_id)
+          .eq('is_deleted', false)
+          .order('accumulated_points', { ascending: false });
+
+        const sorted = (members ?? []) as { user_id: number; accumulated_points: number }[];
+        const idx = sorted.findIndex((m) => m.user_id === userId);
+        const cat = catalogMap.get(l.catalog_id);
+
+        return {
+          league_id: l.league_id,
+          name: l.name,
+          status: l.status,
+          logo_url: l.logo_url,
+          buy_in_amount: Number(l.buy_in_amount ?? 0),
+          invitation_code: l.invitation_code,
+          league_type: cat?.value ?? 'Sin tipo',
+          league_type_desc: cat?.description ?? '',
+          total_participants: sorted.length,
+          is_joined: idx >= 0,
+          accumulated_points: idx >= 0 ? (sorted[idx].accumulated_points ?? 0) : 0,
+          position: idx >= 0 ? idx + 1 : 0,
+        } satisfies LeagueForHome;
+      }),
+    );
+
+    // Show: all joined leagues (any status) + unjoined active/draft leagues
+    return leagues
+      .filter((l) => l.is_joined || l.status === 'active' || l.status === 'draft')
+      .sort((a, b) => {
+        if (a.is_joined && !b.is_joined) return -1;
+        if (!a.is_joined && b.is_joined) return 1;
+        if (a.status === 'active' && b.status !== 'active') return -1;
+        if (a.status !== 'active' && b.status === 'active') return 1;
+        return a.name.localeCompare(b.name);
+      });
   }
 
   async loadLeagueDetail(leagueId: number): Promise<LeagueDetail> {

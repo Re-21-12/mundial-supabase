@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import {
   MatchTicketCardComponent,
   type MatchTicketData,
@@ -167,10 +168,15 @@ function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
 export class MisPartidosPage implements OnInit {
   private readonly router = inject(Router);
   private readonly clientContent = inject(ClientContentService);
+  private readonly auth = inject(AuthFacade);
 
   protected readonly cards = signal<MatchTicketData[]>([]);
   protected readonly loading = signal(true);
   protected readonly activeFilter = signal<'all' | 'upcoming' | 'live' | 'finished'>('all');
+  protected readonly isClientUser = computed(() => {
+    const role = this.auth.role()?.toLowerCase();
+    return role === 'client' || role === 'cliente';
+  });
 
   protected readonly filters = [
     { label: 'Todos', value: 'all' as const },
@@ -222,7 +228,7 @@ export class MisPartidosPage implements OnInit {
             stadiumName: row.stadium?.name ?? null,
             leagueName: row.league?.name ?? null,
             status,
-            canPredict: status === 'upcoming',
+            canPredict: status === 'upcoming' && this.isClientUser(),
           };
         }),
       );

@@ -10,6 +10,7 @@
     [rows]="tableProps().rows"
     [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
     [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
+    [first]="(tableProps().currentPage ?? 0) * tableProps().rows"
     [tableStyle]="{ 'min-width': '100%', 'background-color': 'white' }"
     [size]="'small'"
     (onPage)="onPageChange($event)"
@@ -88,7 +89,7 @@
       <tr>
         @for (col of columns; track col) {
           <td>
-            @let cellValue = rowData[col.field];
+            @let cellValue = getDisplayCellValue(rowData, col);
             @if (col.type === 'image') {
               @if (cellValue) {
                 <img [src]="cellValue" alt="{{ col.header }}" title="{{ col.header }}" [attr.aria-label]="col.header" class="dt-img-thumb" loading="lazy" />

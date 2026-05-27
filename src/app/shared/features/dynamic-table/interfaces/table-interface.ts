@@ -12,6 +12,8 @@ export interface TableTemplateModel {
   rowsPerPageOptions: number[];
   data: any[];
   totalRecords?: number;
+  /** Página actual (0-indexed) */
+  currentPage?: number;
   customExportHeader?: string;
   actions?: TypeOption[];
   routeBase?: string;
@@ -28,6 +30,17 @@ export interface TableColumnTemplateModel {
   dataType?: 'string' | 'number' | 'boolean' | 'date' | 'any';
   /** Optional: whether this column is required during bulk import */
   required?: boolean;
+  /** Optional lookup source to translate ids into labels when rendering the table */
+  optionsSource?: {
+    table: 'CATALOG' | string;
+    filterField?: string;
+    filterValue?: string | number;
+    valueField?: string;
+    labelField?: string;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+    includeDeleted?: boolean;
+  };
 }
 interface ExportColumn {
   title: string;

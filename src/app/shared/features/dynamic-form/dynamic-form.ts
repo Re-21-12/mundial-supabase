@@ -46,7 +46,7 @@ export class DynamicForm {
 
         this.hydratedInitialDataSignature = signature;
         console.debug('[DynamicForm] initialData received', data);
-        this.form().patchValue(data);
+        this.form().patchValue(this.normalizeInitialData(data));
         this.normalizeSelectableFields();
       }
     });
@@ -94,9 +94,10 @@ export class DynamicForm {
   // Método para manejar el envío del formulario
   onSubmit() {
     if (!this.form().valid) return;
-    this.payLoad = JSON.stringify(this.form().value);
+    const payload = this.serializeFormValue(this.form().value) as Record<string, unknown>;
+    this.payLoad = JSON.stringify(payload);
     console.log('Datos:', this.payLoad);
-    console.log('Datos JSON', this.form().value);
+    console.log('Datos JSON', payload);
     this.data.emit(this.payLoad);
   }
 
@@ -130,6 +131,81 @@ export class DynamicForm {
     const fields = this.fields() ?? [];
 
     fields.forEach((field) => this.syncSelectableFieldValue(field));
+  }
+
+  private normalizeInitialData(data: Record<string, any>): Record<string, any> {
+    const fields = this.fields() ?? [];
+    const normalizedData = { ...data };
+
+    fields.forEach((field) => {
+      if (![TypeFields.DATE, TypeFields.DATETIME].includes(field.type as TypeFields)) {
+        return;
+      }
+
+      const value = normalizedData[field.key];
+      if (typeof value !== 'string' || value.trim() === '') {
+        return;
+      }
+
+      const parsedDate = new Date(value);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        normalizedData[field.key] = parsedDate;
+      }
+    });
+
+    return normalizedData;
+  }
+
+  private serializeFormValue(value: unknown, fieldType?: TypeFields): unknown {
+    if (value instanceof Date) {
+      return fieldType === TypeFields.DATE
+        ? this.formatDateOnly(value)
+        : this.formatDateTimeWithOffset(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.serializeFormValue(item, fieldType));
+    }
+
+    if (value !== null && typeof value === 'object') {
+      const entries = Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        this.serializeFormValue(item, this.getFieldType(key)),
+      ]);
+
+      return Object.fromEntries(entries);
+    }
+
+    return value;
+  }
+
+  private getFieldType(key: string): TypeFields | undefined {
+    const field = (this.fields() ?? []).find((item) => item.key === key);
+    return field?.type as TypeFields | undefined;
+  }
+
+  private formatDateOnly(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatDateTimeWithOffset(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    const offsetMinutes = -date.getTimezoneOffset();
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const offsetHours = String(Math.floor(absoluteOffsetMinutes / 60)).padStart(2, '0');
+    const offsetRemainder = String(absoluteOffsetMinutes % 60).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}${offsetSign}${offsetHours}:${offsetRemainder}`;
   }
 
   private syncSelectableFieldValue(field: FieldBase<string>): void {

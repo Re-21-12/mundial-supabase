@@ -41,32 +41,85 @@ export class InvitationService {
       return { success: false, error: 'No se encontró un usuario con ese email.' };
     }
 
-    // 2. Create USER_LEAGUE record (status managed at application level)
-    const { data: ul, error: ulErr } = await client
+    // 2. Upsert USER_LEAGUE with pending_approval — admin must approve after user accepts
+    const { data: existing } = await client
       .from('USER_LEAGUE')
-      .insert({
-        league_id: leagueId,
-        user_id: user.user_id,
-        created_by: inviterId,
-        accumulated_points: 0,
-      })
-      .select('user_league_id')
-      .single<{ user_league_id: number }>();
+      .select('user_league_id, is_deleted, approval_status')
+      .eq('user_id', user.user_id)
+      .eq('league_id', leagueId)
+      .maybeSingle<{ user_league_id: number; is_deleted: boolean; approval_status: string }>();
 
-    if (ulErr) {
-      console.error('[Invitation] USER_LEAGUE insert error:', ulErr);
-      return {
-        success: false,
-        error: `Error al crear la participación en liga. (${ulErr.code}: ${ulErr.message})`,
-      };
+    let userLeagueId: number;
+
+    if (existing && !existing.is_deleted && existing.approval_status === 'approved') {
+      // Already an active approved member — reuse record
+      userLeagueId = existing.user_league_id;
+    } else if (existing && existing.is_deleted) {
+      // Soft-deleted — reactivate with pending_approval
+      const { data: reactivated, error: reErr } = await client
+        .from('USER_LEAGUE')
+        .update({
+          is_deleted: false,
+          approval_status: 'pending_approval',
+          updated_at: new Date().toISOString(),
+          updated_by: inviterId,
+        } as any)
+        .eq('user_league_id', existing.user_league_id)
+        .select('user_league_id')
+        .single<{ user_league_id: number }>();
+
+      if (reErr || !reactivated) {
+        return { success: false, error: 'Error al reactivar la participación en liga.' };
+      }
+      userLeagueId = reactivated.user_league_id;
+    } else if (existing && !existing.is_deleted) {
+      // Already pending_approval — reuse record (allow re-sending invitation)
+      userLeagueId = existing.user_league_id;
+    } else {
+      // Fresh record — pending_approval until admin approves
+      const { data: ul, error: ulErr } = await client
+        .from('USER_LEAGUE')
+        .insert({
+          league_id: leagueId,
+          user_id: user.user_id,
+          created_by: inviterId,
+          accumulated_points: 0,
+          approval_status: 'pending_approval',
+        } as any)
+        .select('user_league_id')
+        .single<{ user_league_id: number }>();
+
+      if (ulErr || !ul) {
+        console.error('[Invitation] USER_LEAGUE insert error:', ulErr);
+        return { success: false, error: 'Error al crear la participación en liga.' };
+      }
+      userLeagueId = ul.user_league_id;
     }
 
-    // 3. Create INVITATION record
+    // 3. Create token + expiry
     const token = uuidv4();
     const expiration = new Date(Date.now() + EXPIRATION_HOURS * 3_600_000).toISOString();
 
+    // 4. Create MAGIC_LINK entry so acceptMagicLink() can process the token
+    //    (existing-user invitations use the same /invite?token= route)
+    const { error: mlErr } = await client.from('MAGIC_LINK').insert({
+      token,
+      email: email.toLowerCase(),
+      league_id: leagueId,
+      expires_at: expiration,
+      status: 'pending',
+      created_by: inviterId,
+      created_at: new Date().toISOString(),
+    } as any);
+
+    if (mlErr) {
+      console.error('[Invitation] MAGIC_LINK insert error (existing user):', mlErr);
+      // Non-fatal — continue with INVITATION record
+    }
+
+    // 5. Create INVITATION record
     const { error: invErr } = await client.from('INVITATION').insert({
-      user_league_id: ul.user_league_id,
+      user_league_id: userLeagueId,
       email,
       invitation_type: 'existing',
       league_id: leagueId,
@@ -154,8 +207,6 @@ export class InvitationService {
         body: { email, token, leagueId, type, appUrl: window.location.origin },
       } as any);
 
-      // Supabase client may return an object with `data`/`error` or throw on non-2xx.
-      // Handle both shapes defensively.
       if (res && (res as any).error) {
         console.warn('[Invitation] Email not sent (function returned error):', (res as any).error);
         return false;
@@ -163,7 +214,6 @@ export class InvitationService {
 
       return true;
     } catch (err) {
-      // Try to extract more info from the thrown error (FunctionsHttpError may include a response)
       console.warn('[Invitation] Email send failed:', err);
       try {
         const maybeResponse = (err as any)?.response;
@@ -183,7 +233,7 @@ export class InvitationService {
   async acceptMagicLink(
     token: string,
     userId: number,
-  ): Promise<{ leagueId?: number; error?: string }> {
+  ): Promise<{ leagueId?: number; pendingApproval?: boolean; error?: string }> {
     const client = this._db.client;
 
     const { data: ml, error: mlErr } = await client
@@ -197,42 +247,194 @@ export class InvitationService {
     if (new Date(ml.expires_at) < new Date())
       return { error: 'Este enlace ha expirado (válido 48 h).' };
 
-    const { error: ulErr } = await client
+    const { data: existingUl } = await client
       .from('USER_LEAGUE')
-      .insert({ user_id: userId, league_id: ml.league_id, accumulated_points: 0 });
+      .select('user_league_id, is_deleted, approval_status')
+      .eq('user_id', userId)
+      .eq('league_id', ml.league_id)
+      .maybeSingle<{ user_league_id: number; is_deleted: boolean; approval_status: string }>();
 
-    if (ulErr) return { error: 'Ya eres miembro de esta liga o no se pudo completar la unión.' };
+    let userLeagueId: number;
+    let alreadyApproved = false;
+
+    if (existingUl && !existingUl.is_deleted) {
+      if (existingUl.approval_status === 'approved') {
+        // Already a full member
+        alreadyApproved = true;
+      }
+      userLeagueId = existingUl.user_league_id;
+    } else if (existingUl && existingUl.is_deleted) {
+      // Reactivate with pending_approval
+      await client
+        .from('USER_LEAGUE')
+        .update({
+          is_deleted: false,
+          approval_status: 'pending_approval',
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('user_league_id', existingUl.user_league_id);
+      userLeagueId = existingUl.user_league_id;
+    } else {
+      const { data: ul, error: ulErr } = await client
+        .from('USER_LEAGUE')
+        .insert({
+          user_id: userId,
+          league_id: ml.league_id,
+          accumulated_points: 0,
+          approval_status: 'pending_approval',
+        } as any)
+        .select('user_league_id')
+        .single<{ user_league_id: number }>();
+
+      if (ulErr || !ul) return { error: 'No se pudo completar la unión a la liga.' };
+      userLeagueId = ul.user_league_id;
+    }
 
     await client
       .from('MAGIC_LINK')
       .update({ status: 'used', used_at: new Date().toISOString(), used_by: userId } as any)
       .eq('magic_link_id', ml.magic_link_id);
 
-    // Notify league owner (fire-and-forget)
-    const { data: league } = await client
-      .from('LEAGUE')
-      .select('user_id, name')
-      .eq('league_id', ml.league_id)
-      .single<{ user_id: number; name: string }>();
+    if (alreadyApproved) {
+      return { leagueId: ml.league_id };
+    }
 
-    if (league?.user_id && league.user_id !== userId) {
+    // Notify league owner with approve/reject payload
+    const [userResult, leagueResult] = await Promise.all([
+      client
+        .from('USER')
+        .select('name, email')
+        .eq('user_id', userId)
+        .single<{ name: string; email: string }>(),
+      client
+        .from('LEAGUE')
+        .select('user_id, name')
+        .eq('league_id', ml.league_id)
+        .single<{ user_id: number; name: string }>(),
+    ]);
+
+    const leagueOwner = leagueResult.data;
+    const joiningUser = userResult.data;
+
+    if (leagueOwner?.user_id && leagueOwner.user_id !== userId) {
       this._notifications
         .sendNotification(
           {
-            userId: league.user_id,
+            userId: leagueOwner.user_id,
             leagueId: ml.league_id,
-            type: 'invitation_accepted',
-            title: 'Nuevo participante en tu liga',
-            body: `Un usuario se unió a ${league.name ?? 'tu liga'} a través de un enlace de invitación.`,
+            type: 'participant_approval',
+            title: 'Solicitud de ingreso a liga',
+            body: `${joiningUser?.name ?? joiningUser?.email ?? 'Un usuario'} quiere unirse a ${leagueOwner.name ?? 'tu liga'}. Aprueba o rechaza su solicitud.`,
             actionUrl: `/league/${ml.league_id}/standings`,
-            priority: 'normal',
+            priority: 'high',
+            data: {
+              userLeagueId,
+              userId,
+              userName: joiningUser?.name ?? '',
+              userEmail: joiningUser?.email ?? '',
+              leagueName: leagueOwner.name ?? '',
+            },
           },
           userId,
         )
-        .catch((err) => console.warn('[Invitation] Owner notification failed:', err));
+        .catch((err) => console.warn('[Invitation] Approval notification failed:', err));
     }
 
-    return { leagueId: ml.league_id };
+    return { leagueId: ml.league_id, pendingApproval: true };
+  }
+
+  // ─── Approve / Reject participant ─────────────────────────────────────────
+
+  async approveParticipant(
+    userLeagueId: number,
+    approverId: number,
+  ): Promise<{ success: boolean; error?: string }> {
+    const client = this._db.client;
+
+    const { data: ul, error: ulErr } = await client
+      .from('USER_LEAGUE')
+      .select('user_id, league_id, LEAGUE(name)')
+      .eq('user_league_id', userLeagueId)
+      .single<{ user_id: number; league_id: number; LEAGUE: { name: string } | null }>();
+
+    if (ulErr || !ul) return { success: false, error: 'Participante no encontrado.' };
+
+    const { error: updateErr } = await client
+      .from('USER_LEAGUE')
+      .update({
+        approval_status: 'approved',
+        updated_at: new Date().toISOString(),
+        updated_by: approverId,
+      } as any)
+      .eq('user_league_id', userLeagueId);
+
+    if (updateErr) return { success: false, error: updateErr.message };
+
+    const leagueName = (ul.LEAGUE as any)?.name ?? 'la liga';
+
+    this._notifications
+      .sendNotification(
+        {
+          userId: ul.user_id,
+          leagueId: ul.league_id,
+          type: 'league_update',
+          title: 'Solicitud aprobada',
+          body: `Tu solicitud de ingreso a ${leagueName} fue aprobada. ¡Ya eres parte de la liga!`,
+          actionUrl: `/league/${ul.league_id}/standings`,
+          priority: 'high',
+        },
+        approverId,
+      )
+      .catch((err) => console.warn('[Invitation] Approval confirm notification failed:', err));
+
+    return { success: true };
+  }
+
+  async rejectParticipant(
+    userLeagueId: number,
+    rejecterId: number,
+  ): Promise<{ success: boolean; error?: string }> {
+    const client = this._db.client;
+
+    const { data: ul, error: ulErr } = await client
+      .from('USER_LEAGUE')
+      .select('user_id, league_id, LEAGUE(name)')
+      .eq('user_league_id', userLeagueId)
+      .single<{ user_id: number; league_id: number; LEAGUE: { name: string } | null }>();
+
+    if (ulErr || !ul) return { success: false, error: 'Participante no encontrado.' };
+
+    const { error: updateErr } = await client
+      .from('USER_LEAGUE')
+      .update({
+        approval_status: 'rejected',
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: rejecterId,
+        updated_at: new Date().toISOString(),
+        updated_by: rejecterId,
+      } as any)
+      .eq('user_league_id', userLeagueId);
+
+    if (updateErr) return { success: false, error: updateErr.message };
+
+    const leagueName = (ul.LEAGUE as any)?.name ?? 'la liga';
+
+    this._notifications
+      .sendNotification(
+        {
+          userId: ul.user_id,
+          leagueId: ul.league_id,
+          type: 'league_update',
+          title: 'Solicitud rechazada',
+          body: `Tu solicitud de ingreso a ${leagueName} no fue aprobada en esta ocasión.`,
+          priority: 'normal',
+        },
+        rejecterId,
+      )
+      .catch((err) => console.warn('[Invitation] Rejection notification failed:', err));
+
+    return { success: true };
   }
 
   // ─── Public token lookup (no auth required) ──────────────────────────────

@@ -1,6 +1,6 @@
 export interface DynamicQuery {
   table: string;
-  filters?: { field: string; value: string };
+  filters?: DynamicQueryFilter | DynamicQueryFilter[];
   order: 'asc' | 'desc';
   limit: number;
   page: number;
@@ -9,4 +9,5 @@ export interface DynamicQuery {
 export interface DynamicQueryFilter {
   field: string;
   value: string;
+  operator?: 'eq' | 'gte' | 'lte' | 'ilike';
 }

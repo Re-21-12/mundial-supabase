@@ -9,6 +9,7 @@ export type NotificationType =
   | 'result_posted'
   | 'invitation_received'
   | 'invitation_accepted'
+  | 'participant_approval'
   | 'league_created';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';

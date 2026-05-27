@@ -5,9 +5,13 @@ import {
   effect,
   inject,
   input,
+  output,
   resource,
 } from '@angular/core';
-import { BracketService, type BracketMatchRaw } from '../../../core/pages/admin-bracket/bracket.service';
+import {
+  BracketService,
+  type BracketMatchRaw,
+} from '../../../core/pages/admin-bracket/bracket.service';
 import { WorldCupGroupsComponent } from '../world-cup-groups/world-cup-groups';
 import type { GrupoCard, MatchCard } from '../../../core/pages/home/models/home.models';
 
@@ -61,6 +65,8 @@ export class TournamentBracketComponent {
   readonly leagueId = input.required<number>();
   readonly grupos = input<GrupoCard[]>([]);
   readonly matchCards = input<MatchCard[]>([]);
+  readonly showPredictAction = input<boolean>(false);
+  readonly predict = output<number>();
 
   private readonly bracketService = inject(BracketService);
 
@@ -89,6 +95,10 @@ export class TournamentBracketComponent {
 
   protected readonly isLoading = computed(() => this.bracketData.isLoading());
   protected readonly hasError = computed(() => !!this.bracketData.error());
+
+  protected onPredict(matchId: number): void {
+    this.predict.emit(matchId);
+  }
 
   // ── Build ────────────────────────────────────────────────────────────────────
 

@@ -146,12 +146,12 @@
 }
 
 .b-card:hover {
-  box-shadow: 0 4px 16px color-mix(in oklch, var(--primary) 12%, transparent);
-  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 .b-card--live {
-  border-color: color-mix(in oklch, oklch(0.65 0.15 145) 70%, var(--border));
+  border-color: rgba(22, 163, 74, 0.7);
 }
 
 /* Live dot indicator */
@@ -183,7 +183,7 @@
 }
 
 .b-team--win {
-  background: color-mix(in oklch, oklch(0.65 0.15 145) 12%, transparent);
+  background: rgba(22, 163, 74, 0.12);
 }
 
 .b-team--lose {
@@ -201,7 +201,7 @@
 }
 
 .b-team--win .b-team__name {
-  color: oklch(0.48 0.14 145);
+  color: #166534;
 }
 
 .b-team__score {
@@ -213,7 +213,7 @@
 }
 
 .b-team--win .b-team__score {
-  color: oklch(0.48 0.14 145);
+  color: #166534;
 }
 
 /* ─── Match-level label (Final / Tercer Lugar) ─────────────────────── */
@@ -231,12 +231,12 @@
 }
 
 .b-card--final {
-  border-color: color-mix(in oklch, oklch(0.78 0.16 80) 60%, var(--border));
-  box-shadow: 0 0 12px color-mix(in oklch, oklch(0.78 0.16 80) 18%, transparent);
+  border-color: rgba(217, 119, 6, 0.55);
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.18);
 }
 
 .b-card--third {
-  border-color: color-mix(in oklch, oklch(0.73 0.1 50) 50%, var(--border));
+  border-color: rgba(180, 83, 9, 0.5);
 }
 
 /* ─── TBD team row ─────────────────────────────────────────────────── */
@@ -251,6 +251,29 @@
   height: 1px;
   background: var(--border);
   margin: 0;
+}
+
+.b-card__predict {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: calc(100% - 20px);
+  margin: 10px;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.b-card__predict:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 /* ─── Mobile: compact cards, same scroll pattern ───────────────── */
@@ -290,4 +313,11 @@
   }
 
   .b-team__score { font-size: 0.78rem; }
+
+  .b-card__predict {
+    width: calc(100% - 16px);
+    margin: 8px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.7rem;
+  }
 }

@@ -38,7 +38,19 @@ export class UserSessionPage implements OnInit {
       header: 'User Session',
       columns: [
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'ip_address', header: 'Ip Address' },
         { field: 'is_deleted', header: 'Is Deleted' },
@@ -47,9 +59,33 @@ export class UserSessionPage implements OnInit {
         { field: 'sign_in', header: 'Sign In' },
         { field: 'sign_out', header: 'Sign Out' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_agent', header: 'User Agent' },
-        { field: 'user_id', header: 'User Id' },
+        {
+          field: 'user_id',
+          header: 'User',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_session_id', header: 'User Session Id' },
       ],
       rows: 10,
@@ -153,6 +189,3 @@ export class UserSessionPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

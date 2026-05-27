@@ -36,9 +36,33 @@ export class TeamLeaguePage implements OnInit {
     this.tableService.initTable({
       header: 'Team League',
       columns: [
-        { field: 'team_league_id', header: 'ID' },
-        { field: 'league_id', header: 'Liga' },
-        { field: 'team_id', header: 'Equipo' },
+        { field: 'team_league_id', header: 'Team League Id' },
+        {
+          field: 'league_id',
+          header: 'Liga',
+          optionsSource: {
+            table: 'LEAGUE',
+            valueField: 'league_id',
+            filterField: 'league_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
+        {
+          field: 'team_id',
+          header: 'Equipo',
+          optionsSource: {
+            table: 'TEAM',
+            valueField: 'team_id',
+            filterField: 'team_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'points', header: 'Puntos' },
         { field: 'games_played', header: 'PJ' },
         { field: 'wins', header: 'Ganados' },

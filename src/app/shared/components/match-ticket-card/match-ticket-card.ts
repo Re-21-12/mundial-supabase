@@ -1,10 +1,4 @@
-import {
-  Component,
-  input,
-  output,
-  computed,
-  ChangeDetectionStrategy,
-} from '@angular/core';
+import { Component, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface MatchTicketTeam {
@@ -37,6 +31,7 @@ export interface MatchTicketData {
 })
 export class MatchTicketCardComponent {
   readonly card = input.required<MatchTicketData>();
+  readonly showPredictAction = input<boolean>(true);
   readonly predict = output<MatchTicketData>();
 
   protected readonly statusLabel = computed(() => {
@@ -57,9 +52,7 @@ export class MatchTicketCardComponent {
     return new Date(t).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   });
 
-  protected readonly hasScore = computed(
-    () => this.card().status !== 'upcoming',
-  );
+  protected readonly hasScore = computed(() => this.card().status !== 'upcoming');
 
   protected initials(name: string): string {
     return name

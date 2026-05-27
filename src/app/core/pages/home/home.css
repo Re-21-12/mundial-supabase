@@ -493,6 +493,38 @@
   border-radius: 99px;
 }
 
+/* ─── Tournament card grid ────────────────────────────────────── */
+.tc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.tc-skeleton {
+  height: 300px;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--card) 0%,
+    color-mix(in oklch, var(--border) 60%, var(--card)) 50%,
+    var(--card) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .tc-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .tc-skeleton {
+    height: 260px;
+  }
+}
+
 /* ─── Leagues filter ──────────────────────────────────────────── */
 .leagues-count {
   font-size: 0.78rem;

@@ -19,23 +19,50 @@ export class DynamicService {
   ): Promise<(T[] & { totalRecords?: number }) | PostgrestError> {
     const from = query.page * query.limit;
     const to = from + query.limit - 1;
-    const { table, order, filters } = query;
+    const { table, order } = query;
     let fetchedData: any[] | null = null;
     let error: PostgrestError | null = null;
     let totalRecords: number | null = null;
 
-    if (filters) {
+    const filters = Array.isArray(query.filters)
+      ? query.filters
+      : query.filters
+        ? [query.filters]
+        : [];
+
+    const applyFilters = (builder: any) => {
+      for (const filter of filters) {
+        switch (filter.operator) {
+          case 'gte':
+            builder = builder.gte(filter.field, filter.value);
+            break;
+          case 'lte':
+            builder = builder.lte(filter.field, filter.value);
+            break;
+          case 'ilike':
+            builder = builder.ilike(filter.field, filter.value);
+            break;
+          default:
+            builder = builder.eq(filter.field, filter.value);
+            break;
+        }
+      }
+
+      return builder;
+    };
+
+    if (filters.length > 0) {
       ({
         data: fetchedData,
         error,
         count: totalRecords,
-      } = await this.supabaseService.client
-        .from(`${table}`)
-        .select(query.columns, { count: 'exact' }) // Seleccionar las columnas especificadas
-        .eq(filters.field, filters.value) // Columna y valor a buscar
-        .order('created_at', { ascending: order === 'asc' }) // Ordenar por la columna 'id' de forma ascendente o descendente
-        // .limit(10); // Limitar a 10 resultados
-        .range(from, to));
+      } = await applyFilters(
+        this.supabaseService.client
+          .from(`${table}`)
+          .select(query.columns, { count: 'exact' })
+          .order('created_at', { ascending: order === 'asc' })
+          .range(from, to),
+      ));
     } else {
       ({
         data: fetchedData,

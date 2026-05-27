@@ -1,8 +1,12 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { PaginatorModule } from 'primeng/paginator';
-import { TableTemplateModel, TypeOption } from './interfaces/table-interface';
+import {
+  TableColumnTemplateModel,
+  TableTemplateModel,
+  TypeOption,
+} from './interfaces/table-interface';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -11,6 +15,7 @@ import { DialogModule } from 'primeng/dialog';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
+import { SupabaseService } from '../../../core/services/supabase-service';
 
 type BadgeSeverity =
   | 'success'
@@ -39,6 +44,7 @@ type BadgeSeverity =
 })
 export class DynamicTable {
   tableService = inject(DynamicTableService);
+  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   delete = output<string>(); /* Para eliminar registros */
@@ -52,6 +58,15 @@ export class DynamicTable {
   previewVisible = false;
   previewHeaders: string[] = [];
   validationResults: Record<number, string[]> = {};
+  readonly lookupLabels = signal<Record<string, Map<string, string>>>({});
+  private readonly loadedLookupSignatures = new Map<string, string>();
+
+  constructor() {
+    effect(() => {
+      const columns = this.tableProps().columns ?? [];
+      void this.loadLookupColumns(columns);
+    });
+  }
 
   get tableProps() {
     return this.tableService.tableProps;
@@ -229,6 +244,89 @@ export class DynamicTable {
       return '-';
     }
     return String(val);
+  }
+
+  getDisplayCellValue(rowData: Record<string, unknown>, column: TableColumnTemplateModel): unknown {
+    const rawValue = rowData[column.field];
+    const translatedValue = this.translateColumnValue(column, rawValue);
+
+    if (translatedValue !== null && translatedValue !== undefined && translatedValue !== '') {
+      return translatedValue;
+    }
+
+    return rawValue;
+  }
+
+  private translateColumnValue(column: TableColumnTemplateModel, value: unknown): string | null {
+    const lookup = this.lookupLabels()[column.field];
+    if (!lookup || value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const matched = lookup.get(String(value));
+    return matched ?? null;
+  }
+
+  private async loadLookupColumns(columns: TableColumnTemplateModel[]): Promise<void> {
+    const lookupColumns = columns.filter((column) => column.optionsSource);
+    if (lookupColumns.length === 0) {
+      return;
+    }
+
+    await Promise.all(lookupColumns.map((column) => this.loadLookupColumn(column)));
+  }
+
+  private async loadLookupColumn(column: TableColumnTemplateModel): Promise<void> {
+    const source = column.optionsSource;
+    if (!source) {
+      return;
+    }
+
+    const signature = JSON.stringify(source);
+    if (this.loadedLookupSignatures.get(column.field) === signature) {
+      return;
+    }
+
+    this.loadedLookupSignatures.set(column.field, signature);
+
+    let query = this.supabase.client.from(source.table).select('*');
+
+    if (source.filterField && source.filterValue !== undefined) {
+      query = query.eq(source.filterField, source.filterValue);
+    }
+
+    if (source.includeDeleted === false) {
+      query = query.eq('is_deleted', false);
+    }
+
+    if (source.orderBy) {
+      query = query.order(source.orderBy, { ascending: source.order !== 'desc' });
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('[DynamicTable] lookup load error', column.field, source, error);
+      return;
+    }
+
+    const valueField = source.valueField ?? column.field;
+    const labelField = source.labelField ?? column.field;
+    const nextLookup = new Map<string, string>();
+
+    (data ?? []).forEach((item: Record<string, unknown>) => {
+      const rawKey = item[valueField];
+      const rawLabel = item[labelField];
+      if (rawKey === null || rawKey === undefined) {
+        return;
+      }
+
+      nextLookup.set(String(rawKey), this.formatCellValue(rawLabel));
+    });
+
+    this.lookupLabels.update((current) => ({
+      ...current,
+      [column.field]: nextLookup,
+    }));
   }
 
   resolveRowId(rowData: Record<string, unknown>) {

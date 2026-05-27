@@ -44,6 +44,18 @@
         </button>
       }
 
+      @case ('pending_approval') {
+        <i class="pi pi-clock invite-icon-pending"></i>
+        <h2 class="invite-title">Solicitud enviada</h2>
+        <p class="invite-msg">
+          Tu solicitud para unirte a la liga fue registrada.<br>
+          El administrador la revisará y recibirás una notificación cuando sea aprobada.
+        </p>
+        <a class="invite-btn invite-btn--ghost" routerLink="/home">
+          <i class="pi pi-home"></i> Ir al inicio
+        </a>
+      }
+
       @case ('error') {
         <i class="pi pi-times-circle invite-icon-error"></i>
         <h2 class="invite-title">No se pudo procesar</h2>

@@ -47,7 +47,9 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\victo\\\\Mundial\" -Directory)",
       "mcp__angular-cli__list_projects",
       "Bash(cd /mnt/c/Users/victo/Mundial && npx tsc --noEmit 2>&1 | head -30)",
-      "Read(//mnt/c/Users/victo/**)"
+      "Read(//mnt/c/Users/victo/**)",
+      "mcp__supabase__apply_migration",
+      "Bash(Find c:\\\\Users\\\\victo\\\\Mundial\\\\db\\\\script -name \"*.sql\" -type f)"
     ]
   }
 }

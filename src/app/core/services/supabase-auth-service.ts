@@ -65,6 +65,49 @@ export class SupabaseAuthService {
   /** Set to true when the user explicitly calls signOut() to suppress the "session expired" toast */
   private _explicitSignOut = false;
 
+  private isSessionDebugEnabled(): boolean {
+    try {
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      const flag = window.localStorage.getItem('debug:session');
+      if (flag === '1') return true;
+      if (flag === '0') return false;
+
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  private getSessionSnapshot(session: Session | null): Record<string, unknown> {
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    return {
+      hasSession: Boolean(session),
+      userId: session?.user?.id ?? null,
+      email: session?.user?.email ?? null,
+      expiresAt: session?.expires_at ?? null,
+      expiresInSec: session?.expires_at ? session.expires_at - nowInSeconds : null,
+      hasAccessToken: Boolean(session?.access_token),
+      accessTokenSuffix: session?.access_token ? session.access_token.slice(-10) : null,
+      hasRefreshToken: Boolean(session?.refresh_token),
+    };
+  }
+
+  private logSessionDebug(stage: string, extra: Record<string, unknown> = {}): void {
+    if (!this.isSessionDebugEnabled()) {
+      return;
+    }
+
+    console.log('[AuthDebug]', {
+      ts: new Date().toISOString(),
+      stage,
+      route: this._router.url,
+      ...extra,
+    });
+  }
+
   constructor() {
     // Initialize readiness promise
     this.authReadyPromise = new Promise((resolve) => {
@@ -73,6 +116,7 @@ export class SupabaseAuthService {
 
     // Start auth state tracking immediately so guards do not wait forever
     void this.stateAuthChanges();
+    this.logSessionDebug('constructor:init');
   }
 
   /**
@@ -91,6 +135,7 @@ export class SupabaseAuthService {
 
     if (timedOut) {
       console.warn('[Auth] waitForAuthReady timed out — continuing without session');
+      this.logSessionDebug('waitForAuthReady:timeout', { timeoutMs });
     }
   }
 
@@ -146,17 +191,23 @@ export class SupabaseAuthService {
 
   private async _handleAuthStateChange(event: AuthChangeEvent, session: Session | null) {
     console.log(`[Auth] Event: ${event}, has session: ${!!session}`);
+    this.logSessionDebug('authStateChange:event', {
+      event,
+      snapshot: this.getSessionSnapshot(session),
+    });
 
     switch (event) {
       case 'INITIAL_SESSION':
         console.log('[Auth] INITIAL_SESSION - initializing state');
         if (session) {
           this._applySessionState(session);
-          await this._handleSessionMetadata(session);
+          if (session.user.user_metadata?.['force_password_change']) {
+            this._router.navigate(['/set-password']);
+          }
+          // Do not redirect to /home on normal page reload
         } else {
           this._clearSessionState();
         }
-        // Mark auth as ready after initial session resolution
         this.authReady.set(true);
         this.authReadyResolve();
         break;
@@ -166,7 +217,9 @@ export class SupabaseAuthService {
           console.log('[Auth] SIGNED_IN - updating state');
           this._applySessionState(session);
           this._storeOAuthTokens(session);
-          await this.logSessionStart();
+          if (!this.activeSessionId) {
+            await this.logSessionStart();
+          }
           // Only redirect to /home when coming from unauthenticated pages.
           // Supabase can fire SIGNED_IN on token refresh or tab visibility
           // changes; redirecting unconditionally cancels user-initiated navigation.
@@ -191,6 +244,9 @@ export class SupabaseAuthService {
 
       case 'SIGNED_OUT':
         console.log('[Auth] SIGNED_OUT - clearing state');
+        this.logSessionDebug('authStateChange:signedOut', {
+          explicitSignOut: this._explicitSignOut,
+        });
         if (!this._explicitSignOut) {
           this._notificationService.notify(
             'warn',
@@ -212,10 +268,16 @@ export class SupabaseAuthService {
         break;
 
       case 'TOKEN_REFRESHED':
-        if (session?.provider_token) {
-          console.log('[Auth] TOKEN_REFRESHED');
-          localStorage.setItem('oauth_provider_token', session.provider_token);
+        console.log('[Auth] TOKEN_REFRESHED');
+        if (session) {
+          this._applySessionState(session);
+          if (session.provider_token) {
+            localStorage.setItem('oauth_provider_token', session.provider_token);
+          }
         }
+        this.logSessionDebug('authStateChange:tokenRefreshed', {
+          snapshot: this.getSessionSnapshot(session),
+        });
         break;
 
       case 'USER_UPDATED':
@@ -403,11 +465,15 @@ export class SupabaseAuthService {
   async signOut() {
     try {
       this._explicitSignOut = true;
+      this.logSessionDebug('signOut:start', { snapshot: this.getSessionSnapshot(this.session()) });
       await this.logSessionEnd();
       await this._supabaseService.client.auth.signOut();
     } catch (err) {
       this._explicitSignOut = false;
       console.error('[Auth] signOut error:', err);
+      this.logSessionDebug('signOut:error', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       // Ensure local state is cleared even if remote signOut fails.
       this._clearSessionState();
       this._clearOAuthTokens();
@@ -416,13 +482,19 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Get current session from cache (single source of truth).
-   * Wait for authReady first if this is the first call.
+   * Get a valid session for the current request.
+   * Prefer the cached session, but refresh once if it is missing or expired.
    */
   async getSession() {
-    // Return cached session (single source of truth)
-    const session = this.session();
-    console.log('[Auth] getSession called - returning cached session');
+    const session = await this.ensureActiveSession({
+      redirectOnFail: false,
+      notifyOnFail: false,
+    });
+
+    console.log('[Auth] getSession called - returning active session');
+    this.logSessionDebug('getSession:return', {
+      snapshot: this.getSessionSnapshot(session),
+    });
     return {
       data: { session },
       error: null,
@@ -436,9 +508,15 @@ export class SupabaseAuthService {
   async refreshSession(): Promise<{ data: { session: Session | null }; error: unknown | null }> {
     try {
       console.log('[Auth] Refreshing session from Supabase');
+      this.logSessionDebug('refreshSession:start', {
+        cachedSnapshot: this.getSessionSnapshot(this.session()),
+      });
       const { data, error } = await this._supabaseService.client.auth.getSession();
       if (error) {
         console.error('[Auth] Error refreshing session:', error);
+        this.logSessionDebug('refreshSession:error', {
+          error: error instanceof Error ? error.message : String(error),
+        });
         this._clearSessionState();
         return { data: { session: null }, error };
       }
@@ -448,9 +526,15 @@ export class SupabaseAuthService {
         this._clearSessionState();
       }
       console.log('[Auth] Session refreshed successfully');
+      this.logSessionDebug('refreshSession:success', {
+        snapshot: this.getSessionSnapshot(data?.session ?? null),
+      });
       return { data: { session: data?.session ?? null }, error: null };
     } catch (err) {
       console.error('[Auth] Exception refreshing session:', err);
+      this.logSessionDebug('refreshSession:exception', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       this._clearSessionState();
       return { data: { session: null }, error: err };
     }
@@ -479,18 +563,32 @@ export class SupabaseAuthService {
     const hasValidCachedSession =
       Boolean(cached?.user) && (!cached?.expires_at || cached.expires_at > nowInSeconds + 15);
 
+    this.logSessionDebug('ensureActiveSession:checkCached', {
+      redirectOnFail,
+      notifyOnFail,
+      hasValidCachedSession,
+      snapshot: this.getSessionSnapshot(cached),
+    });
+
     if (hasValidCachedSession) {
       return cached;
     }
 
     const { data } = await this.refreshSession();
     if (data.session?.user) {
+      this.logSessionDebug('ensureActiveSession:refreshRecovered', {
+        snapshot: this.getSessionSnapshot(data.session),
+      });
       return data.session;
     }
 
     // Refresh token is likely expired or invalid: clear and redirect.
     this._clearSessionState();
     this._clearOAuthTokens();
+    this.logSessionDebug('ensureActiveSession:failed', {
+      redirectOnFail,
+      notifyOnFail,
+    });
 
     if (notifyOnFail) {
       this._notificationService.notify(

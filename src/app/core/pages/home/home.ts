@@ -18,13 +18,16 @@ import { StatsBarComponent } from './stats-bar/stats-bar';
 import { HomeRealtimeService } from './services/home-realtime.service';
 import { JoinLeagueComponent } from '../../../shared/components/join-league/join-league.component';
 import { TournamentBracketComponent } from '../../../shared/components/tournament-bracket/tournament-bracket';
-import { WorldCupGroupsComponent } from '../../../shared/components/world-cup-groups/world-cup-groups';
 import { WorldGlobeComponent } from '../../../shared/components/world-globe/world-globe';
 import { MatchCalendarComponent } from '../../../shared/components/match-calendar/match-calendar';
 import { DigitFlowComponent } from 'ngx-digit-flow';
 import { UserLeaguesService } from '../user-league/user-leagues.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
-import type { UserLeagueCard, LeagueDetail } from '../user-league/user-leagues.service';
+import { NotificationService } from '../../../shared/services/notification-service';
+import { JoinLeagueService } from '../league/join-league.service';
+import { LeagueTournamentCardComponent } from '../../../shared/components/league-tournament-card/league-tournament-card';
+import type { LeagueForHome } from '../user-league/user-leagues.service';
+import type { LeagueDetail } from '../user-league/user-leagues.service';
 import type { MatchCard, MatchPeriodRow, GrupoCard } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
 
@@ -39,10 +42,10 @@ import type { MatchRow, TeamRow } from './models/home.models';
     CommonModule,
     JoinLeagueComponent,
     TournamentBracketComponent,
-    // WorldCupGroupsComponent,
     WorldGlobeComponent,
     DigitFlowComponent,
     MatchCalendarComponent,
+    LeagueTournamentCardComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -54,7 +57,8 @@ export class Home implements OnInit, OnDestroy {
   private readonly userLeaguesSvc = inject(UserLeaguesService);
   private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
-
+  private readonly notif = inject(NotificationService);
+  private readonly joinLeagueSvc = inject(JoinLeagueService);
   private readonly sanitizer = inject(DomSanitizer);
   private clockTimer: ReturnType<typeof window.setInterval> | null = null;
 
@@ -64,9 +68,21 @@ export class Home implements OnInit, OnDestroy {
   protected readonly safeVideoUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
     'https://www.youtube.com/embed/Sd1fz57if_I?autoplay=1&controls=0&rel=0&loop=1&playlist=Sd1fz57if_I&mute=1&disablekb=1&modestbranding=1',
   );
-  protected readonly userLeagues = signal<UserLeagueCard[]>([]);
+
+  // ── Leagues ──────────────────────────────────────────────────────────────────
+  protected readonly homeLeagues = signal<LeagueForHome[]>([]);
   protected readonly leaguesLoading = signal(true);
-  protected readonly matchView = signal<'grid' | 'bracket' | 'calendar'>('grid');
+  protected readonly joiningLeagueId = signal<number | null>(null);
+
+  protected readonly isClientUser = computed(() => {
+    const role = this.auth.role()?.toLowerCase();
+    return role === 'client' || role === 'cliente';
+  });
+
+  // Joined leagues only — used for match filtering and bracket tabs
+  readonly joinedLeagues = computed<LeagueForHome[]>(() =>
+    this.homeLeagues().filter((l) => l.is_joined),
+  );
 
   // ── Match pagination ──────────────────────────────────────────────────────────
   protected readonly PAGE_SIZE = 6;
@@ -77,18 +93,28 @@ export class Home implements OnInit, OnDestroy {
   protected readonly leagueFilter = signal<string>('all');
 
   readonly leagueTypes = computed<string[]>(() =>
-    [...new Set(this.userLeagues().map((l) => l.league_type))].filter(Boolean),
+    [...new Set(this.homeLeagues().map((l) => l.league_type))].filter(
+      (t) => !!t && t !== 'Sin tipo',
+    ),
   );
 
-  readonly filteredLeagues = computed<UserLeagueCard[]>(() => {
+  // All leagues filtered by type (for tournament card section)
+  readonly filteredHomeLeagues = computed<LeagueForHome[]>(() => {
     const filter = this.leagueFilter();
     return filter === 'all'
-      ? this.userLeagues()
-      : this.userLeagues().filter((l) => l.league_type === filter);
+      ? this.homeLeagues()
+      : this.homeLeagues().filter((l) => l.league_type === filter);
+  });
+
+  // Joined leagues filtered by type (for bracket tabs)
+  readonly filteredLeagues = computed<LeagueForHome[]>(() => {
+    const filter = this.leagueFilter();
+    const all = this.joinedLeagues();
+    return filter === 'all' ? all : all.filter((l) => l.league_type === filter);
   });
 
   readonly allowedLeagueIds = computed<Set<number>>(
-    () => new Set(this.userLeagues().map((l) => l.league_id)),
+    () => new Set(this.joinedLeagues().map((l) => l.league_id)),
   );
 
   // ── League detail (standings) ─────────────────────────────────────────────────
@@ -159,10 +185,11 @@ export class Home implements OnInit, OnDestroy {
     await this.realtimeService.connect();
     const userId = Number(this.auth.getInternalUserId());
     if (userId) {
-      const leagues = await this.userLeaguesSvc.loadUserLeagues(userId);
-      this.userLeagues.set(leagues);
-      if (leagues.length > 0 && this.selectedLeagueId() === null) {
-        await this.selectLeague(leagues[0].league_id);
+      const leagues = await this.userLeaguesSvc.loadLeaguesForHome(userId);
+      this.homeLeagues.set(leagues);
+      const firstJoined = leagues.find((l) => l.is_joined);
+      if (firstJoined && this.selectedLeagueId() === null) {
+        await this.selectLeague(firstJoined.league_id);
       }
     }
     this.leaguesLoading.set(false);
@@ -176,17 +203,48 @@ export class Home implements OnInit, OnDestroy {
     this.realtimeService.disconnect();
   }
 
+  // ── League join ───────────────────────────────────────────────────────────────
+  async joinLeague(league: LeagueForHome): Promise<void> {
+    if (!league.invitation_code) {
+      this.notif.notify(
+        'warn',
+        'Sin código',
+        'Esta liga no tiene código de invitación configurado.',
+      );
+      return;
+    }
+    const userId = Number(this.auth.getInternalUserId());
+    if (!userId) {
+      this.notif.notify('error', 'Error', 'Debes iniciar sesión para unirte a una liga.');
+      return;
+    }
+
+    this.joiningLeagueId.set(league.league_id);
+    try {
+      const result = await this.joinLeagueSvc.joinByCode(league.invitation_code, userId);
+      if (result.error) {
+        this.notif.notify('error', 'No se pudo unir', result.error);
+      } else {
+        this.notif.notify('success', '¡Bienvenido!', `Te has unido a ${league.name}`);
+        const leagues = await this.userLeaguesSvc.loadLeaguesForHome(userId);
+        this.homeLeagues.set(leagues);
+        if (result.leagueId && this.selectedLeagueId() === null) {
+          await this.selectLeague(result.leagueId);
+        }
+      }
+    } finally {
+      this.joiningLeagueId.set(null);
+    }
+  }
+
   // ── League detail ─────────────────────────────────────────────────────────────
   async toggleLeagueDetail(leagueId: number): Promise<void> {
     if (this.expandedLeagueId() === leagueId) {
       this.expandedLeagueId.set(null);
       return;
     }
-
     this.expandedLeagueId.set(leagueId);
-
     if (this.detailCache().has(leagueId)) return;
-
     this.loadingDetailId.set(leagueId);
     const detail = await this.userLeaguesSvc.loadLeagueDetail(leagueId);
     this.detailCache.update((map) => {
@@ -225,7 +283,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   countByType(type: string): number {
-    return this.userLeagues().filter((l) => l.league_type === type).length;
+    return this.homeLeagues().filter((l) => l.league_type === type).length;
   }
 
   // ── Torneo league selection ───────────────────────────────────────────────────
@@ -235,8 +293,8 @@ export class Home implements OnInit, OnDestroy {
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────────
-  navigateToPredict(card: MatchCard): void {
-    this.router.navigate(['/prediction/prediction-client', card.match.match_id]);
+  navigateToPredict(matchId: number): void {
+    this.router.navigate(['/prediction/prediction-client', matchId]);
   }
 
   navigateToCreateLeague(): void {
@@ -285,33 +343,13 @@ export class Home implements OnInit, OnDestroy {
       minute: '2-digit',
     });
   }
+
   canPredictMatch(card: MatchCard): boolean {
     const now = new Date();
     const startTime = new Date(card.match.start_time);
-
-    // 1. Obtener la diferencia en milisegundos
     const differenceInMs = startTime.getTime() - now.getTime();
-
-    // 2. Convertir los milisegundos a minutos reales
     const differenceInMinutes = differenceInMs / (1000 * 60);
-
-    console.log('Diferencia en minutos:', Math.round(differenceInMinutes));
-
-    // Si faltan menos de 15 minutos (o el número es negativo porque ya empezó)
-    if (differenceInMinutes < 15) {
-      return false;
-    }
-
-    console.log('Hora actual:', now.getDate(), now.getHours(), now.getMinutes());
-    console.log(
-      'Hora de inicio:',
-      startTime.getDate(),
-      startTime.getHours(),
-      startTime.getMinutes(),
-    );
-    console.log('Minutos restantes:', differenceInMinutes);
-
-    // Retorna true si faltan más de 15 minutos para que empiece el partido
+    if (differenceInMinutes < 15) return false;
     return differenceInMinutes >= 15;
   }
 
@@ -322,6 +360,8 @@ export class Home implements OnInit, OnDestroy {
       seconds: Math.floor((elapsedMs % 60000) / 1000),
     };
   }
+
+  protected readonly matchView = signal<'grid' | 'bracket' | 'calendar'>('grid');
 
   private buildMatchCards(
     matches: MatchRow[],

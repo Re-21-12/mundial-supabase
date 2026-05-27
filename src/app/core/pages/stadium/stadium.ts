@@ -39,7 +39,20 @@ export class Stadium implements OnInit {
         { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'stadium_id', header: 'ID' },
         { field: 'name', header: 'Name' },
-        { field: 'catalog_id', header: 'Country' },
+        {
+          field: 'catalog_id',
+          header: 'Country',
+          optionsSource: {
+            table: 'CATALOG',
+            valueField: 'catalog_id',
+            filterField: 'table_name',
+            filterValue: 'country',
+            labelField: 'description',
+            orderBy: 'description',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },
         { field: 'updated_at', header: 'Updated At' },
@@ -152,4 +165,3 @@ export class Stadium implements OnInit {
     }
   };
 }
-

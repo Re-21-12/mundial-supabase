@@ -23,7 +23,7 @@
     <div class="ticket__team ticket__team--home">
       <div class="ticket__logo">
         @if (c.homeTeam.logoUrl) {
-          <img [src]="c.homeTeam.logoUrl" [alt]="c.homeTeam.name" loading="lazy" />
+          <img [src]="c.homeTeam.logoUrl" [alt]="c.homeTeam.name" title="{{ c.homeTeam.name }}" loading="lazy" />
         } @else {
           <span class="ticket__logo-initials">{{ initials(c.homeTeam.name) }}</span>
         }
@@ -47,7 +47,7 @@
     <div class="ticket__team ticket__team--away">
       <div class="ticket__logo">
         @if (c.awayTeam.logoUrl) {
-          <img [src]="c.awayTeam.logoUrl" [alt]="c.awayTeam.name" loading="lazy" />
+          <img [src]="c.awayTeam.logoUrl" [alt]="c.awayTeam.name" title="{{ c.awayTeam.name }}" loading="lazy" />
         } @else {
           <span class="ticket__logo-initials">{{ initials(c.awayTeam.name) }}</span>
         }
@@ -78,15 +78,17 @@
       }
     </div>
 
-    <button
-      class="ticket__cta"
-      type="button"
-      [disabled]="!c.canPredict"
-      (click)="onPredict()"
-    >
-      <i class="pi pi-bolt"></i>
-      Predecir
-    </button>
+    @if (showPredictAction()) {
+      <button
+        class="ticket__cta"
+        type="button"
+        [disabled]="!c.canPredict"
+        (click)="onPredict()"
+      >
+        <i class="pi pi-bolt"></i>
+        Predecir
+      </button>
+    }
   </div>
 
 </article>

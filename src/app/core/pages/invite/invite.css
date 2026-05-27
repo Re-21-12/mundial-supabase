@@ -28,8 +28,9 @@
 .invite-msg--error { color: #b91c1c; }
 
 .invite-spinner { font-size: 1.75rem; color: var(--muted-foreground); margin: 8px 0; }
-.invite-icon-success { font-size: 2.5rem; color: #16a34a; }
-.invite-icon-error   { font-size: 2.5rem; color: #dc2626; }
+.invite-icon-success  { font-size: 2.5rem; color: #16a34a; }
+.invite-icon-error    { font-size: 2.5rem; color: #dc2626; }
+.invite-icon-pending  { font-size: 2.5rem; color: #d97706; }
 
 .invite-btn {
   display: inline-flex;

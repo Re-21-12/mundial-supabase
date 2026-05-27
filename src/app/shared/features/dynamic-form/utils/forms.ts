@@ -588,7 +588,7 @@ export const formFields: FormFields = {
       {
         icon: 'pi pi-database',
         key: 'league_id',
-        type: TypeFields.NUMBER,
+        type: TypeFields.SELECT,
         label: 'League Id',
         placeholder: 'Ingresa league id',
         state: {
@@ -598,11 +598,20 @@ export const formFields: FormFields = {
           readonly: false,
           repeatible: { repeat: false, minItems: 1, maxItems: 1 },
         },
+        optionsSource: {
+          table: 'LEAGUE',
+          filterField: 'league_id',
+          valueField: 'league_id',
+          labelField: 'name',
+          orderBy: 'name',
+          order: 'asc',
+          includeDeleted: false,
+        },
         hint: 'League Id',
         value: 0,
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.NUMBER,
+        controlType: TypeFields.SELECT,
         order: 2,
       },
       {
@@ -824,7 +833,7 @@ export const formFields: FormFields = {
         value: '',
         rules: [],
         options: [],
-        controlType: TypeFields.DATE,
+        controlType: TypeFields.DATETIME,
         order: 8,
       },
       {
@@ -1649,7 +1658,7 @@ export const formFields: FormFields = {
       {
         icon: 'pi pi-database',
         key: 'league_id',
-        type: TypeFields.NUMBER,
+        type: TypeFields.SELECT,
         label: 'League Id',
         placeholder: 'Ingresa league id',
         state: {
@@ -1659,11 +1668,20 @@ export const formFields: FormFields = {
           readonly: false,
           repeatible: { repeat: false, minItems: 1, maxItems: 1 },
         },
+        optionsSource: {
+          table: 'LEAGUE',
+          valueField: 'league_id',
+          filterField: 'league_id',
+          labelField: 'name',
+          orderBy: 'name',
+          order: 'asc',
+          includeDeleted: false,
+        },
         hint: 'League Id',
         value: 0,
         rules: [Validators.required],
         options: [],
-        controlType: TypeFields.NUMBER,
+        controlType: TypeFields.SELECT,
         order: 2,
       },
       {

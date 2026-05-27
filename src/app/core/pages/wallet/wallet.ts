@@ -41,13 +41,49 @@ export class WalletPage implements OnInit {
       columns: [
         { field: 'balance', header: 'Balance' },
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'currency', header: 'Currency' },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'is_deleted', header: 'Is Deleted' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
-        { field: 'user_id', header: 'User Id' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
+        {
+          field: 'user_id',
+          header: 'User',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'wallet_id', header: 'Wallet Id' },
       ],
       rows: 10,
@@ -92,9 +128,10 @@ export class WalletPage implements OnInit {
         page: this.tableService.getCurrentPage(),
         columns: '*',
         // Non-admin users only see their own wallet
-        ...((!isAdmin && currentUserId) && {
-          filters: { field: 'user_id', value: String(currentUserId) },
-        }),
+        ...(!isAdmin &&
+          currentUserId && {
+            filters: { field: 'user_id', value: String(currentUserId) },
+          }),
       });
     }
 
@@ -157,6 +194,3 @@ export class WalletPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

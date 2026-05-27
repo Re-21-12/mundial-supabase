@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationInboxService } from './notification-inbox.service';
+import { InvitationService } from './invitation.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 import { interval } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -58,7 +59,33 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
                 <span class="notif-time">{{ formatTime(notif.created_at) }}</span>
               </div>
 
-              <!-- Actions -->
+              <!-- Approval actions (only for participant_approval type) -->
+              @if (notif.notification_type === 'participant_approval') {
+                <div class="approval-actions">
+                  <button
+                    class="btn-approve"
+                    [disabled]="processingId() === notif.notification_id"
+                    (click)="approveParticipant(notif)"
+                    title="Aprobar participante"
+                  >
+                    @if (processingId() === notif.notification_id) {
+                      ⏳
+                    } @else {
+                      ✓ Aprobar
+                    }
+                  </button>
+                  <button
+                    class="btn-reject"
+                    [disabled]="processingId() === notif.notification_id"
+                    (click)="rejectParticipant(notif)"
+                    title="Rechazar participante"
+                  >
+                    ✕ Rechazar
+                  </button>
+                </div>
+              }
+
+              <!-- Standard actions -->
               <div class="notif-actions">
                 @if (!notif.is_read) {
                   <button
@@ -269,6 +296,49 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         color: #dc2626;
       }
 
+      .approval-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn-approve,
+      .btn-reject {
+        padding: 5px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-approve {
+        background: #16a34a;
+        color: #fff;
+      }
+
+      .btn-approve:hover:not(:disabled) {
+        background: #15803d;
+      }
+
+      .btn-reject {
+        background: #f3f4f6;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      .btn-reject:hover:not(:disabled) {
+        background: #fecaca;
+      }
+
+      .btn-approve:disabled,
+      .btn-reject:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
       @media (max-width: 640px) {
         .notification-inbox {
           max-height: 400px;
@@ -297,6 +367,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class NotificationInboxComponent implements OnInit {
   private notificationService = inject(NotificationInboxService);
+  private invitationService = inject(InvitationService);
   private authFacade = inject(AuthFacade);
   private destroyRef = inject(DestroyRef);
   private get userId(): number {
@@ -305,6 +376,7 @@ export class NotificationInboxComponent implements OnInit {
 
   notifications = signal<any[]>([]);
   unreadCount = signal(0);
+  processingId = signal<number | null>(null);
 
   ngOnInit() {
     this.loadNotifications();
@@ -349,6 +421,30 @@ export class NotificationInboxComponent implements OnInit {
     }
   }
 
+  async approveParticipant(notif: any) {
+    const userLeagueId = notif.payload?.['userLeagueId'];
+    if (!userLeagueId) return;
+    this.processingId.set(notif.notification_id);
+    const result = await this.invitationService.approveParticipant(userLeagueId, this.userId);
+    if (result.success) {
+      await this.notificationService.deleteNotification(notif.notification_id, this.userId);
+    }
+    this.processingId.set(null);
+    await this.loadNotifications();
+  }
+
+  async rejectParticipant(notif: any) {
+    const userLeagueId = notif.payload?.['userLeagueId'];
+    if (!userLeagueId) return;
+    this.processingId.set(notif.notification_id);
+    const result = await this.invitationService.rejectParticipant(userLeagueId, this.userId);
+    if (result.success) {
+      await this.notificationService.deleteNotification(notif.notification_id, this.userId);
+    }
+    this.processingId.set(null);
+    await this.loadNotifications();
+  }
+
   getIconForType(type: string): string {
     const icons: Record<string, string> = {
       match_reminder: '⚽',
@@ -356,6 +452,8 @@ export class NotificationInboxComponent implements OnInit {
       result_posted: '📊',
       league_update: '📢',
       invitation_received: '📧',
+      invitation_accepted: '✅',
+      participant_approval: '👤',
       league_created: '🏆',
     };
     return icons[type] || '📬';

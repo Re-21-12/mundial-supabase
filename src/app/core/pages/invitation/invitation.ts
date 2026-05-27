@@ -38,7 +38,19 @@ export class InvitationPage implements OnInit {
       header: 'Invitation',
       columns: [
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'expiration_date', header: 'Expiration Date' },
         { field: 'invitation_id', header: 'Invitation Id' },
@@ -47,7 +59,19 @@ export class InvitationPage implements OnInit {
         { field: 'status', header: 'Status' },
         { field: 'token', header: 'Token' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_league_id', header: 'User League Id' },
       ],
       rows: 10,
@@ -151,6 +175,3 @@ export class InvitationPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

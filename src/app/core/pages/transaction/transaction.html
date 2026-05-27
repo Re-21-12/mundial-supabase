@@ -1,6 +1,82 @@
-<app-overlay (delete)="deleteData($event)" (pageChange)="onPageChange($event)">
-  <ng-content #form>
-    <app-dynamic-form [fields]="fields" [initialData]="editData()" [readonlyMode]="readonlyMode()" (data)="submitData($event)"></app-dynamic-form>
-  </ng-content>
-</app-overlay>
+<div class="transactions-page">
+
+  <h1 class="topup-title">
+    <i class="pi pi-list" aria-hidden="true"></i>
+    Mis transacciones
+  </h1>
+
+  @if (isLoading()) {
+    <div class="topup-loading" role="status">
+      <i class="pi pi-spin pi-spinner topup-spinner" aria-hidden="true"></i>
+      <span>Cargando información…</span>
+    </div>
+  } @else {
+
+    <div class="balance-card" aria-label="Saldo actual">
+      <span class="balance-label">Saldo actual</span>
+      <span class="balance-amount">Q{{ wallet()?.balance ?? 0 | number:'1.2-2' }}</span>
+      <span class="balance-currency">GTQ</span>
+    </div>
+
+    <div class="transactions-toolbar card">
+      <div class="filters-row">
+        <div class="filter-item">
+          <label>Desde</label>
+          <p-datepicker [showIcon]="true" dateFormat="yy-mm-dd" [ngModel]="filters().fromDate" (ngModelChange)="onFromDateChange($event)"></p-datepicker>
+        </div>
+        <div class="filter-item">
+          <label>Hasta</label>
+          <p-datepicker [showIcon]="true" dateFormat="yy-mm-dd" [ngModel]="filters().toDate" (ngModelChange)="onToDateChange($event)"></p-datepicker>
+        </div>
+
+        <div class="filter-item">
+          <label>Tipo</label>
+          <p-select [options]="transactionTypeOptions()" optionLabel="label" optionValue="value" [ngModel]="filters().catalogId" (ngModelChange)="onCatalogChange($event)"></p-select>
+        </div>
+
+        <div class="filter-item flex-grow">
+          <label>Descripción</label>
+          <input pInputText [value]="filters().description" placeholder="Buscar descripción" (input)="onDescriptionInput($event)" />
+        </div>
+
+        <div class="filter-actions">
+          <p-button label="Buscar" icon="pi pi-search" (click)="refresh()" class="p-button-outlined"></p-button>
+          <p-button label="Limpiar" icon="pi pi-times" (click)="clearFilters()" class="p-button-text"></p-button>
+        </div>
+      </div>
+
+      <div class="presets-row">
+        <label>Presets:</label>
+        <ng-container *ngFor="let p of presets">
+          <p-button (click)="applyPreset(p)" label="{{p}} días" class="p-button-text"/>
+        </ng-container>
+      </div>
+
+      <div class="toolbar-actions">
+        <p-button icon="pi pi-refresh" (click)="refresh()" tooltip="Refrescar"></p-button>
+        <p-button icon="pi pi-file" (click)="exportCsv()" tooltip="Exportar CSV"></p-button>
+      </div>
+    </div>
+
+    <div class="transactions-list">
+      <app-dynamic-table (delete)="deleteData($event)" (pageChange)="onPageChange($event)"></app-dynamic-table>
+    </div>
+
+    <div class="page-summary">
+      <span>Página {{ pageSummary().currentPage }} de {{ pageSummary().totalPages }}</span>
+      <span class="muted">— Total: {{ pageSummary().totalRecords }}</span>
+    </div>
+
+    <p-dialog header="Detalle de transacción" [(visible)]="showDetailDialog()" [modal]="true" [style]="{ width: '720px' }" [breakpoints]="{ '960px': '92vw', '640px': '96vw' }">
+      <div class="detail-dialog-body">
+        <app-dynamic-form [fields]="transactionFields()" [initialData]="selectedTransaction()" [readonlyMode]="true"></app-dynamic-form>
+      </div>
+      <p-footer>
+        <p-button label="Cerrar" (click)="closeDetail()" icon="pi pi-times"></p-button>
+      </p-footer>
+    </p-dialog>
+
+  }
+
+</div>
 

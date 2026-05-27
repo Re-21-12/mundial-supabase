@@ -43,14 +43,62 @@ export class MatchPage implements OnInit {
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },
         { field: 'deleted_at', header: 'Deleted At' },
-        { field: 'first_team_id', header: 'First Team Id' },
+        {
+          field: 'first_team_id',
+          header: 'First Team',
+          optionsSource: {
+            table: 'TEAM',
+            valueField: 'team_id',
+            filterField: 'team_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'first_team_total', header: 'First Team Total' },
         { field: 'is_deleted', header: 'Is Deleted' },
-        { field: 'league_id', header: 'League Id' },
+        {
+          field: 'league_id',
+          header: 'League',
+          optionsSource: {
+            table: 'LEAGUE',
+            valueField: 'league_id',
+            filterField: 'league_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'match_id', header: 'Match Id' },
-        { field: 'second_team_id', header: 'Second Team Id' },
+        {
+          field: 'second_team_id',
+          header: 'Second Team',
+          optionsSource: {
+            table: 'TEAM',
+            valueField: 'team_id',
+            filterField: 'team_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'second_team_total', header: 'Second Team Total' },
-        { field: 'stadium_id', header: 'Stadium Id' },
+        {
+          field: 'stadium_id',
+          header: 'Stadium',
+          optionsSource: {
+            table: 'STADIUM',
+            valueField: 'stadium_id',
+            filterField: 'stadium_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'start_time', header: 'Inicio' },
         { field: 'end_time', header: 'Fin' },
         { field: 'updated_at', header: 'Updated At' },
@@ -157,8 +205,27 @@ export class MatchPage implements OnInit {
 
     return {
       ...data,
-      end_time: new Date(startTime.getTime() + MATCH_DURATION_MINUTES * 60 * 1000).toISOString(),
+      end_time: this.formatDateTimeWithOffset(
+        new Date(startTime.getTime() + MATCH_DURATION_MINUTES * 60 * 1000),
+      ),
     };
+  }
+
+  private formatDateTimeWithOffset(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    const offsetMinutes = -date.getTimezoneOffset();
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const offsetHours = String(Math.floor(absoluteOffsetMinutes / 60)).padStart(2, '0');
+    const offsetRemainder = String(absoluteOffsetMinutes % 60).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}${offsetSign}${offsetHours}:${offsetRemainder}`;
   }
 
   deleteData = async (rowId: string) => {

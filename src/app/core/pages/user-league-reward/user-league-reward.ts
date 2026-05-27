@@ -43,7 +43,19 @@ export class UserLeagueRewardPage implements OnInit {
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'is_claimed', header: 'Is Claimed' },
         { field: 'is_deleted', header: 'Is Deleted' },
-        { field: 'league_reward_id', header: 'League Reward Id' },
+        {
+          field: 'league_reward_id',
+          header: 'League Reward Id',
+          optionsSource: {
+            table: 'LEAGUE_REWARD',
+            valueField: 'league_reward_id',
+            filterField: 'league_reward_id',
+            labelField: 'league_reward_id',
+            orderBy: 'league_reward_id',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'updated_at', header: 'Updated At' },
         { field: 'updated_by', header: 'Updated By' },
         { field: 'user_id', header: 'User Id' },
@@ -154,6 +166,3 @@ export class UserLeagueRewardPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

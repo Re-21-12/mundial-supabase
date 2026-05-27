@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { PostgrestError, RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../services/supabase-service';
 import { DynamicService } from '../../services/dynamic-service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
+import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
+import { formFields as matchPeriodFormFields } from '../match-period/match-period-form';
 import type { Database } from '../../../types/database.types';
 
 type MatchRow = Database['public']['Tables']['MATCH']['Row'];
@@ -26,7 +28,7 @@ interface PeriodEdit {
 
 @Component({
   selector: 'app-match-scoreboard',
-  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, TagModule],
+  imports: [CommonModule, FormsModule, ButtonModule, SelectModule, TagModule, DynamicForm],
   templateUrl: './match-scoreboard.html',
   styleUrl: './match-scoreboard.css',
 })
@@ -49,6 +51,9 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   readonly expandedMatchId = signal<number | null>(null);
   readonly loadingMatches = signal(false);
   readonly loadingPeriods = signal<Set<number>>(new Set());
+  readonly periodFields = matchPeriodFormFields['matchPeriodForm'].fields.filter(
+    (field) => field.key !== 'match_id',
+  );
 
   // In-flight edits keyed by period_id (null = new period for that match)
   readonly edits = signal<Map<string, PeriodEdit>>(new Map());
@@ -127,6 +132,8 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
       .eq('league_id', leagueId)
       .eq('is_deleted', false)
       .order('start_time');
+
+    console.log('Loaded matches for league', leagueId, data);
     if (data) this.matches.set(data as MatchRow[]);
     this.loadingMatches.set(false);
 
@@ -218,6 +225,25 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     return periodId != null ? `p-${periodId}` : `new-${matchId}`;
   }
 
+  periodFormInitialData(edit: PeriodEdit): Record<string, unknown> {
+    return {
+      catalog_id: edit.catalogId,
+      first_team_score: edit.home,
+      second_team_score: edit.away,
+    };
+  }
+
+  newPeriodFormInitialData(matchId: number): Record<string, unknown> {
+    const defaultCatalog = this.catalogs()[0]?.catalog_id ?? 1;
+
+    return {
+      catalog_id: defaultCatalog,
+      first_team_score: 0,
+      second_team_score: 0,
+      match_id: matchId,
+    };
+  }
+
   startEditPeriod(period: PeriodRow): void {
     const key = this.editKey(period.match_id, period.period_id);
     this.edits.update((m) => {
@@ -267,9 +293,17 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     return this.edits().has(this.editKey(matchId, periodId));
   }
 
-  async savePeriod(key: string): Promise<void> {
+  async savePeriod(key: string, payloadJson: string): Promise<void> {
     const edit = this.edits().get(key);
     if (!edit) return;
+
+    let parsedPayload: Record<string, unknown>;
+    try {
+      parsedPayload = JSON.parse(payloadJson) as Record<string, unknown>;
+    } catch (error) {
+      console.error('Invalid match period payload', error);
+      return;
+    }
 
     this.edits.update((m) => {
       const n = new Map(m);
@@ -279,27 +313,65 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
     const payload = {
       match_id: edit.matchId,
-      catalog_id: edit.catalogId,
-      first_team_score: edit.home,
-      second_team_score: edit.away,
+      catalog_id: this.toNumber(parsedPayload['catalog_id'], edit.catalogId),
+      first_team_score: this.toNullableNumber(parsedPayload['first_team_score']),
+      second_team_score: this.toNullableNumber(parsedPayload['second_team_score']),
     };
 
-    if (edit.periodId != null) {
-      await this.dynamicService.updateData('MATCH_PERIOD', payload, {
-        field: 'period_id',
-        value: String(edit.periodId),
-      });
-    } else {
-      await this.dynamicService.insertData('MATCH_PERIOD', payload);
-    }
+    try {
+      const response =
+        edit.periodId != null
+          ? await this.dynamicService.updateData('MATCH_PERIOD', payload, {
+              field: 'period_id',
+              value: String(edit.periodId),
+            })
+          : await this.dynamicService.insertData('MATCH_PERIOD', payload);
 
-    this.cancelEdit(key);
-    await this.loadPeriods(edit.matchId);
+      if (response instanceof PostgrestError) {
+        return;
+      }
+
+      this.cancelEdit(key);
+      await this.loadPeriods(edit.matchId);
+    } catch (error) {
+      console.error('Error saving match period', error);
+    } finally {
+      const currentEdit = this.edits().get(key);
+      if (currentEdit) {
+        this.edits.update((m) => {
+          const next = new Map(m);
+          next.set(key, { ...currentEdit, saving: false });
+          return next;
+        });
+      }
+    }
   }
 
   // ── View helpers ──────────────────────────────────────────────────────────────
   isLive(match: MatchRow): boolean {
-    return new Date(match.start_time) <= new Date() && !match.is_deleted;
+    const m = match as any;
+    if (m.phase === 'finished') return false;
+    return new Date(match.start_time) <= new Date() && new Date((match as any).end_time) > new Date() && !match.is_deleted;
+  }
+
+  matchPhaseLabel(match: MatchRow): string {
+    const phase = (match as any).phase ?? 'regulation';
+    if (phase === 'extra_time') return 'Tiempo Extra';
+    if (phase === 'finished')   return 'Finalizado';
+    if (this.isLive(match))     return 'En vivo';
+    return 'Próximo';
+  }
+
+  matchPhaseSeverity(match: MatchRow): 'success' | 'warn' | 'secondary' | 'danger' {
+    const phase = (match as any).phase ?? 'regulation';
+    if (phase === 'extra_time') return 'warn';
+    if (phase === 'finished')   return 'secondary';
+    if (this.isLive(match))     return 'success';
+    return 'secondary';
+  }
+
+  isMatchClosed(match: MatchRow): boolean {
+    return (match as any).phase === 'finished';
   }
 
   isLoadingPeriods(matchId: number): boolean {
@@ -314,12 +386,22 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     return this.leagues().map((l) => ({ label: l.name, value: l.league_id }));
   }
 
-  catalogOptions() {
-    return this.catalogs().map((c) => ({ label: c.description || c.value, value: c.catalog_id }));
-  }
-
   getCatalogName(catalogId: number): string {
     const c = this.catalogs().find((cat) => cat.catalog_id === catalogId);
     return c ? c.description || c.value : `Período ${catalogId}`;
+  }
+
+  private toNumber(value: unknown, fallback: number): number {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }

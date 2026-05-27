@@ -39,7 +39,19 @@ export class AuditLogPage implements OnInit {
       columns: [
         { field: 'audit_log_id', header: 'Audit Log Id' },
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'is_deleted', header: 'Is Deleted' },
         { field: 'new_values', header: 'New Values' },
@@ -47,7 +59,19 @@ export class AuditLogPage implements OnInit {
         { field: 'operation_type', header: 'Operation Type' },
         { field: 'table_name', header: 'Table Name' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_session_id', header: 'User Session Id' },
       ],
       rows: 10,
@@ -151,6 +175,3 @@ export class AuditLogPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

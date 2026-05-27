@@ -42,7 +42,19 @@ export class LeagueRewardPage implements OnInit {
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'global_prize_1pct', header: 'Global Prize 1pct' },
         { field: 'is_deleted', header: 'Is Deleted' },
-        { field: 'league_id', header: 'League Id' },
+        {
+          field: 'league_id',
+          header: 'League',
+          optionsSource: {
+            table: 'LEAGUE',
+            valueField: 'league_id',
+            filterField: 'league_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'league_reward_id', header: 'League Reward Id' },
         { field: 'mundial_id', header: 'Mundial Id' },
         { field: 'platform_fee_5pct', header: 'Platform Fee 5pct' },
@@ -151,6 +163,3 @@ export class LeagueRewardPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

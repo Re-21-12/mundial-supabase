@@ -37,13 +37,61 @@ export class UserRolePage implements OnInit {
       header: 'User Role',
       columns: [
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'is_deleted', header: 'Is Deleted' },
-        { field: 'role_id', header: 'Role Id' },
+        {
+          field: 'role_id',
+          header: 'Role',
+          optionsSource: {
+            table: 'ROLE',
+            valueField: 'role_id',
+            filterField: 'role_id',
+            labelField: 'description',
+            orderBy: 'description',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
-        { field: 'user_id', header: 'User Id' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
+        {
+          field: 'user_id',
+          header: 'User',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'user_role_id', header: 'User Role Id' },
       ],
       rows: 10,
@@ -145,6 +193,3 @@ export class UserRolePage implements OnInit {
     await this.getData();
   };
 }
-
-
-

@@ -26,6 +26,7 @@ export class DynamicTableService {
         rowsPerPageOptions: this.rowsPerPageOptions(),
         data: this.tableData(),
         totalRecords: this.totalRecords(),
+        currentPage: this.currentPage(),
         routeBase: this.routeBase(),
         rowIdField: this.rowIdField(),
         actions: this.actions(),
@@ -59,10 +60,23 @@ export class DynamicTableService {
     const totalRecords = (data as { totalRecords?: number }).totalRecords;
     if (typeof totalRecords === 'number') {
       this.totalRecords.set(totalRecords);
+      // Ajustar currentPage si excede el número máximo de páginas después de la actualización/eliminación
+      const pageSize = this.pageSize();
+      const maxPage = pageSize > 0 ? Math.max(0, Math.floor((totalRecords - 1) / pageSize)) : 0;
+      if (this.currentPage() > maxPage) {
+        this.currentPage.set(maxPage);
+      }
       return;
     }
 
     this.totalRecords.set(data.length);
+    // Si no viene totalRecords, usar la longitud para ajustar currentPage
+    const inferredTotal = data.length;
+    const pageSize2 = this.pageSize();
+    const maxPage2 = pageSize2 > 0 ? Math.max(0, Math.floor((inferredTotal - 1) / pageSize2)) : 0;
+    if (this.currentPage() > maxPage2) {
+      this.currentPage.set(maxPage2);
+    }
   }
 
   /**

@@ -22,6 +22,54 @@ export class SupabaseService {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
+  private isSessionDebugEnabled(): boolean {
+    try {
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      const flag = window.localStorage.getItem('debug:session');
+      if (flag === '1') return true;
+      if (flag === '0') return false;
+
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  private logFetchDebug(stage: string, extra: Record<string, unknown> = {}): void {
+    if (!this.isSessionDebugEnabled()) {
+      return;
+    }
+
+    console.log('[AuthDebug][SupabaseFetch]', {
+      ts: new Date().toISOString(),
+      stage,
+      ...extra,
+    });
+  }
+
+  private getAuthHeaderSuffix(init?: RequestInit): string | null {
+    const headers = init?.headers;
+    if (!headers) return null;
+
+    let authHeader: string | null = null;
+
+    if (headers instanceof Headers) {
+      authHeader = headers.get('Authorization');
+    } else if (Array.isArray(headers)) {
+      const found = headers.find(([key]) => key.toLowerCase() === 'authorization');
+      authHeader = found?.[1] ?? null;
+    } else {
+      const objectHeaders = headers as Record<string, string>;
+      authHeader = objectHeaders['Authorization'] ?? objectHeaders['authorization'] ?? null;
+    }
+
+    if (!authHeader) return null;
+    return authHeader.slice(-10);
+  }
+
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       global: {
@@ -35,10 +83,28 @@ export class SupabaseService {
             url.includes('/realtime/v1/') ||
             url.includes('/rest/v1/ERROR_LOG') ||
             url.includes('/rest/v1/ERROR_CATALOG');
+          const method = init?.method ?? 'GET';
+          const authHeaderSuffix = this.getAuthHeaderSuffix(init);
+
+          this.logFetchDebug('request:start', {
+            method,
+            url,
+            isInternal,
+            hasAuthHeader: Boolean(authHeaderSuffix),
+            authHeaderSuffix,
+          });
 
           if (!isInternal) this.loadingService.start();
           try {
             const response = await fetch(input, init);
+
+            this.logFetchDebug('request:response', {
+              method,
+              url,
+              isInternal,
+              status: response.status,
+              ok: response.ok,
+            });
 
             if (!response.ok && !isInternal && this.shouldNotify(response.status)) {
               this.notificationService.notify(
@@ -47,12 +113,23 @@ export class SupabaseService {
                 this.getMessageByStatus(response.status),
               );
               if (response.status === 401) {
+                this.logFetchDebug('request:401-redirect', {
+                  method,
+                  url,
+                  currentRoute: this.router.url,
+                });
                 void this.router.navigate(['/auth']);
               }
             }
 
             return response;
           } catch (error) {
+            this.logFetchDebug('request:error', {
+              method,
+              url,
+              isInternal,
+              error: error instanceof Error ? error.message : String(error),
+            });
             if (!isInternal) {
               this.notificationService.notify(
                 'error',

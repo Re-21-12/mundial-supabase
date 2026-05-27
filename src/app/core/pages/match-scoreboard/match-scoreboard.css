@@ -100,11 +100,11 @@
 }
 
 .sb-match--live {
-  border-color: color-mix(in oklch, oklch(0.65 0.15 145) 60%, var(--border));
+  border-color: rgba(34, 197, 94, 0.55);
 }
 
 .sb-match--expanded {
-  border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+  border-color: rgba(37, 99, 235, 0.45);
 }
 
 /* ─── Match header button ──────────────────────────────────────── */
@@ -123,7 +123,7 @@
 }
 
 .sb-match__header:hover {
-  background: color-mix(in oklch, var(--primary) 4%, var(--card));
+  background: rgba(37, 99, 235, 0.04);
 }
 
 .sb-match__status { flex-shrink: 0; }
@@ -168,7 +168,7 @@
 /* ─── Match body (period control) ──────────────────────────────── */
 .sb-match__body {
   border-top: 1px solid var(--border);
-  background: color-mix(in oklch, var(--primary) 3%, var(--background));
+  background: rgba(37, 99, 235, 0.03);
   padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -194,7 +194,7 @@
 
 .sb-periods-table td {
   padding: 0.45rem 0.5rem;
-  border-bottom: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   vertical-align: middle;
 }
 
@@ -204,7 +204,7 @@
   padding-top: 0.5rem;
 }
 
-.sb-period--editing td { background: color-mix(in oklch, var(--primary) 5%, transparent); }
+.sb-period--editing td { background: rgba(37, 99, 235, 0.05); }
 
 .sb-period__label { color: var(--foreground); font-weight: 500; }
 
@@ -219,6 +219,43 @@
   display: flex;
   gap: 0.25rem;
   justify-content: flex-end;
+}
+
+.sb-period__editing-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sb-period__form-row td {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.sb-period-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sb-period-form__actions,
+.sb-new-period__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.sb-saving-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
 }
 
 .text-center { text-align: center; }
@@ -241,7 +278,7 @@
 .sb-score-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 20%, transparent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
 /* ─── Action buttons ───────────────────────────────────────────── */
@@ -264,9 +301,9 @@
 .sb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .sb-btn--edit:hover {
-  background: color-mix(in oklch, var(--primary) 10%, var(--background));
-  border-color: var(--primary);
-  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  border-color: #2563eb;
+  color: #2563eb;
 }
 
 .sb-btn--save {
@@ -280,9 +317,9 @@
 }
 
 .sb-btn--cancel:hover {
-  background: color-mix(in oklch, oklch(0.55 0.2 25) 10%, var(--background));
-  border-color: oklch(0.55 0.2 25);
-  color: oklch(0.55 0.2 25);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: #ef4444;
+  color: #ef4444;
 }
 
 /* ─── Empty periods ────────────────────────────────────────────── */
@@ -302,7 +339,7 @@
   padding: 0.75rem;
   border: 1px dashed var(--border);
   border-radius: var(--radius);
-  background: color-mix(in oklch, var(--primary) 4%, transparent);
+  background: rgba(37, 99, 235, 0.04);
 }
 
 .sb-new-period__title {
@@ -352,7 +389,7 @@
 }
 
 .sb-add-period-btn:hover {
-  background: color-mix(in oklch, var(--primary) 8%, transparent);
+  background: rgba(37, 99, 235, 0.08);
   border-color: var(--primary);
 }
 

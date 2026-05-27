@@ -37,7 +37,20 @@ export class MatchPeriodPage implements OnInit {
     this.tableService.initTable({
       header: 'Match Period',
       columns: [
-        { field: 'catalog_id', header: 'Catalog Id' },
+        {
+          field: 'catalog_id',
+          header: 'Catalog Id',
+          optionsSource: {
+            table: 'CATALOG',
+            valueField: 'catalog_id',
+            filterField: 'table_id',
+            filterValue: 30,
+            labelField: 'description',
+            orderBy: 'description',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },
         { field: 'deleted_at', header: 'Deleted At' },
@@ -150,6 +163,3 @@ export class MatchPeriodPage implements OnInit {
     await this.getData();
   };
 }
-
-
-

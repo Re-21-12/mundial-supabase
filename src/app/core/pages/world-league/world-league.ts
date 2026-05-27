@@ -39,12 +39,36 @@ export class WorldLeaguePage implements OnInit {
       columns: [
         { field: 'logo_url', header: 'Logo', type: 'image' as const },
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'is_deleted', header: 'Is Deleted' },
         { field: 'name', header: 'Name' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'world_league_id', header: 'World League Id' },
       ],
       rows: 10,
@@ -148,6 +172,3 @@ export class WorldLeaguePage implements OnInit {
     await this.getData();
   };
 }
-
-
-

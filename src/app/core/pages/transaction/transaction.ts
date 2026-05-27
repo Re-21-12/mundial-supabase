@@ -1,22 +1,54 @@
-import { Database } from './../../../types/database.types';
-import { Component, inject, model, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, model, OnInit, signal } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { DatePickerModule } from 'primeng/datepicker';
+import { TooltipModule } from 'primeng/tooltip';
+import { firstValueFrom } from 'rxjs';
+import { PostgrestError } from '@supabase/supabase-js';
+import { Database } from './../../../types/database.types';
 import { DynamicQueryFilter } from '../../interfaces/dynamic-query-interface';
 import { DynamicService } from '../../services/dynamic-service';
 import { DynamicTableService } from '../../../shared/features/dynamic-table/services/dynamic-table.service';
-import { DialogService } from 'primeng/dynamicdialog';
 import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
-import { firstValueFrom } from 'rxjs';
-import { PostgrestError } from '@supabase/supabase-js';
 import { formFields } from './transaction-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
-import { Overlay } from '../../../shared/layouts/overlay/overlay';
+import { FieldBase } from '../../../shared/features/dynamic-form/interfaces/field-props';
+import { TypeFields } from '../../../shared/features/dynamic-form/enums/type-fields';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
+import { WalletService } from '../wallet/wallet.service';
+import { SupabaseService } from '../../services/supabase-service';
+import { DynamicTable } from '../../../shared/features/dynamic-table/dynamic-table';
+
+interface TransactionTypeOption {
+  label: string;
+  value: number | null;
+}
 
 @Component({
   selector: 'app-transaction',
-  imports: [DynamicForm, Overlay],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    SelectModule,
+    TagModule,
+    DatePickerModule,
+    TooltipModule,
+    DynamicForm,
+    DynamicTable,
+  ],
   templateUrl: './transaction.html',
-  styleUrl: './transaction.css',
+  styleUrl: '../wallet-topup/wallet-topup.css',
   providers: [DialogService, DynamicTableService],
 })
 export class TransactionPage implements OnInit {
@@ -26,19 +58,61 @@ export class TransactionPage implements OnInit {
 
   fields = formFields['transactionForm'].fields;
   private readonly _route = inject(ActivatedRoute);
-  id = signal<string | null>(null);
-  editData = signal<Record<string, any> | null>(null);
-  readonlyMode = signal<boolean>(false);
-  readonly dynamicService = inject(DynamicService);
+  private readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
   private readonly dialogService = inject(DialogService);
+  private readonly walletService = inject(WalletService);
+  private readonly auth = inject(AuthFacade);
+  private readonly supabase = inject(SupabaseService);
 
-  ngOnInit() {
+  protected readonly wallet = signal<{ wallet_id: number; balance: number } | null>(null);
+  protected readonly isLoading = signal(true);
+  protected readonly showDetailDialog = signal(false);
+  protected readonly selectedTransaction = signal<Record<string, any> | null>(null);
+  protected readonly transactionFields = signal<FieldBase<any>[]>([]);
+  protected readonly transactionTypeOptions = signal<TransactionTypeOption[]>([
+    { label: 'Todos', value: null },
+  ]);
+  protected readonly filters = signal({
+    fromDate: null as Date | null,
+    toDate: null as Date | null,
+    catalogId: null as number | null,
+    description: '',
+  });
+
+  protected readonly presets = [7, 30, 90, 180];
+  protected readonly pageSummary = computed(() => {
+    const totalRecords = this.tableService.tableProps().totalRecords ?? 0;
+    const pageSize = this.tableService.getPageSize();
+    const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+    return {
+      currentPage: this.tableService.getCurrentPage() + 1,
+      totalPages,
+      totalRecords,
+    };
+  });
+
+  async ngOnInit(): Promise<void> {
+    const isAdmin = (this.auth.role() ?? '').toLowerCase() === 'admin';
+
     this.tableService.initTable({
       header: 'Transaction',
       columns: [
         { field: 'amount', header: 'Amount' },
-        { field: 'catalog_id', header: 'Catalog Id' },
+        {
+          field: 'catalog_id',
+          header: 'Tipo',
+          optionsSource: {
+            table: 'CATALOG',
+            valueField: 'catalog_id',
+            filterField: 'table_id',
+            filterValue: 40,
+            labelField: 'description',
+            orderBy: 'description',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'created_at', header: 'Created At' },
         { field: 'created_by', header: 'Created By' },
         { field: 'deleted_at', header: 'Deleted At' },
@@ -52,8 +126,90 @@ export class TransactionPage implements OnInit {
       ],
       rows: 10,
       rowsPerPageOptions: [5, 10, 20],
+      actions: isAdmin ? ['update', 'delete'] : [],
+      rowActions: [
+        {
+          icon: 'pi pi-eye',
+          label: 'Detalle',
+          severity: 'secondary',
+          action: (row) => this.openDetail(row),
+        },
+      ],
     });
-    this.getData();
+
+    this.transactionFields.set(
+      formFields['transactionForm'].fields.map((field) => {
+        if (field.key === 'transaction_id' || field.key === 'description') {
+          return { ...field, readonly: true, state: { ...field.state, readonly: true } };
+        }
+
+        return field;
+      }),
+    );
+
+    await this.loadTransactionTypes();
+    await this.loadWalletSummary();
+    await this.getData();
+    this.isLoading.set(false);
+  }
+
+  protected applyPreset(days: number): void {
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - days);
+
+    this.filters.update((current) => ({
+      ...current,
+      fromDate,
+      toDate,
+    }));
+    void this.refresh();
+  }
+
+  protected clearFilters(): void {
+    this.filters.set({
+      fromDate: null,
+      toDate: null,
+      catalogId: null,
+      description: '',
+    });
+    void this.refresh();
+  }
+
+  protected async refresh(): Promise<void> {
+    await this.getData();
+  }
+
+  protected openDetail(row: Record<string, any>): void {
+    this.selectedTransaction.set(row);
+    this.showDetailDialog.set(true);
+  }
+
+  protected closeDetail(): void {
+    this.showDetailDialog.set(false);
+    this.selectedTransaction.set(null);
+  }
+
+  protected async exportCsv(): Promise<void> {
+    const rows = await this.fetchExportRows();
+    if (!rows.length) {
+      return;
+    }
+
+    const headers = Object.keys(rows[0] as Record<string, unknown>);
+    const csvLines = [headers.join(',')];
+
+    for (const row of rows as Record<string, unknown>[]) {
+      csvLines.push(headers.map((header) => JSON.stringify(row[header] ?? '')).join(','));
+    }
+
+    const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'transactions.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   submitData = async ($event: string) => {
@@ -63,11 +219,16 @@ export class TransactionPage implements OnInit {
     await this.getData();
   };
 
+  private id = signal<string | null>(null);
+  private editData = signal<Record<string, any> | null>(null);
+  private readonlyMode = signal(false);
+
   getData = async () => {
     const id = this._route.snapshot.paramMap.get('id');
     if (id) {
       this.id.set(id);
     }
+
     const url = this._route.snapshot.url.map((s) => s.path).join('/');
     const isDetail = url.endsWith('detail');
     const isEdit = url.endsWith('edit');
@@ -89,6 +250,7 @@ export class TransactionPage implements OnInit {
         limit: this.tableService.getPageSize(),
         page: this.tableService.getCurrentPage(),
         columns: '*',
+        filters: this.buildFilters(),
       });
     }
 
@@ -125,6 +287,7 @@ export class TransactionPage implements OnInit {
     });
     return response;
   };
+
   deleteData = async (rowId: string) => {
     const ref = this.dialogService.open(ConfirmDeleteModalComponent, {
       header: 'Confirmar eliminación',
@@ -146,11 +309,153 @@ export class TransactionPage implements OnInit {
       await this.getData();
     }
   };
+
   onPageChange = async (event: { first: number; rows: number }) => {
     this.tableService.onPageChange(event);
     await this.getData();
   };
+
+  protected onSearchChange(): void {
+    void this.refresh();
+  }
+
+  protected onFromDateChange(value: Date | null): void {
+    this.filters.update((c) => ({ ...c, fromDate: value }));
+  }
+
+  protected onToDateChange(value: Date | null): void {
+    this.filters.update((c) => ({ ...c, toDate: value }));
+  }
+
+  protected onCatalogChange(value: number | null): void {
+    this.filters.update((c) => ({ ...c, catalogId: value }));
+  }
+
+  protected onDescriptionInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value ?? '';
+    this.filters.update((c) => ({ ...c, description: val }));
+  }
+
+  protected getDisplayCatalogLabel(catalogId: number | null): string {
+    if (catalogId === null) {
+      return 'Todos';
+    }
+
+    return (
+      this.transactionTypeOptions().find((option) => option.value === catalogId)?.label ?? 'Todos'
+    );
+  }
+
+  private async loadTransactionTypes(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('CATALOG')
+      .select('catalog_id, description')
+      .eq('table_id', 40)
+      .eq('is_deleted', false)
+      .order('description');
+
+    if (error) {
+      console.error('Error loading transaction types:', error);
+      return;
+    }
+
+    const options: TransactionTypeOption[] = [
+      { label: 'Todos', value: null },
+      ...((data ?? []) as { catalog_id: number; description: string }[]).map((item) => ({
+        label: item.description,
+        value: item.catalog_id,
+      })),
+    ];
+
+    this.transactionTypeOptions.set(options);
+  }
+
+  private async loadWalletSummary(): Promise<void> {
+    try {
+      const userId = Number(this.auth.getInternalUserId());
+      if (!userId) {
+        return;
+      }
+
+      const { data: wallet } = await this.walletService.getWallet(userId);
+      if (wallet) {
+        this.wallet.set({ wallet_id: wallet.wallet_id, balance: wallet.balance });
+      }
+    } catch (err) {
+      console.error('Error loading wallet for transactions view', err);
+    }
+  }
+
+  private buildFilters(): DynamicQueryFilter[] {
+    const filters: DynamicQueryFilter[] = [];
+    const isAdmin = (this.auth.role() ?? '').toLowerCase() === 'admin';
+    const walletId = this.wallet()?.wallet_id;
+    const { fromDate, toDate, catalogId, description } = this.filters();
+
+    if (!isAdmin && walletId) {
+      filters.push({ field: 'wallet_id', value: String(walletId), operator: 'eq' });
+    }
+
+    if (fromDate) {
+      const isoFrom = fromDate.toISOString().slice(0, 10);
+      filters.push({ field: 'transaction_date', value: isoFrom, operator: 'gte' });
+    }
+
+    if (toDate) {
+      const isoTo = new Date(toDate);
+      isoTo.setHours(23, 59, 59, 999);
+      filters.push({
+        field: 'transaction_date',
+        value: isoTo.toISOString().slice(0, 10),
+        operator: 'lte',
+      });
+    }
+
+    if (catalogId) {
+      filters.push({ field: 'catalog_id', value: String(catalogId), operator: 'eq' });
+    }
+
+    if (description.trim()) {
+      filters.push({ field: 'description', value: `%${description.trim()}%`, operator: 'ilike' });
+    }
+
+    return filters;
+  }
+
+  private async fetchExportRows(): Promise<Record<string, unknown>[]> {
+    const isAdmin = (this.auth.role() ?? '').toLowerCase() === 'admin';
+    const walletId = this.wallet()?.wallet_id;
+    const { fromDate, toDate, catalogId, description } = this.filters();
+
+    const query = this.supabase.client.from('TRANSACTION').select('*').order('created_at', {
+      ascending: false,
+    });
+
+    let filtered = query;
+    if (!isAdmin && walletId) {
+      filtered = filtered.eq('wallet_id', walletId);
+    }
+    if (fromDate) {
+      filtered = filtered.gte('transaction_date', fromDate.toISOString().slice(0, 10));
+    }
+    if (toDate) {
+      const endDate = new Date(toDate);
+      endDate.setHours(23, 59, 59, 999);
+      filtered = filtered.lte('transaction_date', endDate.toISOString().slice(0, 10));
+    }
+    if (catalogId) {
+      filtered = filtered.eq('catalog_id', catalogId);
+    }
+    if (description.trim()) {
+      filtered = filtered.ilike('description', `%${description.trim()}%`);
+    }
+
+    const { data, error } = await filtered;
+    if (error) {
+      console.error('Error exporting transactions:', error);
+      return [];
+    }
+
+    return (data ?? []) as Record<string, unknown>[];
+  }
 }
-
-
-

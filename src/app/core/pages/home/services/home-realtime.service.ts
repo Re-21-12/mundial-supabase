@@ -33,12 +33,15 @@ export class HomeRealtimeService implements OnDestroy {
   }
 
   private async loadInitialData(): Promise<void> {
+    const hoyMedianoche = new Date();
+    hoyMedianoche.setHours(0, 0, 0, 0);
     const { data: matchData } = await this.supabaseService.client
       .from('MATCH')
       .select('*')
       .eq('is_deleted', false)
+      .gte('start_time', hoyMedianoche.toISOString())
       .order('start_time', { ascending: true })
-      .limit(200);
+      .limit(5);
 
     const [periodRes, teamRes] = await Promise.all([
       this.dynamicService.fetchData<MatchPeriodRow>({

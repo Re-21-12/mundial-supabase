@@ -38,14 +38,38 @@ export class RolePage implements OnInit {
       header: 'Role',
       columns: [
         { field: 'created_at', header: 'Created At' },
-        { field: 'created_by', header: 'Created By' },
+        {
+          field: 'created_by',
+          header: 'Created By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
         { field: 'deleted_at', header: 'Deleted At' },
         { field: 'description', header: 'Description' },
         { field: 'is_deleted', header: 'Is Deleted' },
         { field: 'name', header: 'Name' },
         { field: 'role_id', header: 'Role Id' },
         { field: 'updated_at', header: 'Updated At' },
-        { field: 'updated_by', header: 'Updated By' },
+        {
+          field: 'updated_by',
+          header: 'Updated By',
+          optionsSource: {
+            table: 'USER',
+            valueField: 'user_id',
+            filterField: 'user_id',
+            labelField: 'name',
+            orderBy: 'name',
+            order: 'asc',
+            includeDeleted: false,
+          },
+        },
       ],
       rows: 10,
       rowsPerPageOptions: [5, 10, 20],
@@ -148,6 +172,3 @@ export class RolePage implements OnInit {
     await this.getData();
   };
 }
-
-
-
