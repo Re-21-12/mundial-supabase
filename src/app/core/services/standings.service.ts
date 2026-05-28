@@ -8,6 +8,8 @@ export type StandingRow = {
   accumulated_points: number;
   user_name: string;
   user_login: string;
+  /** Custom team name chosen by the user for this specific league */
+  team_name: string | null;
   rank: number;
   previous_rank: number | null;
   /** Positive = moved up, negative = moved down, 0 = same, null = no prior data */
@@ -22,9 +24,10 @@ export class StandingsService {
   async loadStandings(leagueId: number): Promise<StandingRow[]> {
     const { data, error } = await this._db.client
       .from('USER_LEAGUE')
-      .select('user_league_id, user_id, accumulated_points, previous_rank, USER(name, login)')
+      .select('user_league_id, user_id, accumulated_points, previous_rank, team_name, USER(name, login)')
       .eq('league_id', leagueId)
       .eq('is_deleted', false)
+      .eq('approval_status', 'approved')
       .order('accumulated_points', { ascending: false });
 
     if (error) {
@@ -43,6 +46,7 @@ export class StandingsService {
         accumulated_points: row.accumulated_points,
         user_name: row.USER?.name ?? '—',
         user_login: row.USER?.login ?? '—',
+        team_name: row.team_name ?? null,
         rank: currentRank,
         previous_rank: previousRank,
         rankChange,

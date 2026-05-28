@@ -154,8 +154,9 @@ export class PredictionClientService {
       const end = new Date(m.end_time);
       const isLive = start <= now && end >= now;
       const isFinished = end < now;
-      const minutesToEnd = (end.getTime() - now.getTime()) / 60000;
-      const canPredict = minutesToEnd > 15;
+      // Predictions close 15 minutes before the match STARTS (not before it ends)
+      const minutesUntilStart = (start.getTime() - now.getTime()) / 60000;
+      const canPredict = minutesUntilStart > 15;
       const pred = predMap.get(m.match_id);
 
       return {
@@ -185,11 +186,12 @@ export class PredictionClientService {
       };
     });
 
+    // Fire isPredictionLocked for matches entering the 15-minute pre-start window
     await Promise.all(
       cards
         .filter((card) => {
-          const minutesUntilEnd = (new Date(card.endTime).getTime() - now.getTime()) / 60000;
-          return minutesUntilEnd <= 16 && minutesUntilEnd > 0;
+          const minutesUntilStart = (new Date(card.startTime).getTime() - now.getTime()) / 60000;
+          return minutesUntilStart <= 16 && minutesUntilStart > 0;
         })
         .map((card) => this.leagueRules.isPredictionLocked(card.matchId)),
     );

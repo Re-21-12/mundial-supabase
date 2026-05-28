@@ -1,0 +1,278 @@
+.ap-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+/* ── Loading / unauthorized ──────────────────────────────────────────────── */
+
+.ap-loading {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: 3rem;
+  font-size: 0.9rem;
+}
+
+.ap-unauthorized {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.ap-icon {
+  font-size: 2.5rem;
+}
+
+.ap-back-link {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+.ap-back-link:hover { text-decoration: underline; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.ap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.ap-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ap-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+.ap-back:hover { background: var(--accent); }
+
+.ap-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 2px;
+}
+
+.ap-subtitle {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.ap-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+
+.ap-toast {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.ap-toast--success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.ap-toast--error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.ap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.ap-empty p { margin: 0; font-size: 0.95rem; }
+
+.ap-empty__sub {
+  font-size: 0.8rem !important;
+  color: var(--muted-foreground);
+  opacity: 0.75;
+}
+
+/* ── Participant cards ────────────────────────────────────────────────────── */
+
+.ap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ap-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  transition: box-shadow 0.12s;
+}
+
+.ap-card:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); }
+
+.ap-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ap-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ap-card__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-card__email {
+  font-size: 0.775rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-card__team {
+  font-size: 0.775rem;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.ap-card__date {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+
+.ap-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ap-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ap-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ap-btn--approve {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+}
+.ap-btn--approve:hover:not(:disabled) { background: #15803d; }
+
+.ap-btn--reject {
+  background: transparent;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+.ap-btn--reject:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+
+.ap-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ap-spin 0.6s linear infinite;
+}
+
+@keyframes ap-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 540px) {
+  .ap-card {
+    flex-wrap: wrap;
+  }
+
+  .ap-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

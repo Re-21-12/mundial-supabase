@@ -96,3 +96,132 @@
 }
 
 .jl-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Search mode tabs */
+.jl-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 1rem;
+  background: var(--muted);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.jl-tab {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.jl-tab--active {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+/* Label for form fields */
+.jl-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: -4px;
+}
+
+/* Input without uppercase for name/team fields */
+.jl-input--normal {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+/* Search results list */
+.jl-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.jl-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.jl-result:hover { background: var(--accent); }
+
+.jl-result__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.jl-result__badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.jl-result__badge--fun {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* League preview card */
+.jl-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jl-preview__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.jl-preview__fee {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin: 0 0 6px;
+}
+
+/* Back button */
+.jl-back {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+  transition: color 0.12s;
+}
+
+.jl-back:hover { color: var(--foreground); }

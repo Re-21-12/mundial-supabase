@@ -1,4 +1,147 @@
 /* Estilos para componentes PrimeNG */
+:host {
+  display: block;
+  color: #e2e8f0;
+}
+
+:host ::ng-deep .p-inputgroup,
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-datepicker,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-multiselect {
+  width: 100%;
+}
+
+:host ::ng-deep .p-inputgroup {
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+:host ::ng-deep .p-inputgroup-addon {
+  display: grid;
+  place-items: center;
+  min-width: 3.25rem;
+  padding: 0;
+  border: 1px solid rgba(71, 85, 105, 0.55);
+  border-right: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.82));
+  color: #cbd5e1;
+}
+
+:host ::ng-deep .p-inputgroup-addon:last-child {
+  border-right: 1px solid rgba(71, 85, 105, 0.55);
+  border-left: 0;
+}
+
+:host ::ng-deep .p-inputgroup-addon i {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-multiselect,
+:host ::ng-deep .p-password-input,
+:host ::ng-deep .p-datepicker-input,
+:host ::ng-deep textarea[ppinputtext],
+:host ::ng-deep textarea.p-inputtext,
+:host ::ng-deep .p-inputgroup input,
+:host ::ng-deep .p-inputgroup textarea,
+:host ::ng-deep .p-inputwrapper .p-inputtext {
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(71, 85, 105, 0.55);
+  border-left: 0;
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  outline: none;
+  box-shadow: none;
+}
+
+:host ::ng-deep .p-inputtext::placeholder,
+:host ::ng-deep .p-password-input::placeholder,
+:host ::ng-deep .p-datepicker-input::placeholder,
+:host ::ng-deep .p-inputgroup input::placeholder,
+:host ::ng-deep textarea::placeholder {
+  color: rgba(148, 163, 184, 0.72);
+}
+
+:host ::ng-deep .p-inputgroup .p-inputtext:first-child,
+:host ::ng-deep .p-inputgroup .p-password,
+:host ::ng-deep .p-inputgroup .p-datepicker,
+:host ::ng-deep .p-inputgroup .p-select {
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+:host ::ng-deep .p-password .p-password-input,
+:host ::ng-deep .p-datepicker .p-datepicker-input,
+:host ::ng-deep .p-select {
+  border-radius: 1rem;
+}
+
+:host ::ng-deep .p-inputgroup:focus-within .p-inputgroup-addon,
+:host ::ng-deep .p-inputgroup:focus-within .p-inputtext,
+:host ::ng-deep .p-password:focus-within .p-inputpassword,
+:host ::ng-deep .p-select:focus-within,
+:host ::ng-deep .p-datepicker:focus-within .p-datepicker-input {
+  border-color: rgba(56, 189, 248, 0.95);
+}
+
+:host ::ng-deep .p-inputgroup:focus-within,
+:host ::ng-deep .p-password:focus-within,
+:host ::ng-deep .p-select:focus-within,
+:host ::ng-deep .p-datepicker:focus-within {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+}
+
+:host ::ng-deep .p-password .p-password-toggle-mask,
+:host ::ng-deep .p-password .p-button {
+  color: #cbd5e1;
+}
+
+:host ::ng-deep .p-select {
+  align-items: center;
+}
+
+:host ::ng-deep .p-select .p-select-label,
+:host ::ng-deep .p-select .p-placeholder {
+  color: rgba(248, 250, 252, 0.92);
+}
+
+:host ::ng-deep .p-select .p-select-dropdown {
+  color: #cbd5e1;
+}
+
+:host ::ng-deep .p-datepicker .p-datepicker-dropdown {
+  color: #cbd5e1;
+}
+
+.field-label-wrap {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.field-required {
+  color: #fda4af;
+  font-weight: 700;
+}
+
 :host ::ng-deep {
   /* Asegurar que los inputs de PrimeNG heredan estilos correctamente */
   .p-inputnumber .p-inputnumber-input,

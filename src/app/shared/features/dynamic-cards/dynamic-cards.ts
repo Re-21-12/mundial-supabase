@@ -1,14 +1,11 @@
 import { Component, inject, output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
 import { DynamicTableService } from '../dynamic-table/services/dynamic-table.service';
 import { TypeOption } from '../dynamic-table/interfaces/table-interface';
 
 @Component({
   selector: 'app-dynamic-cards',
-  imports: [CardModule, CommonModule, ButtonModule],
+  imports: [],
   templateUrl: './dynamic-cards.html',
   styleUrl: './dynamic-cards.css',
 })

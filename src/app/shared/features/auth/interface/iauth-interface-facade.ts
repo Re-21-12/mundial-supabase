@@ -18,13 +18,26 @@ export interface IAuthFacade {
   updateProfile(user: User): any;
   authChanges(callback: (event: AuthChangeEvent, session: Session | null) => void): any;
   stateAuthChanges(): void;
-  singInAnonymously(): Promise<{ data: any; error: any }>;
-  signInWithOtp(email: string, createUser?: boolean): Promise<any>;
-  signInWithEmail(email: string): Promise<{ data: any; error: any }>;
-  signInWithPassword(email: string, password?: string): Promise<{ data: any; error: any }>;
-  signUpWithPassword(email: string, password: string, name?: string): Promise<{ data: any; error: any }>;
-  requestPasswordReset(email: string): Promise<{ data: any; error: any }>;
-  signInWithOAuth(provider: Provider): Promise<{ data: any; error: any }>;
+  singInAnonymously(captchaToken?: string): Promise<{ data: any; error: any }>;
+  signInWithOtp(
+    email: string,
+    createUser?: boolean,
+    captchaToken?: string,
+  ): Promise<{ data: any; error: any }>;
+  signInWithEmail(email: string, captchaToken?: string): Promise<{ data: any; error: any }>;
+  signInWithPassword(
+    email: string,
+    password?: string,
+    captchaToken?: string,
+  ): Promise<{ data: any; error: any }>;
+  signUpWithPassword(
+    email: string,
+    password: string,
+    name?: string,
+    captchaToken?: string,
+  ): Promise<{ data: any; error: any }>;
+  requestPasswordReset(email: string, captchaToken?: string): Promise<{ data: any; error: any }>;
+  signInWithOAuth(provider: Provider, captchaToken?: string): Promise<{ data: any; error: any }>;
   signOut(): Promise<any>;
   getSession(): Promise<any>;
   downLoadImage(path: string): Promise<{ data: Blob | null; error: Error | null }>;
@@ -40,7 +53,7 @@ export interface IAuthFacade {
     error: unknown;
   }>;
   inviteUser(email: string): Promise<{ data: any; error: any }>;
-  sendMagicLink(email: string): Promise<{ error: any }>;
+  sendMagicLink(email: string, captchaToken?: string): Promise<{ error: any }>;
   setNewPassword(newPassword: string): Promise<{ data: any; error: any }>;
   getInternalUserId(): string | null;
   getEmail(): string | null;

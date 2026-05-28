@@ -49,7 +49,8 @@
       "Bash(cd /mnt/c/Users/victo/Mundial && npx tsc --noEmit 2>&1 | head -30)",
       "Read(//mnt/c/Users/victo/**)",
       "mcp__supabase__apply_migration",
-      "Bash(Find c:\\\\Users\\\\victo\\\\Mundial\\\\db\\\\script -name \"*.sql\" -type f)"
+      "Bash(Find c:\\\\Users\\\\victo\\\\Mundial\\\\db\\\\script -name \"*.sql\" -type f)",
+      "mcp__supabase__get_logs"
     ]
   }
 }

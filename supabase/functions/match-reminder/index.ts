@@ -13,15 +13,16 @@ serve(async (_req) => {
     );
 
     const now = new Date();
+    // Notify users when a match is 15–16 minutes from STARTING (deadline = start_time - 15 min)
     const windowStart = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
     const windowEnd   = new Date(now.getTime() + 16 * 60 * 1000).toISOString();
 
-    // Buscar partidos cuyo deadline de predicción cae en los próximos 15-16 minutos
+    // Buscar partidos cuyo start_time cae en los próximos 15-16 minutos
     const { data: matches, error: matchErr } = await supabase
       .from('MATCH')
       .select('match_id, league_id')
-      .gte('end_time', windowStart)
-      .lt('end_time', windowEnd)
+      .gte('start_time', windowStart)
+      .lt('start_time', windowEnd)
       .eq('is_deleted', false)
       .is('scored_at', null);
 
@@ -56,7 +57,7 @@ serve(async (_req) => {
         user_id: m.user_id,
         created_by: SYSTEM_USER_ID,
         title: '⏰ ¡Últimos 15 minutos para predecir!',
-        body: 'El partido de tu liga está a punto de comenzar. Registra tus predicciones antes de que cierre la ventana.',
+        body: 'El partido de tu liga está a punto de comenzar. Las predicciones cierran en 15 minutos.',
         notification_type: 'match_reminder',
         priority: 'high',
         league_id: match.league_id,

@@ -72,6 +72,12 @@ export class SupabaseService {
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'sb-mundial-session',
+      },
       global: {
         fetch: async (input, init) => {
           // Internal Supabase requests (auth token refresh, realtime handshakes) must
@@ -107,18 +113,13 @@ export class SupabaseService {
             });
 
             if (!response.ok && !isInternal && this.shouldNotify(response.status)) {
-              this.notificationService.notify(
-                'error',
-                'Atención',
-                this.getMessageByStatus(response.status),
-              );
-              if (response.status === 401) {
-                this.logFetchDebug('request:401-redirect', {
-                  method,
-                  url,
-                  currentRoute: this.router.url,
-                });
-                void this.router.navigate(['/auth']);
+              // Don't show 401 toast — SIGNED_OUT auth event handles notification + redirect.
+              if (response.status !== 401) {
+                this.notificationService.notify(
+                  'error',
+                  'Atención',
+                  this.getMessageByStatus(response.status),
+                );
               }
             }
 

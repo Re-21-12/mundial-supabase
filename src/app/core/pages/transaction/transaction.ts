@@ -48,7 +48,7 @@ interface TransactionTypeOption {
     DynamicTable,
   ],
   templateUrl: './transaction.html',
-  styleUrl: '../wallet-topup/wallet-topup.css',
+  styleUrl: './transaction.css',
   providers: [DialogService, DynamicTableService],
 })
 export class TransactionPage implements OnInit {
@@ -90,6 +90,32 @@ export class TransactionPage implements OnInit {
       totalPages,
       totalRecords,
     };
+  });
+
+  protected readonly activeFilterSummary = computed(() => {
+    const { fromDate, toDate, catalogId, description } = this.filters();
+    const summary: string[] = [];
+
+    if (fromDate || toDate) {
+      const dateFormatter = new Intl.DateTimeFormat('es-GT', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      const fromLabel = fromDate ? dateFormatter.format(fromDate) : 'Inicio';
+      const toLabel = toDate ? dateFormatter.format(toDate) : 'Hoy';
+      summary.push(`${fromLabel} - ${toLabel}`);
+    }
+
+    if (catalogId !== null) {
+      summary.push(this.getDisplayCatalogLabel(catalogId));
+    }
+
+    if (description.trim()) {
+      summary.push(`"${description.trim()}"`);
+    }
+
+    return summary.length ? summary.join(' · ') : 'Sin filtros aplicados';
   });
 
   async ngOnInit(): Promise<void> {

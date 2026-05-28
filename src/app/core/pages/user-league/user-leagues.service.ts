@@ -91,7 +91,8 @@ export class UserLeaguesService {
           'user_league_id, league_id, accumulated_points, LEAGUE(name, status, is_deleted, catalog_id)',
         )
         .eq('user_id', userId)
-        .eq('is_deleted', false),
+        .eq('is_deleted', false)
+        .eq('approval_status', 'approved'),
       this._db.client
         .from('CATALOG')
         .select('catalog_id, value, description')
@@ -119,6 +120,7 @@ export class UserLeaguesService {
           .select('user_id, accumulated_points')
           .eq('league_id', ul.league_id)
           .eq('is_deleted', false)
+          .eq('approval_status', 'approved')
           .order('accumulated_points', { ascending: false });
 
         const sorted = members ?? [];
@@ -177,6 +179,7 @@ export class UserLeaguesService {
           .select('user_id, accumulated_points')
           .eq('league_id', l.league_id)
           .eq('is_deleted', false)
+          .eq('approval_status', 'approved')
           .order('accumulated_points', { ascending: false });
 
         const sorted = (members ?? []) as { user_id: number; accumulated_points: number }[];
@@ -219,6 +222,7 @@ export class UserLeaguesService {
         .select('user_id, accumulated_points, USER(name)')
         .eq('league_id', leagueId)
         .eq('is_deleted', false)
+        .eq('approval_status', 'approved')
         .order('accumulated_points', { ascending: false })
         .limit(8),
       this._db.client

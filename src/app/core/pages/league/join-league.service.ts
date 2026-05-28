@@ -8,6 +8,7 @@ export interface LeaguePreview {
   buyInAmount: number;
   status: string | null;
   isBettingLeague: boolean;
+  invitationCode: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -15,13 +16,14 @@ export class JoinLeagueService {
   private readonly _db = inject(SupabaseService);
   private readonly _wallet = inject(WalletService);
 
-  // Previsualizar liga antes de unirse — permite mostrar info y validar saldo
+  // ── Preview por código de invitación ──────────────────────────────────────
+
   async previewByCode(code: string): Promise<{ error?: string; league?: LeaguePreview }> {
     if (!code.trim()) return { error: 'Ingresa un código de invitación válido.' };
 
     const { data, error } = await this._db.client
       .from('LEAGUE')
-      .select('league_id, name, buy_in_amount, status')
+      .select('league_id, name, buy_in_amount, status, invitation_code')
       .eq('invitation_code', code.trim())
       .eq('is_deleted', false)
       .maybeSingle();
@@ -34,18 +36,33 @@ export class JoinLeagueService {
       return { error: 'Esta liga ya no acepta nuevos participantes.' };
     }
 
-    return {
-      league: {
-        leagueId: league.league_id,
-        name: league.name,
-        buyInAmount: Number(league.buy_in_amount ?? 0),
-        status: league.status,
-        isBettingLeague: Number(league.buy_in_amount ?? 0) > 0,
-      },
-    };
+    return { league: this._toPreview(league) };
   }
 
-  async joinByCode(code: string, userId: number): Promise<{ error?: string; leagueId?: number }> {
+  // ── Búsqueda por nombre ────────────────────────────────────────────────────
+
+  async searchByName(query: string): Promise<LeaguePreview[]> {
+    if (!query.trim()) return [];
+
+    const { data } = await this._db.client
+      .from('LEAGUE')
+      .select('league_id, name, buy_in_amount, status, invitation_code')
+      .ilike('name', `%${query.trim()}%`)
+      .eq('is_deleted', false)
+      .not('status', 'in', '("finished","inactive")')
+      .order('name')
+      .limit(10);
+
+    return ((data ?? []) as any[]).map((row) => this._toPreview(row));
+  }
+
+  // ── Unirse a liga ──────────────────────────────────────────────────────────
+
+  async joinByCode(
+    code: string,
+    userId: number,
+    teamName?: string,
+  ): Promise<{ error?: string; leagueId?: number; pendingApproval?: boolean }> {
     if (!code.trim()) {
       return { error: 'Ingresa un código de invitación válido.' };
     }
@@ -54,15 +71,15 @@ export class JoinLeagueService {
       return { error: 'Debes iniciar sesión o registrarte para ingresar a una liga.' };
     }
 
-    // ── 1. Verificar que la liga exista y no esté cerrada ──────────────────────
+    // 1. Verificar que la liga exista
     const preview = await this.previewByCode(code);
     if (preview.error || !preview.league) {
       return { error: preview.error ?? 'No se pudo validar la liga.' };
     }
 
-    const { buyInAmount, isBettingLeague, name } = preview.league;
+    const { buyInAmount, isBettingLeague, name, leagueId } = preview.league;
 
-    // ── 2. Verificar que el usuario tenga wallet activa (registro completo) ────
+    // 2. Verificar wallet activa
     const walletRes = await this._wallet.getWallet(userId);
     if (walletRes.error || !walletRes.data) {
       return {
@@ -71,14 +88,14 @@ export class JoinLeagueService {
       };
     }
 
-    // ── 3. Verificar saldo si es liga de apuesta ───────────────────────────────
+    // 3. Verificar saldo si es liga de apuesta
     if (isBettingLeague && walletRes.data.balance < buyInAmount) {
       return {
         error: `Saldo insuficiente. Necesitas $${buyInAmount} MXN para unirte a "${name}". Tu saldo actual es $${walletRes.data.balance} MXN.`,
       };
     }
 
-    // ── 4. Proceder con el join (el RPC maneja el cobro de cuota en BD) ────────
+    // 4. Join via RPC (handles entry-fee deduction atomically)
     const { data, error } = await this._db.client.rpc('join_league_with_entry_fee', {
       p_invitation_code: code.trim(),
       p_user_id: userId,
@@ -104,6 +121,50 @@ export class JoinLeagueService {
       return { error: 'No se pudo resolver la liga destino.' };
     }
 
-    return { leagueId: Number(row.league_id) };
+    const joinedLeagueId = Number(row.league_id);
+
+    // 5. Save team name if provided (update USER_LEAGUE directly after join)
+    if (teamName?.trim()) {
+      const { data: ul } = await this._db.client
+        .from('USER_LEAGUE')
+        .select('user_league_id')
+        .eq('user_id', userId)
+        .eq('league_id', joinedLeagueId)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (ul) {
+        await this._db.client
+          .from('USER_LEAGUE')
+          .update({ team_name: teamName.trim(), updated_at: new Date().toISOString() } as any)
+          .eq('user_league_id', (ul as any).user_league_id);
+      }
+    }
+
+    // 6. Indicate pending approval if that's the current status
+    const { data: ulStatus } = await this._db.client
+      .from('USER_LEAGUE')
+      .select('approval_status')
+      .eq('user_id', userId)
+      .eq('league_id', joinedLeagueId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+
+    const pendingApproval = (ulStatus as any)?.approval_status === 'pending_approval';
+
+    return { leagueId: joinedLeagueId, pendingApproval };
+  }
+
+  // ── Helper ─────────────────────────────────────────────────────────────────
+
+  private _toPreview(row: any): LeaguePreview {
+    return {
+      leagueId: row.league_id,
+      name: row.name,
+      buyInAmount: Number(row.buy_in_amount ?? 0),
+      status: row.status,
+      isBettingLeague: Number(row.buy_in_amount ?? 0) > 0,
+      invitationCode: row.invitation_code ?? null,
+    };
   }
 }

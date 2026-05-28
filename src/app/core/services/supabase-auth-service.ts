@@ -116,7 +116,50 @@ export class SupabaseAuthService {
 
     // Start auth state tracking immediately so guards do not wait forever
     void this.stateAuthChanges();
+    this._setupBackgroundRefresh();
     this.logSessionDebug('constructor:init');
+  }
+
+  /**
+   * Proactively refresh the session when the tab becomes visible again or the
+   * device comes back online. Supabase's built-in autoRefreshToken uses
+   * setInterval which browsers throttle (or kill) for background/suspended tabs,
+   * so the access token can silently expire while the user is away. Calling
+   * getSession() here forces the SDK to use the refresh token immediately.
+   */
+  private _setupBackgroundRefresh(): void {
+    if (typeof document === 'undefined') return;
+
+    const refresh = () => {
+      const cached = this.session();
+      if (!cached) return; // Not logged in — nothing to refresh.
+
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const expiresAt = cached.expires_at ?? 0;
+      // Only refresh if the token is already expired or expires within 5 minutes.
+      if (expiresAt - nowInSeconds > 300) return;
+
+      this.logSessionDebug('backgroundRefresh:triggered', {
+        expiresAt,
+        expiresInSec: expiresAt - nowInSeconds,
+      });
+
+      void this._supabaseService.client.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          this._applySessionState(data.session);
+          this.logSessionDebug('backgroundRefresh:refreshed', {
+            snapshot: this.getSessionSnapshot(data.session),
+          });
+        }
+      });
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refresh();
+    });
+
+    window.addEventListener('focus', refresh);
+    window.addEventListener('online', refresh);
   }
 
   /**
@@ -258,8 +301,8 @@ export class SupabaseAuthService {
         // logSessionEnd() was already called inside signOut() before clearing state.
         // Calling it again here would fail because internalUserId is already null.
         this._clearSessionState();
-        this._clearOAuthTokens();
-        this._router.navigate(['/login']);
+        this._clearStorage();
+        this._router.navigate(['/auth'], { queryParams: { mode: 'login' } });
         break;
 
       case 'PASSWORD_RECOVERY':
@@ -355,99 +398,88 @@ export class SupabaseAuthService {
     }
   }
 
-  private _clearOAuthTokens(): void {
+  private _clearStorage(): void {
+    // Remove all Supabase-owned keys (session, code verifier, etc.)
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith('sb-'))
+      .forEach((key) => localStorage.removeItem(key));
+
     localStorage.removeItem('oauth_provider_token');
     localStorage.removeItem('oauth_provider_refresh_token');
   }
   //#endregion
 
   //#region Sign In Methods
-  async singInAnonymously(): Promise<{ data: any; error: any }> {
+  async singInAnonymously(captchaToken?: string): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseService.client.auth.signInAnonymously({
-      options: {
-        captchaToken: 'github',
-      },
+      options: captchaToken ? { captchaToken } : {},
     });
     return { data, error };
   }
 
-  async signInWithOtp(email: string, createUser = true) {
+  async signInWithOtp(email: string, createUser = true, captchaToken?: string) {
     const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
         shouldCreateUser: createUser,
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
-    if (error) throw error;
-    return data;
-  }
-
-  async signInWithEmail(email: string) {
-    const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      console.error('Error sending OTP:', error);
-    }
     return { data, error };
   }
 
-  async signInWithPassword(email: string = '', password: string = '') {
+  async signInWithEmail(email: string, captchaToken?: string) {
+    const { data, error } = await this._supabaseService.client.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        ...(captchaToken ? { captchaToken } : {}),
+      },
+    });
+    return { data, error };
+  }
+
+  async signInWithPassword(email: string = '', password: string = '', captchaToken?: string) {
     const { data, error } = await this._supabaseService.client.auth.signInWithPassword({
       email,
       password,
+      options: captchaToken ? { captchaToken } : {},
     });
-    if (error) {
-      console.error('Error signing in:', error);
-    }
     return { data, error };
   }
 
-  async signInWithOAuth(provider: Provider) {
+  async signInWithOAuth(provider: Provider, captchaToken?: string) {
     const { data, error } = await this._supabaseService.client.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
-
-    if (error) {
-      console.error('Error OAuth sign in:', error);
-    }
-
     return { data, error };
   }
   //#endregion
 
   //#region Sign Up & Password Reset
-  async signUpWithPassword(email: string, password: string, name?: string) {
+  async signUpWithPassword(email: string, password: string, name?: string, captchaToken?: string) {
     const { data, error } = await this._supabaseService.client.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: name ? { name } : {},
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
-
-    if (error) {
-      console.error('Error sign up:', error);
-    }
-
     return { data, error };
   }
 
-  async requestPasswordReset(email: string) {
+  async requestPasswordReset(email: string, captchaToken?: string) {
     const { data, error } = await this._supabaseService.client.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback`,
+      ...(captchaToken ? { captchaToken } : {}),
     });
-
-    if (error) {
-      console.error('Error password reset:', error);
-    }
-
     return { data, error };
   }
 
@@ -467,6 +499,7 @@ export class SupabaseAuthService {
       this._explicitSignOut = true;
       this.logSessionDebug('signOut:start', { snapshot: this.getSessionSnapshot(this.session()) });
       await this.logSessionEnd();
+      this._clearStorage();
       await this._supabaseService.client.auth.signOut();
     } catch (err) {
       this._explicitSignOut = false;
@@ -476,8 +509,8 @@ export class SupabaseAuthService {
       });
       // Ensure local state is cleared even if remote signOut fails.
       this._clearSessionState();
-      this._clearOAuthTokens();
-      this._router.navigate(['/login']);
+      this._clearStorage();
+      this._router.navigate(['/auth'], { queryParams: { mode: 'login' } });
     }
   }
 
@@ -584,7 +617,7 @@ export class SupabaseAuthService {
 
     // Refresh token is likely expired or invalid: clear and redirect.
     this._clearSessionState();
-    this._clearOAuthTokens();
+    this._clearStorage();
     this.logSessionDebug('ensureActiveSession:failed', {
       redirectOnFail,
       notifyOnFail,
@@ -599,7 +632,7 @@ export class SupabaseAuthService {
     }
 
     if (redirectOnFail) {
-      this._router.navigate(['/login']);
+      this._router.navigate(['/auth'], { queryParams: { mode: 'login' } });
     }
 
     return null;
@@ -617,11 +650,12 @@ export class SupabaseAuthService {
     return { data, error };
   }
 
-  async sendMagicLink(email: string) {
+  async sendMagicLink(email: string, captchaToken?: string) {
     const { error } = await this._supabaseService.client.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: false,
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
     return { error };

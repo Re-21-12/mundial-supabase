@@ -128,8 +128,8 @@ export class LeagueCreationService {
         },
         {
           dimension: 'prediction_window',
-          value: '15_minutes_before_match_end',
-          description: 'Ventana de predicción: Cierra 15 minutos antes de terminar el partido',
+          value: '15_minutes_before_match_start',
+          description: 'Ventana de predicción: Cierra 15 minutos antes de iniciar el partido',
         },
         {
           dimension: 'match_duration',
@@ -340,6 +340,7 @@ export class LeagueCreationService {
           user_id: userId,
           league_id: leagueId,
           accumulated_points: 0,
+          approval_status: 'approved',
           created_at: new Date().toISOString(),
           is_deleted: false,
         } as any)

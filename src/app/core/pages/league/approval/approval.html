@@ -1,0 +1,110 @@
+<div class="ap-wrapper">
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="ap-loading" role="status">Cargando…</div>
+  }
+
+  <!-- ── Unauthorized ─────────────────────────────────────────────────────── -->
+  @else if (!isOwner()) {
+    <div class="ap-unauthorized">
+      <span class="ap-icon">🔒</span>
+      <p>Solo el administrador de la liga puede ver esta sección.</p>
+      <a class="ap-back-link" [routerLink]="['/league', leagueId, 'standings']">
+        ← Volver a posiciones
+      </a>
+    </div>
+  }
+
+  <!-- ── Main content ──────────────────────────────────────────────────────── -->
+  @else {
+    <header class="ap-header">
+      <div class="ap-header__left">
+        <a class="ap-back" [routerLink]="['/league', leagueId, 'standings']" aria-label="Volver a posiciones">
+          ←
+        </a>
+        <div>
+          <h2 class="ap-title">Solicitudes de ingreso</h2>
+          <p class="ap-subtitle">{{ leagueName() }}</p>
+        </div>
+      </div>
+      @if (participants().length > 0) {
+        <span class="ap-badge">{{ participants().length }} pendiente{{ participants().length !== 1 ? 's' : '' }}</span>
+      }
+    </header>
+
+    <!-- Status toast -->
+    @if (statusMsg()) {
+      <div
+        class="ap-toast"
+        [class.ap-toast--success]="statusType() === 'success'"
+        [class.ap-toast--error]="statusType() === 'error'"
+        role="status"
+        aria-live="polite"
+      >{{ statusMsg() }}</div>
+    }
+
+    <!-- Empty state -->
+    @if (participants().length === 0) {
+      <div class="ap-empty">
+        <span class="ap-icon">✅</span>
+        <p>No hay solicitudes pendientes.</p>
+        <p class="ap-empty__sub">Cuando alguien se una con tu código, verás su solicitud aquí.</p>
+      </div>
+    }
+
+    <!-- Participants list -->
+    @else {
+      <div class="ap-list" role="list">
+        @for (p of participants(); track p.user_league_id) {
+          <div class="ap-card" role="listitem">
+            <div class="ap-card__avatar" aria-hidden="true">
+              {{ displayName(p).slice(0, 1).toUpperCase() }}
+            </div>
+
+            <div class="ap-card__info">
+              <span class="ap-card__name">{{ displayName(p) }}</span>
+              @if (displayEmail(p)) {
+                <span class="ap-card__email">{{ displayEmail(p) }}</span>
+              }
+              @if (p.team_name) {
+                <span class="ap-card__team">🏷 {{ p.team_name }}</span>
+              }
+              <span class="ap-card__date">Solicitó: {{ p.created_at | date: 'dd MMM yyyy, HH:mm' }}</span>
+            </div>
+
+            <div class="ap-card__actions">
+              <button
+                class="ap-btn ap-btn--approve"
+                type="button"
+                (click)="approve(p)"
+                [disabled]="processingId() !== null"
+                aria-label="Aprobar solicitud de {{ displayName(p) }}"
+              >
+                @if (processingId() === p.user_league_id) {
+                  <span class="ap-spinner"></span>
+                } @else {
+                  ✓ Aprobar
+                }
+              </button>
+              <button
+                class="ap-btn ap-btn--reject"
+                type="button"
+                (click)="reject(p)"
+                [disabled]="processingId() !== null"
+                aria-label="Rechazar solicitud de {{ displayName(p) }}"
+              >
+                @if (processingId() === p.user_league_id) {
+                  <span class="ap-spinner"></span>
+                } @else {
+                  ✕ Rechazar
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

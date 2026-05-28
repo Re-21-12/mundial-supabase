@@ -1,47 +1,68 @@
-<div class="card-container">
+<div class="dc-grid">
   @for (item of tableProps().data; track item) {
-    <p-card [header]="tableProps().header" styleClass="mb-4">
-      @for (col of tableProps().columns; track col) {
-        <div class="p-2">
-          <strong>{{ col.header }}:</strong> {{ item[col.field] }}
-        </div>
-      }
+    <article class="dc-card">
+
+      <!-- Header row: entity title + id chip -->
+      <header class="dc-card__header">
+        <span class="dc-card__title">{{ tableProps().header }}</span>
+        @if (resolveRowId(item); as rowId) {
+          <span class="dc-card__id">#{{ rowId }}</span>
+        }
+      </header>
+
+      <!-- Fields -->
+      <div class="dc-card__fields">
+        @for (col of tableProps().columns; track col.field) {
+          @if (col.type === 'image') {
+            <div class="dc-field dc-field--image">
+              <span class="dc-field__label">{{ col.header }}</span>
+              @if (item[col.field]) {
+                <img
+                  class="dc-field__img"
+                  [src]="item[col.field]"
+                  [alt]="col.header"
+                  [title]="col.header"
+                  loading="lazy"
+                />
+              } @else {
+                <span class="dc-field__empty">—</span>
+              }
+            </div>
+          } @else {
+            <div class="dc-field">
+              <span class="dc-field__label">{{ col.header }}</span>
+              <span class="dc-field__value">{{ item[col.field] ?? '—' }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Actions -->
       @if (actions.length > 0) {
-        <div class="p-2 flex gap-2 justify-end">
+        <footer class="dc-card__actions">
           @if (hasAction('view')) {
-            <p-button
-              icon="pi pi-eye"
-              size="small"
-              severity="secondary"
-              text="true"
-              (click)="goToDetail(item)"
-              title="Detalle"
-            />
+            <button class="dc-action dc-action--view" type="button" (click)="goToDetail(item)" title="Detalle">
+              <i class="pi pi-eye"></i>
+              <span>Ver</span>
+            </button>
           }
           @if (hasAction('update')) {
-            <p-button
-              icon="pi pi-pencil"
-              size="small"
-              severity="info"
-              text="true"
-              (click)="goToEdit(item)"
-              title="Editar"
-            />
+            <button class="dc-action dc-action--edit" type="button" (click)="goToEdit(item)" title="Editar">
+              <i class="pi pi-pencil"></i>
+              <span>Editar</span>
+            </button>
           }
           @if (hasAction('delete')) {
-            <p-button
-              icon="pi pi-trash"
-              size="small"
-              severity="danger"
-              text="true"
-              (click)="onDelete(item)"
-              title="Eliminar"
-            />
+            <button class="dc-action dc-action--delete" type="button" (click)="onDelete(item)" title="Eliminar">
+              <i class="pi pi-trash"></i>
+              <span>Eliminar</span>
+            </button>
           }
-        </div>
+        </footer>
       }
-    </p-card>
+
+    </article>
   } @empty {
-    <p>No data found.</p>
+    <p class="dc-empty">No hay registros.</p>
   }
 </div>

@@ -1,73 +1,98 @@
 <div class="transactions-page">
-
-  <h1 class="topup-title">
-    <i class="pi pi-list" aria-hidden="true"></i>
-    Mis transacciones
-  </h1>
-
   @if (isLoading()) {
-    <div class="topup-loading" role="status">
-      <i class="pi pi-spin pi-spinner topup-spinner" aria-hidden="true"></i>
-      <span>Cargando información…</span>
-    </div>
+    <section class="transactions-loading card" role="status" aria-live="polite">
+      <i class="pi pi-spin pi-spinner transactions-loading__spinner" aria-hidden="true"></i>
+      <div>
+        <span class="transactions-loading__title">Cargando transacciones</span>
+        <span class="transactions-loading__subtitle">Preparando tu historial y los filtros disponibles.</span>
+      </div>
+    </section>
   } @else {
+    <section class="transactions-hero card">
+      <div class="transactions-hero__copy">
+        <span class="transactions-eyebrow">Movimientos de cuenta</span>
+        <h1>Mis transacciones</h1>
+        <p>Consulta ingresos, premios y ajustes recientes en una sola vista.</p>
+      </div>
 
-    <div class="balance-card" aria-label="Saldo actual">
-      <span class="balance-label">Saldo actual</span>
-      <span class="balance-amount">Q{{ wallet()?.balance ?? 0 | number:'1.2-2' }}</span>
-      <span class="balance-currency">GTQ</span>
-    </div>
+      <div class="transactions-hero__actions">
+        <p-button icon="pi pi-refresh" label="Refrescar" (click)="refresh()"></p-button>
+        <p-button icon="pi pi-file" label="Exportar CSV" (click)="exportCsv()"></p-button>
+      </div>
+    </section>
 
-    <div class="transactions-toolbar card">
-      <div class="filters-row">
-        <div class="filter-item">
+    <section class="wallet-card card" aria-label="Saldo actual">
+      <span class="wallet-card__label">Saldo actual</span>
+      <span class="wallet-card__amount">Q{{ wallet()?.balance ?? 0 | number:'1.2-2' }}</span>
+      <span class="wallet-card__currency">GTQ</span>
+      <span class="wallet-card__hint">Disponible para nuevas operaciones</span>
+    </section>
+
+    <section class="transactions-filters card">
+      <div class="section-header">
+        <div>
+          <span class="section-kicker">Filtros</span>
+          <h2>Delimita el historial</h2>
+        </div>
+        <p class="section-summary">{{ activeFilterSummary() }}</p>
+      </div>
+
+      <div class="filters-grid">
+        <div class="filter-field">
           <label>Desde</label>
           <p-datepicker [showIcon]="true" dateFormat="yy-mm-dd" [ngModel]="filters().fromDate" (ngModelChange)="onFromDateChange($event)"></p-datepicker>
         </div>
-        <div class="filter-item">
+
+        <div class="filter-field">
           <label>Hasta</label>
           <p-datepicker [showIcon]="true" dateFormat="yy-mm-dd" [ngModel]="filters().toDate" (ngModelChange)="onToDateChange($event)"></p-datepicker>
         </div>
 
-        <div class="filter-item">
+        <div class="filter-field">
           <label>Tipo</label>
           <p-select [options]="transactionTypeOptions()" optionLabel="label" optionValue="value" [ngModel]="filters().catalogId" (ngModelChange)="onCatalogChange($event)"></p-select>
         </div>
 
-        <div class="filter-item flex-grow">
+        <div class="filter-field filter-field--wide">
           <label>Descripción</label>
-          <input pInputText [value]="filters().description" placeholder="Buscar descripción" (input)="onDescriptionInput($event)" />
+          <input class="transaction-input" pInputText [value]="filters().description" placeholder="Buscar descripción" (input)="onDescriptionInput($event)" />
+        </div>
+      </div>
+
+      <div class="transactions-filters__actions">
+        <div class="transactions-presets" aria-label="Filtros rápidos">
+          <span class="transactions-presets__label">Presets</span>
+          @for (preset of presets; track preset) {
+            <p-button (click)="applyPreset(preset)" [label]="preset + ' días'" class="preset-button"></p-button>
+          }
         </div>
 
-        <div class="filter-actions">
+        <div class="transactions-filters__buttons">
           <p-button label="Buscar" icon="pi pi-search" (click)="refresh()" class="p-button-outlined"></p-button>
           <p-button label="Limpiar" icon="pi pi-times" (click)="clearFilters()" class="p-button-text"></p-button>
         </div>
       </div>
+    </section>
 
-      <div class="presets-row">
-        <label>Presets:</label>
-        <ng-container *ngFor="let p of presets">
-          <p-button (click)="applyPreset(p)" label="{{p}} días" class="p-button-text"/>
-        </ng-container>
+    <section class="transactions-table card">
+      <div class="table-scroll-wrapper">
+        <app-dynamic-table (delete)="deleteData($event)" (pageChange)="onPageChange($event)"></app-dynamic-table>
       </div>
-
-      <div class="toolbar-actions">
-        <p-button icon="pi pi-refresh" (click)="refresh()" tooltip="Refrescar"></p-button>
-        <p-button icon="pi pi-file" (click)="exportCsv()" tooltip="Exportar CSV"></p-button>
-      </div>
-    </div>
-
-    <div class="transactions-list">
-      <app-dynamic-table (delete)="deleteData($event)" (pageChange)="onPageChange($event)"></app-dynamic-table>
-    </div>
+    </section>
 
     <div class="page-summary">
       <span>Página {{ pageSummary().currentPage }} de {{ pageSummary().totalPages }}</span>
-      <span class="muted">— Total: {{ pageSummary().totalRecords }}</span>
+      <span class="muted">Total {{ pageSummary().totalRecords }} movimientos</span>
     </div>
 
-    <p-dialog header="Detalle de transacción" [(visible)]="showDetailDialog()" [modal]="true" [style]="{ width: '720px' }" [breakpoints]="{ '960px': '92vw', '640px': '96vw' }">
+    <p-dialog
+      header="Detalle de transacción"
+      [visible]="showDetailDialog()"
+      (visibleChange)="showDetailDialog.set($event)"
+      [modal]="true"
+      [style]="{ width: '720px' }"
+      [breakpoints]="{ '960px': '92vw', '640px': '96vw' }"
+    >
       <div class="detail-dialog-body">
         <app-dynamic-form [fields]="transactionFields()" [initialData]="selectedTransaction()" [readonlyMode]="true"></app-dynamic-form>
       </div>
@@ -75,8 +100,6 @@
         <p-button label="Cerrar" (click)="closeDetail()" icon="pi pi-times"></p-button>
       </p-footer>
     </p-dialog>
-
   }
-
 </div>
 

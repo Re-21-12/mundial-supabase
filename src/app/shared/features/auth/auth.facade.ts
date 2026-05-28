@@ -2,14 +2,11 @@ import { inject, Injectable, Signal } from '@angular/core';
 import { AuthChangeEvent, Provider, Session, User } from '@supabase/supabase-js';
 import { SupabaseAuthService } from '../../../core/services/supabase-auth-service';
 import { IAuthFacade } from './interface/iauth-interface-facade';
-import { Router } from '@angular/router';
-
 @Injectable({
   providedIn: 'root',
 })
 export class AuthFacade implements IAuthFacade {
   private readonly _supabaseAuthService = inject(SupabaseAuthService);
-  private readonly _router = inject(Router);
 
   //#region Public Signals from SupabaseAuthService
   readonly session: Signal<Session | null> = this._supabaseAuthService.session;
@@ -60,40 +57,44 @@ export class AuthFacade implements IAuthFacade {
     this._supabaseAuthService.stateAuthChanges();
   }
 
-  async singInAnonymously(): Promise<{ data: any; error: any }> {
-    return this._supabaseAuthService.singInAnonymously();
+  async singInAnonymously(captchaToken?: string): Promise<{ data: any; error: any }> {
+    return this._supabaseAuthService.singInAnonymously(captchaToken);
   }
 
-  async signInWithOtp(email: string, createUser = true) {
-    return this._supabaseAuthService.signInWithOtp(email, createUser);
+  async signInWithOtp(email: string, createUser = true, captchaToken?: string) {
+    return this._supabaseAuthService.signInWithOtp(email, createUser, captchaToken);
   }
 
-  async signInWithEmail(email: string) {
-    return this._supabaseAuthService.signInWithEmail(email);
+  async signInWithEmail(email: string, captchaToken?: string) {
+    return this._supabaseAuthService.signInWithEmail(email, captchaToken);
   }
 
-  async signInWithPassword(email: string, password?: string): Promise<{ data: any; error: any }> {
-    return this._supabaseAuthService.signInWithPassword(email, password);
+  async signInWithPassword(
+    email: string,
+    password?: string,
+    captchaToken?: string,
+  ): Promise<{ data: any; error: any }> {
+    return this._supabaseAuthService.signInWithPassword(email, password, captchaToken);
   }
 
   async signUpWithPassword(
     email: string,
     password: string,
     name?: string,
+    captchaToken?: string,
   ): Promise<{ data: any; error: any }> {
-    return this._supabaseAuthService.signUpWithPassword(email, password, name);
+    return this._supabaseAuthService.signUpWithPassword(email, password, name, captchaToken);
   }
 
-  async requestPasswordReset(email: string) {
-    return this._supabaseAuthService.requestPasswordReset(email);
+  async requestPasswordReset(email: string, captchaToken?: string) {
+    return this._supabaseAuthService.requestPasswordReset(email, captchaToken);
   }
 
-  async signInWithOAuth(provider: Provider) {
-    return this._supabaseAuthService.signInWithOAuth(provider);
+  async signInWithOAuth(provider: Provider, captchaToken?: string) {
+    return this._supabaseAuthService.signInWithOAuth(provider, captchaToken);
   }
 
   async signOut() {
-    this._router.navigate(['/auth']);
     return this._supabaseAuthService.signOut();
   }
 
@@ -115,12 +116,27 @@ export class AuthFacade implements IAuthFacade {
     return this._supabaseAuthService.inviteUser(email);
   }
 
-  sendMagicLink(email: string) {
-    return this._supabaseAuthService.sendMagicLink(email);
+  sendMagicLink(email: string, captchaToken?: string) {
+    return this._supabaseAuthService.sendMagicLink(email, captchaToken);
   }
 
   setNewPassword(newPassword: string) {
     return this._supabaseAuthService.setNewPassword(newPassword);
+  }
+
+  async resendConfirmation(
+    email: string,
+    captchaToken?: string,
+  ): Promise<{ error: unknown | null }> {
+    const { error } = await this._supabaseAuthService.client.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        captchaToken,
+      },
+    });
+    return { error };
   }
 
   waitForAuthReady(timeoutMs = 5000): Promise<void> {

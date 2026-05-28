@@ -2,29 +2,129 @@
 <div class="jl-dialog" role="dialog" aria-modal="true" aria-label="Unirse a liga">
   <button class="jl-close" (click)="close()" aria-label="Cerrar">✕</button>
 
-  <h2 class="jl-title">Unirse con código</h2>
-  <p class="jl-desc">Ingresa el código de invitación que te compartió el administrador de la liga.</p>
+  @switch (step()) {
 
-  <form class="jl-form" (ngSubmit)="submit()">
-    <input
-      class="jl-input"
-      type="text"
-      [(ngModel)]="code"
-      name="code"
-      placeholder="Ej. LIGA-2026-XZ9"
-      autocomplete="off"
-      autocapitalize="characters"
-    />
+    <!-- ── Step 1: Buscar liga ──────────────────────────────────────────── -->
+    @case ('search') {
+      <h2 class="jl-title">Unirse a una liga</h2>
 
-    @if (errorMsg()) {
-      <p class="jl-error" role="alert">{{ errorMsg() }}</p>
+      <!-- Tabs: código / nombre -->
+      <div class="jl-tabs">
+        <button
+          class="jl-tab"
+          [class.jl-tab--active]="searchMode() === 'code'"
+          type="button"
+          (click)="searchMode.set('code'); searchResults.set([]); previewLeague.set(null); errorMsg.set('')"
+        >Por código</button>
+        <button
+          class="jl-tab"
+          [class.jl-tab--active]="searchMode() === 'name'"
+          type="button"
+          (click)="searchMode.set('name'); searchResults.set([]); previewLeague.set(null); errorMsg.set('')"
+        >Por nombre</button>
+      </div>
+
+      <form class="jl-form" (ngSubmit)="search()">
+        <label class="jl-label" for="jl-search-input">
+          {{ searchMode() === 'code' ? 'Código de invitación' : 'Nombre de la liga' }}
+        </label>
+        <input
+          id="jl-search-input"
+          class="jl-input"
+          type="text"
+          [(ngModel)]="searchQuery"
+          name="searchQuery"
+          [placeholder]="searchMode() === 'code' ? 'Ej. LIGA-2026-XZ9' : 'Nombre de la liga…'"
+          autocomplete="off"
+          [attr.aria-label]="searchMode() === 'code' ? 'Código de invitación' : 'Nombre de la liga'"
+        />
+
+        @if (errorMsg()) {
+          <p class="jl-error" role="alert">{{ errorMsg() }}</p>
+        }
+
+        <button class="jl-submit" type="submit" [disabled]="isWorking()">
+          {{ isWorking() ? 'Buscando…' : 'Buscar' }}
+        </button>
+      </form>
+
+      <!-- Resultados de búsqueda por nombre -->
+      @if (searchResults().length > 0) {
+        <div class="jl-results" role="list">
+          @for (league of searchResults(); track league.leagueId) {
+            <div class="jl-result" role="listitem" (click)="selectLeague(league)">
+              <span class="jl-result__name">{{ league.name }}</span>
+              @if (league.isBettingLeague) {
+                <span class="jl-result__badge">💰 ${{ league.buyInAmount }}</span>
+              } @else {
+                <span class="jl-result__badge jl-result__badge--fun">🎮 Diversión</span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Preview de liga seleccionada / encontrada por código -->
+      @if (previewLeague()) {
+        <div class="jl-preview">
+          <p class="jl-preview__name">{{ previewLeague()!.name }}</p>
+          @if (previewLeague()!.isBettingLeague) {
+            <p class="jl-preview__fee">
+              💰 Cuota de entrada: <strong>${{ previewLeague()!.buyInAmount }} MXN</strong>
+            </p>
+          } @else {
+            <p class="jl-preview__fee">🎮 Liga de diversión — sin cuota</p>
+          }
+          <button class="jl-submit" type="button" (click)="proceedToTeamName()">
+            Unirse a esta liga →
+          </button>
+        </div>
+      }
     }
-    @if (successMsg()) {
-      <p class="jl-success" role="status">{{ successMsg() }}</p>
+
+    <!-- ── Step 2: Nombre del equipo ────────────────────────────────────── -->
+    @case ('team_name') {
+      <h2 class="jl-title">Nombre de tu equipo</h2>
+      <p class="jl-desc">
+        Dale un nombre a tu equipo en
+        <strong>{{ previewLeague()?.name ?? 'la liga' }}</strong>.
+        Aparecerá en la tabla de posiciones.
+      </p>
+
+      <form class="jl-form" (ngSubmit)="confirmJoin()">
+        <label class="jl-label" for="jl-teamname-input">Nombre del equipo</label>
+        <input
+          id="jl-teamname-input"
+          class="jl-input jl-input--normal"
+          type="text"
+          [(ngModel)]="teamName"
+          name="teamName"
+          placeholder="Ej. Los Campeones, Dragones FC…"
+          maxlength="40"
+          autocomplete="off"
+          aria-label="Nombre del equipo"
+        />
+
+        @if (teamNameError()) {
+          <p class="jl-error" role="alert">{{ teamNameError() }}</p>
+        }
+        @if (errorMsg()) {
+          <p class="jl-error" role="alert">{{ errorMsg() }}</p>
+        }
+
+        <button class="jl-submit" type="submit">Confirmar y unirse</button>
+        <button class="jl-back" type="button" (click)="backToSearch()">← Volver</button>
+      </form>
     }
 
-    <button class="jl-submit" type="submit" [disabled]="isWorking()">
-      {{ isWorking() ? 'Buscando liga…' : 'Unirse' }}
-    </button>
-  </form>
+    <!-- ── Working / success ────────────────────────────────────────────── -->
+    @case ('working') {
+      @if (successMsg()) {
+        <p class="jl-success" role="status">{{ successMsg() }}</p>
+      } @else {
+        <p class="jl-desc">Procesando…</p>
+      }
+    }
+
+  }
 </div>

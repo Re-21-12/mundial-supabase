@@ -32,4 +32,9 @@ export const LEAGUE_ROUTES: Routes = [
     title: 'Chat de liga',
     loadComponent: () => import('./chat/league-chat').then((m) => m.LeagueChatComponent),
   },
+  {
+    path: ':id/approvals',
+    title: 'Aprobar miembros',
+    loadComponent: () => import('./approval/approval').then((m) => m.ApprovalPage),
+  },
 ];

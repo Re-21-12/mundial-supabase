@@ -233,6 +233,7 @@ export class InvitationService {
   async acceptMagicLink(
     token: string,
     userId: number,
+    teamName?: string,
   ): Promise<{ leagueId?: number; pendingApproval?: boolean; error?: string }> {
     const client = this._db.client;
 
@@ -270,6 +271,7 @@ export class InvitationService {
         .update({
           is_deleted: false,
           approval_status: 'pending_approval',
+          team_name: teamName?.trim() || null,
           updated_at: new Date().toISOString(),
         } as any)
         .eq('user_league_id', existingUl.user_league_id);
@@ -282,6 +284,7 @@ export class InvitationService {
           league_id: ml.league_id,
           accumulated_points: 0,
           approval_status: 'pending_approval',
+          team_name: teamName?.trim() || null,
         } as any)
         .select('user_league_id')
         .single<{ user_league_id: number }>();

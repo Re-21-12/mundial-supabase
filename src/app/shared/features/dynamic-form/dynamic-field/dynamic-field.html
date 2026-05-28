@@ -3,18 +3,20 @@
 
   <!--Label -->
   <ng-template #labelTemplate let-defaultLabel="defaultLabel">
-    <p-float-label [attr.for]="fieldProps().key" class="block text-sm font-medium  mb-2">
-      {{ fieldProps().label || defaultLabel }}
-      @if (fieldProps().state.required) {
-        <span
-          class="text-red-500 ml-1"
-          pTooltip="Este campo es obligatorio"
-          tooltipPosition="top"
-          tooltipStyleClass="tooltip-warning"
-          >*</span
-        >
-      }
-    </p-float-label>
+    <div class="field-label-wrap">
+      <label [attr.for]="fieldProps().key" class="field-label">
+        <span>{{ fieldProps().label || defaultLabel }}</span>
+        @if (fieldProps().state.required) {
+          <span
+            class="field-required"
+            pTooltip="Este campo es obligatorio"
+            tooltipPosition="top"
+            tooltipStyleClass="tooltip-warning"
+            >*</span
+          >
+        }
+      </label>
+    </div>
   </ng-template>
 
   <!-- Campos Dinámicos según el tipo -->
@@ -38,6 +40,8 @@
               (paste)="validarLetrasPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de texto'"
+              title="Campo de texto"
               class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -50,6 +54,8 @@
             (paste)="validarLetrasPaste($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa texto'"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de texto'"
+            title="Campo de texto"
             class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
           />
         }
@@ -82,6 +88,8 @@
               (keypress)="onKeypressEmail($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de correo'"
+              title="Campo de correo"
               class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -94,6 +102,8 @@
             (keypress)="onKeypressEmail($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa tu email'"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de correo'"
+            title="Campo de correo"
             class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
           />
         }
@@ -124,6 +134,8 @@
               inputmode="numeric"
               step="1"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo numérico'"
+              title="Campo numérico"
               class="w-full"
               pInputText
               class="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
@@ -136,6 +148,8 @@
             inputmode="numeric"
             step="1"
             [placeholder]="fieldProps().placeholder || 'Ingresa un número'"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo numérico'"
+            title="Campo numérico"
             class="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             pInputText
           />
@@ -164,6 +178,8 @@
               (paste)="validarEnteroPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número entero'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo entero'"
+              title="Campo entero"
               class="  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -176,6 +192,8 @@
             (paste)="validarEnteroPaste($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa un número entero'"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo entero'"
+            title="Campo entero"
 
           />
         }
@@ -208,6 +226,8 @@
               (paste)="validarDecimalPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || 'Ingresa un número decimal'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo decimal'"
+              title="Campo decimal"
 
             />
           </p-inputgroup>
@@ -220,6 +240,8 @@
             (paste)="validarDecimalPaste($event)"
             [attr.maxlength]="getMaxLength() ?? null"
             [placeholder]="fieldProps().placeholder || 'Ingresa un número decimal'"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo decimal'"
+            title="Campo decimal"
 
           />
         }
@@ -255,6 +277,8 @@
               (paste)="validarMonedaPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || '0.00'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de moneda'"
+              title="Campo de moneda"
               class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -271,6 +295,8 @@
               (paste)="validarMonedaPaste($event)"
               [attr.maxlength]="getMaxLength() ?? null"
               [placeholder]="fieldProps().placeholder || '0.00'"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de moneda'"
+              title="Campo de moneda"
               class="flex-1 bg-transparent border-0 px-0 py-2.5 text-sm focus:outline-none"
             />
           </div>
@@ -302,6 +328,8 @@
               [showIcon]="true"
               iconDisplay="input"
               class="w-full"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de fecha'"
+              title="Campo de fecha"
               inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -312,6 +340,8 @@
             [showIcon]="true"
             iconDisplay="input"
             class="w-full"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de fecha'"
+            title="Campo de fecha"
             inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
           />
         }
@@ -339,6 +369,8 @@
               [showTime]="true"
               [hourFormat]="'24'"
               class="w-full"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de fecha y hora'"
+              title="Campo de fecha y hora"
               inputStyleClass="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -351,6 +383,8 @@
             [showTime]="true"
             [hourFormat]="'24'"
             class="w-full"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de fecha y hora'"
+            title="Campo de fecha y hora"
             inputStyleClass="w-full border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
           />
         }
@@ -376,6 +410,8 @@
               [placeholder]="fieldProps().placeholder || 'Ingresa tu texto aquí...'"
               [attr.maxlength]="getMaxLength() ?? null"
               rows="4"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de texto'"
+              title="Campo de texto"
               class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
             ></textarea>
           </p-inputgroup>
@@ -386,6 +422,8 @@
             [placeholder]="fieldProps().placeholder || 'Ingresa tu texto aquí...'"
             [attr.maxlength]="getMaxLength() ?? null"
             rows="4"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de texto'"
+            title="Campo de texto"
             class="w-full  border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
           ></textarea>
         }
@@ -415,6 +453,8 @@
               [placeholder]="fieldProps().placeholder || 'Ingresa tu contraseña'"
               [toggleMask]="true"
               [attr.maxlength]="getMaxLength() ?? null"
+              [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de contraseña'"
+              title="Campo de contraseña"
               inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
             />
           </p-inputgroup>
@@ -424,6 +464,8 @@
             [placeholder]="fieldProps().placeholder || 'Ingresa tu contraseña'"
             [toggleMask]="true"
             [attr.maxlength]="getMaxLength() ?? null"
+            [attr.aria-label]="fieldProps().label || fieldProps().placeholder || 'Campo de contraseña'"
+            title="Campo de contraseña"
             inputStyleClass="w-full  border border-gray-300 rounded-lg px-3 py-2.5 h-11 text-sm focus:outline-none focus:ring-2  focus:border-transparent transition"
           />
         }

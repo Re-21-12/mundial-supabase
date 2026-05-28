@@ -10,6 +10,33 @@
         <i class="pi pi-spin pi-spinner invite-spinner"></i>
       }
 
+      @case ('set_team_name') {
+        <h2 class="invite-title">
+          ¡Fuiste invitado@if (leagueName()) { a <strong>{{ leagueName() }}</strong>}!
+        </h2>
+        <p class="invite-msg">
+          Dale un nombre a tu equipo dentro de esta liga.
+          Será visible en la tabla de posiciones.
+        </p>
+        <div class="team-name-form">
+          <input
+            class="team-name-input"
+            type="text"
+            [(ngModel)]="teamNameInput"
+            placeholder="Ej. Los Campeones, Dragones FC…"
+            maxlength="40"
+            autocomplete="off"
+            (keydown.enter)="confirmTeamName()"
+          />
+          @if (teamNameError()) {
+            <p class="invite-msg invite-msg--error">{{ teamNameError() }}</p>
+          }
+          <button class="invite-btn invite-btn--primary" type="button" (click)="confirmTeamName()">
+            <i class="pi pi-check"></i> Continuar
+          </button>
+        </div>
+      }
+
       @case ('processing') {
         <p class="invite-msg">Uniéndote a la liga…</p>
         <i class="pi pi-spin pi-spinner invite-spinner"></i>
