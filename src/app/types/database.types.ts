@@ -2449,6 +2449,10 @@ export type Database = {
         Args: { p_league_id: number; p_stadium_id: number };
         Returns: undefined;
       };
+      scaffold_league_full: {
+        Args: { p_league_id: number };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

@@ -353,6 +353,7 @@ export class SupabaseAuthService {
     this.role.set(null);
     this.permissions.set([]);
     this.internalUserId.set(null);
+    this.activeSessionId = null;
     console.log('[Auth] Session cleared');
   }
 
@@ -399,13 +400,18 @@ export class SupabaseAuthService {
   }
 
   private _clearStorage(): void {
-    // Remove all Supabase-owned keys (session, code verifier, etc.)
+    // Remove all Supabase-owned keys from localStorage (session, code verifier, etc.)
     Object.keys(localStorage)
       .filter((key) => key.startsWith('sb-'))
       .forEach((key) => localStorage.removeItem(key));
 
     localStorage.removeItem('oauth_provider_token');
     localStorage.removeItem('oauth_provider_refresh_token');
+
+    // Also clear sessionStorage — Supabase uses it during OAuth callback flows
+    Object.keys(sessionStorage)
+      .filter((key) => key.startsWith('sb-'))
+      .forEach((key) => sessionStorage.removeItem(key));
   }
   //#endregion
 
@@ -499,7 +505,9 @@ export class SupabaseAuthService {
       this._explicitSignOut = true;
       this.logSessionDebug('signOut:start', { snapshot: this.getSessionSnapshot(this.session()) });
       await this.logSessionEnd();
-      this._clearStorage();
+      // Call signOut BEFORE clearing storage so the SDK still has the token
+      // in localStorage to revoke the server-side session. The SIGNED_OUT event
+      // handler is responsible for clearing storage, state, and navigating.
       await this._supabaseService.client.auth.signOut();
     } catch (err) {
       this._explicitSignOut = false;
@@ -507,7 +515,7 @@ export class SupabaseAuthService {
       this.logSessionDebug('signOut:error', {
         error: err instanceof Error ? err.message : String(err),
       });
-      // Ensure local state is cleared even if remote signOut fails.
+      // Fallback: clean up locally if the remote call failed.
       this._clearSessionState();
       this._clearStorage();
       this._router.navigate(['/auth'], { queryParams: { mode: 'login' } });

@@ -1,49 +1,31 @@
-/* ─── Base ticket ──────────────────────────────────────────────── */
+/* ─── Base ticket (use design tokens) ───────────────────────────── */
 .ticket {
-  --ticket-fg: #fff;
-  --ticket-fg-muted: rgba(255, 255, 255, 0.5);
-  --ticket-border: rgba(255, 255, 255, 0.09);
-  --ticket-bg-circle: oklch(from var(--background) calc(l - 0.03) c h);
-
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;
-  /* Dark gradient — intencional: el ticket es siempre oscuro para
-     resaltar visualmente sobre el fondo del tema (light o dark) */
-  background: linear-gradient(145deg,
-    oklch(0.22 0.055 265) 0%,
-    oklch(0.16 0.04 262) 60%,
-    oklch(0.12 0.035 260) 100%);
-  border-radius: 20px;
+  background: var(--card);
+  border-radius: var(--radius);
   overflow: visible;
-  color: var(--ticket-fg);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-width: 0;
 }
 
 .ticket:hover {
   transform: translateY(-4px);
-  box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
 /* Live glow */
 .ticket--live {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
-    0 0 0 1.5px rgba(239, 68, 68, 0.5),
-    0 0 24px rgba(239, 68, 68, 0.18);
+  /* use destructive token for live emphasis */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 18px var(--destructive);
 }
 .ticket--live:hover {
-  box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.45),
-    0 0 0 1.5px rgba(239, 68, 68, 0.7),
-    0 0 36px rgba(239, 68, 68, 0.28);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 26px var(--destructive);
 }
 
 /* ─── Top bar ──────────────────────────────────────────────────── */
@@ -64,20 +46,20 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #a5b4fc;
-  border: 1px solid rgba(165, 180, 252, 0.25);
+  border-radius: calc(var(--radius) * 2);
+  background: transparent;
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
 }
 .ticket__badge--live {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--destructive) 15%, transparent), transparent);
+  color: var(--destructive);
+  border-color: color-mix(in srgb, var(--destructive) 28%, transparent);
 }
 .ticket__badge--finished {
-  background: rgba(100, 116, 139, 0.15);
-  color: #94a3b8;
-  border-color: rgba(100, 116, 139, 0.3);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--muted) 12%, transparent), transparent);
+  color: var(--muted-foreground);
+  border-color: color-mix(in srgb, var(--muted) 24%, transparent);
 }
 
 /* Live pulsing dot */
@@ -103,11 +85,11 @@
 .ticket__date-day {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--card-foreground);
 }
 .ticket__date-time {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: var(--muted-foreground);
 }
 
 /* ─── Match section ────────────────────────────────────────────── */
@@ -129,11 +111,11 @@
 
 /* Team logo circle */
 .ticket__logo {
-  width: 64px;
-  height: 64px;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 2px solid color-mix(in srgb, var(--border) 60%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,14 +130,14 @@
 .ticket__logo-initials {
   font-size: 1rem;
   font-weight: 800;
-  color: #c7d2fe;
+  color: var(--secondary-foreground);
   letter-spacing: 0.04em;
 }
 
 .ticket__team-name {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--card-foreground);
   text-align: center;
   line-height: 1.2;
   max-width: 90px;
@@ -163,7 +145,7 @@
 .ticket__team-label {
   font-size: 0.63rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -177,7 +159,7 @@
 .ticket__score-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--card-foreground);
   line-height: 1;
   min-width: 24px;
   text-align: center;
@@ -185,13 +167,13 @@
 .ticket__score-sep {
   font-size: 1.5rem;
   font-weight: 300;
-  color: #475569;
+  color: var(--muted-foreground);
   line-height: 1;
 }
 .ticket__vs {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #475569;
+  color: var(--muted-foreground);
   letter-spacing: 0.04em;
 }
 
@@ -237,14 +219,14 @@
   align-items: center;
   gap: 5px;
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ticket__meta-item .pi {
   font-size: 0.7rem;
-  color: #4f6272;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--card-foreground) 30%);
   flex-shrink: 0;
 }
 
@@ -254,9 +236,9 @@
   align-items: center;
   gap: 6px;
   padding: 8px 18px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
+  border-radius: calc(var(--radius) / 2);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--primary-foreground);
   font-size: 0.8rem;
   font-weight: 700;
   border: none;

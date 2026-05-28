@@ -74,7 +74,7 @@ function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
   styles: [
     `
       .mp-page {
-        padding: 1.5rem;
+        padding: clamp(var(--gap-small), 2vw, 1.5rem);
         max-width: 1200px;
         margin: 0 auto;
         display: flex;

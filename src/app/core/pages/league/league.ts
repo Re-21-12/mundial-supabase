@@ -10,6 +10,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 import { formFields } from './league-form';
+import { SupabaseService } from '../../services/supabase-service';
 
 @Component({
   selector: 'app-league',
@@ -31,6 +32,7 @@ export class LeaguePage implements OnInit {
   readonly dynamicService = inject(DynamicService);
   readonly tableService = inject(DynamicTableService);
   private readonly dialogService = inject(DialogService);
+  private readonly supabase = inject(SupabaseService);
 
   ngOnInit() {
     this.tableService.initTable({
@@ -143,6 +145,19 @@ export class LeaguePage implements OnInit {
 
   insertData = async (data: Partial<Database['public']['Tables']['LEAGUE']['Insert']>) => {
     const response = await this.dynamicService.insertData('LEAGUE', data);
+
+    if (!(response instanceof PostgrestError)) {
+      const leagueId = (response as any).league_id as number | undefined;
+      if (leagueId) {
+        const { error } = await this.supabase.client.rpc('scaffold_league_full', {
+          p_league_id: leagueId,
+        });
+        if (error) {
+          console.error('[League] scaffold_league_full failed:', error);
+        }
+      }
+    }
+
     return response;
   };
 
