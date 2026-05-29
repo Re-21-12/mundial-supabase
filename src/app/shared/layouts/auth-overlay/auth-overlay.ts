@@ -100,6 +100,14 @@ export class AuthOverlay implements AfterViewInit, OnDestroy {
     }
   }
 
+  /** Read the current token directly from the widget (fallback when callback didn't fire). */
+  getCurrentToken(): string | null {
+    const api = this.getTurnstileApi();
+    if (!api || !this.turnstileWidgetId) return null;
+    const response = api.getResponse(this.turnstileWidgetId);
+    return response || null;
+  }
+
   resetTurnstile(): void {
     const api = this.getTurnstileApi();
     if (!api || !this.turnstileWidgetId) {

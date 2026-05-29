@@ -94,7 +94,18 @@ export class Auth implements OnInit {
     const email = parsedData.email as string | undefined;
     const password = parsedData.password as string | undefined;
     const newPassword = parsedData.newPassword as string | undefined;
-    const captchaToken = this.captchaToken();
+
+    // Primary: use the token stored by the callback signal.
+    // Fallback: read directly from the widget in case the callback fired outside
+    // Angular's context or raced with component initialization.
+    let captchaToken = this.captchaToken();
+    if (!captchaToken) {
+      const widgetToken = this.authOverlay?.getCurrentToken() ?? null;
+      if (widgetToken) {
+        this.captchaToken.set(widgetToken);
+        captchaToken = widgetToken;
+      }
+    }
 
     this.authError.set(null);
 
@@ -208,7 +219,14 @@ export class Auth implements OnInit {
   }
 
   async onOAuthProviderSelected(provider: Provider) {
-    const captchaToken = this.captchaToken();
+    let captchaToken = this.captchaToken();
+    if (!captchaToken) {
+      const widgetToken = this.authOverlay?.getCurrentToken() ?? null;
+      if (widgetToken) {
+        this.captchaToken.set(widgetToken);
+        captchaToken = widgetToken;
+      }
+    }
 
     if (!captchaToken) {
       this.authError.set('Completa la verificacion de seguridad para continuar.');
