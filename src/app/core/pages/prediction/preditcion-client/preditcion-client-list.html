@@ -21,7 +21,7 @@
         <div class="actions">
           <button pButton type="button" label="Apostar" (click)="goToMatch(m.matchId)" [disabled]="!m.canPredict"></button>
           <p-tag *ngIf="!m.canPredict" severity="danger" value="Cerrado"></p-tag>
-          <p-tag *ngIf="m.isLive" severity="warning" value="En curso"></p-tag>
+          <p-tag *ngIf="m.isLive" severity="warn" value="En curso"></p-tag>
         </div>
       </li>
     </ul>

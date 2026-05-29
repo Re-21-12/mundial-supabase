@@ -9,8 +9,10 @@ import { MyInvitationsComponent } from '../../../shared/components/my-invitation
   template: `
     <div class="inv-page">
       <header class="inv-header">
-        <h2 class="inv-title">Mis Invitaciones</h2>
-        <p class="inv-subtitle">Acepta o rechaza las invitaciones pendientes desde aquí.</p>
+        <h2 class="inv-title">
+          <i class="pi pi-envelope"></i> Mis Invitaciones
+        </h2>
+        <p class="inv-subtitle">Acepta o rechaza las invitaciones a ligas que te hayan enviado.</p>
       </header>
 
       <section class="inv-card">
@@ -23,36 +25,43 @@ import { MyInvitationsComponent } from '../../../shared/components/my-invitation
       .inv-page {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem;
-        max-width: 980px;
+        gap: 1.25rem;
+        padding: 1.5rem 1rem 3rem;
+        max-width: 780px;
         margin: 0 auto;
       }
 
       .inv-header {
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        gap: 0.2rem;
       }
 
       .inv-title {
         margin: 0;
         font-size: 1.4rem;
-        font-weight: 800;
-        color: var(--foreground);
+        font-weight: 700;
+        color: var(--text-color, #1e293b);
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .inv-title .pi {
+        font-size: 1.2rem;
+        color: var(--primary-color, #6366f1);
       }
 
       .inv-subtitle {
         margin: 0;
-        color: var(--muted-foreground);
-        font-size: 0.92rem;
+        color: var(--text-color-secondary, #64748b);
+        font-size: 0.88rem;
       }
 
       .inv-card {
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        background: var(--card);
+        border: 1px solid var(--surface-border, #e2e8f0);
+        border-radius: 0.75rem;
+        background: var(--surface-card, #fff);
+        padding: 1rem 1.25rem;
       }
     `,
   ],

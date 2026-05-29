@@ -1,31 +1,214 @@
-.invitations-shell { display: flex; flex-direction: column; gap: 0.75rem; }
+/* ── Loading ─────────────────────────────────────────────────────── */
+.mi-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--text-color-secondary, #64748b);
+  font-size: 0.9rem;
+}
+.mi-loading .pi-spinner { font-size: 1.75rem; }
 
-.inv-title { font-size: 1rem; font-weight: 600; margin: 0; }
-
-.inv-empty { font-size: 0.875rem; color: var(--muted-foreground); margin: 0; }
-
-.inv-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-
-.inv-card {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding: 0.75rem 1rem; border: 1px solid var(--border);
-  border-radius: 0.5rem; background: var(--card);
+/* ── Empty state ─────────────────────────────────────────────────── */
+.mi-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.mi-empty .pi-envelope {
+  font-size: 2.5rem;
+  color: var(--text-color-secondary, #94a3b8);
+  margin-bottom: 0.25rem;
+}
+.mi-empty__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color, #1e293b);
+  margin: 0;
+}
+.mi-empty__hint {
+  font-size: 0.82rem;
+  color: var(--text-color-secondary, #64748b);
+  max-width: 26rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.inv-info { display: flex; flex-direction: column; gap: 0.125rem; }
-
-.inv-league { font-weight: 600; font-size: 0.875rem; }
-.inv-date, .inv-exp { font-size: 0.75rem; color: var(--muted-foreground); }
-
-.inv-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
-
-.btn-accept, .btn-decline {
-  padding: 0.25rem 0.75rem; border-radius: 0.375rem;
-  font-size: 0.8rem; font-weight: 500; border: none; cursor: pointer;
+/* ── Error banner ────────────────────────────────────────────────── */
+.mi-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.83rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.875rem;
+  margin-bottom: 0.875rem;
 }
-.btn-accept { background: #dcfce7; color: #15803d; }
-.btn-accept:hover { background: #bbf7d0; }
-.btn-decline { background: var(--muted); color: var(--muted-foreground); }
-.btn-decline:hover { background: var(--border); }
 
-.inv-error { font-size: 0.8rem; color: #b91c1c; margin: 0; }
+/* ── List ────────────────────────────────────────────────────────── */
+.mi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.mi-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--surface-border, #e2e8f0);
+  border-radius: 0.75rem;
+  background: var(--surface-section, #f8fafc);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.mi-card:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.mi-card--expiring {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+/* ── Card body ───────────────────────────────────────────────────── */
+.mi-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.mi-league-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.mi-league-icon {
+  font-size: 0.85rem;
+  color: var(--primary-color, #6366f1);
+  flex-shrink: 0;
+}
+.mi-league-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-color, #1e293b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mi-type-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+  white-space: nowrap;
+}
+.mi-type-badge--anon {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.mi-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+.mi-date-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-color-secondary, #64748b);
+}
+.mi-date-item .pi { font-size: 0.72rem; }
+
+.mi-date--warn {
+  color: #b45309;
+  font-weight: 600;
+}
+.mi-expiry-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.08rem 0.4rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  margin-left: 0.2rem;
+}
+
+/* ── Card actions ────────────────────────────────────────────────── */
+.mi-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.mi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+.mi-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mi-btn--accept {
+  background: #dcfce7;
+  color: #15803d;
+}
+.mi-btn--accept:not(:disabled):hover {
+  background: #bbf7d0;
+}
+
+.mi-btn--decline {
+  background: var(--surface-border, #e2e8f0);
+  color: var(--text-color-secondary, #64748b);
+}
+.mi-btn--decline:not(:disabled):hover {
+  background: #cbd5e1;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .mi-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .mi-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

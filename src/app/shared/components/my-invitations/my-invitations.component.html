@@ -1,28 +1,89 @@
-<section class="invitations-shell" aria-labelledby="inv-title">
-  <h2 id="inv-title" class="inv-title">Mis invitaciones pendientes</h2>
+<!-- Loading -->
+@if (isLoading()) {
+  <div class="mi-loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando invitaciones…</span>
+  </div>
+}
 
-  @if (isLoading()) {
-    <p class="inv-empty">Cargando...</p>
-  } @else if (invitations().length === 0) {
-    <p class="inv-empty">No tienes invitaciones pendientes.</p>
-  } @else {
-    <ul class="inv-list" role="list">
-      @for (inv of invitations(); track inv.invitation_id) {
-        <li class="inv-card" role="listitem">
-          <div class="inv-info">
-            <span class="inv-league">Liga #{{ inv.league_id }}</span>
-            <span class="inv-date">Enviada: {{ inv.send_date | date:'dd/MM/yyyy' }}</span>
-            <span class="inv-exp">Expira: {{ inv.expiration_date | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-          <div class="inv-actions">
-            <button class="btn-accept" (click)="accept(inv.invitation_id)">Aceptar</button>
-            <button class="btn-decline" (click)="decline(inv.invitation_id)">Rechazar</button>
-          </div>
-        </li>
-      }
-    </ul>
-    @if (actionError()) {
-      <p class="inv-error">{{ actionError() }}</p>
-    }
+<!-- Empty state -->
+@else if (invitations().length === 0) {
+  <div class="mi-empty">
+    <i class="pi pi-envelope"></i>
+    <p class="mi-empty__title">Sin invitaciones pendientes</p>
+    <p class="mi-empty__hint">Cuando alguien te invite a una liga, aparecerá aquí para que puedas aceptarla o rechazarla.</p>
+  </div>
+}
+
+<!-- List -->
+@else {
+  @if (actionError()) {
+    <div class="mi-error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      {{ actionError() }}
+    </div>
   }
-</section>
+
+  <ul class="mi-list">
+    @for (inv of invitations(); track inv.invitation_id) {
+      <li class="mi-card" [class.mi-card--expiring]="isExpiringSoon(inv)">
+
+        <div class="mi-card__body">
+          <!-- League name -->
+          <div class="mi-league-row">
+            <i class="pi pi-trophy mi-league-icon"></i>
+            <span class="mi-league-name">
+              {{ inv.league_name ?? ('Liga #' + inv.league_id) }}
+            </span>
+            <span class="mi-type-badge"
+              [class.mi-type-badge--anon]="inv.invitation_type === 'anonymous'">
+              {{ inv.invitation_type === 'existing' ? 'Invitación directa' : 'Enlace de invitación' }}
+            </span>
+          </div>
+
+          <!-- Dates -->
+          <div class="mi-dates">
+            <span class="mi-date-item">
+              <i class="pi pi-calendar"></i>
+              Enviada el {{ inv.send_date | date:'dd/MM/yyyy' }}
+            </span>
+            <span class="mi-date-item" [class.mi-date--warn]="isExpiringSoon(inv)">
+              <i class="pi pi-clock"></i>
+              Expira {{ inv.expiration_date | date:'dd/MM/yyyy, HH:mm' }}
+              @if (isExpiringSoon(inv)) {
+                <span class="mi-expiry-badge">Vence pronto</span>
+              }
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mi-card__actions">
+          <button
+            type="button"
+            class="mi-btn mi-btn--accept"
+            [disabled]="isActing(inv.invitation_id)"
+            (click)="accept(inv.invitation_id)">
+            @if (isActing(inv.invitation_id)) {
+              <i class="pi pi-spin pi-spinner"></i>
+            } @else {
+              <i class="pi pi-check"></i> Aceptar
+            }
+          </button>
+          <button
+            type="button"
+            class="mi-btn mi-btn--decline"
+            [disabled]="isActing(inv.invitation_id)"
+            (click)="decline(inv.invitation_id)">
+            @if (isActing(inv.invitation_id)) {
+              <i class="pi pi-spin pi-spinner"></i>
+            } @else {
+              <i class="pi pi-times"></i> Rechazar
+            }
+          </button>
+        </div>
+
+      </li>
+    }
+  </ul>
+}

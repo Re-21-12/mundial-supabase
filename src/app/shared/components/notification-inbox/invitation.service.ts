@@ -515,10 +515,22 @@ export class InvitationService {
       )
       .eq('email', userEmail)
       .eq('status', 'pending')
-      .order('send_date', { ascending: false })
-      .returns<PendingInvitation[]>();
+      .eq('is_deleted', false)
+      .order('send_date', { ascending: false });
 
-    return { data: data ?? [], error };
+    const mapped: PendingInvitation[] = (data ?? []).map((row: any) => ({
+      invitation_id: row.invitation_id,
+      email: row.email,
+      invitation_type: row.invitation_type,
+      status: row.status,
+      send_date: row.send_date,
+      expiration_date: row.expiration_date,
+      token: row.token,
+      league_id: row.league_id,
+      league_name: row.LEAGUE?.name ?? undefined,
+    }));
+
+    return { data: mapped, error };
   }
 
   async accept(invitationId: number) {
