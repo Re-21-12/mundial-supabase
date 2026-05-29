@@ -7,17 +7,34 @@
     <p class="scoreboard-subtitle">Administra los períodos y punteos de cada partido.</p>
   </div>
 
-  <div class="scoreboard-filter">
-    <label class="scoreboard-filter__label" for="league-select">Liga</label>
-    <p-select
-      inputId="league-select"
-      [options]="leagueOptions()"
-      [ngModel]="selectedLeagueId()"
-      (ngModelChange)="onLeagueChange($event)"
-      placeholder="Selecciona una liga…"
-      [showClear]="true"
-      styleClass="scoreboard-select"
-    />
+  <div class="scoreboard-filters">
+    <div class="scoreboard-filter">
+      <label class="scoreboard-filter__label" for="league-select">Liga</label>
+      <p-select
+        inputId="league-select"
+        [options]="leagueOptions()"
+        [ngModel]="selectedLeagueId()"
+        (ngModelChange)="onLeagueChange($event)"
+        placeholder="Selecciona una liga…"
+        [showClear]="true"
+        styleClass="scoreboard-select"
+      />
+    </div>
+
+    @if (selectedLeagueId()) {
+      <div class="scoreboard-filter">
+        <label class="scoreboard-filter__label" for="round-select">Ronda</label>
+        <p-select
+          inputId="round-select"
+          [options]="roundOptions()"
+          [ngModel]="selectedRound()"
+          (ngModelChange)="onRoundChange($event)"
+          placeholder="Todas las rondas"
+          [showClear]="true"
+          styleClass="scoreboard-select"
+        />
+      </div>
+    }
   </div>
 
   @if (!selectedLeagueId()) {
@@ -34,9 +51,9 @@
     </div>
   }
 
-  @if (!loadingMatches() && matches().length > 0) {
+  @if (!loadingMatches() && filteredMatches().length > 0) {
     <div class="scoreboard-list">
-      @for (match of matches(); track match.match_id) {
+      @for (match of filteredMatches(); track match.match_id) {
         <div
           class="sb-match"
           [class.sb-match--live]="isLive(match)"
@@ -231,7 +248,13 @@
   } @else if (!loadingMatches() && selectedLeagueId()) {
     <div class="scoreboard-empty">
       <i class="pi pi-calendar scoreboard-empty__icon" aria-hidden="true"></i>
-      <p>No hay partidos en esta liga aún.</p>
+      <p>
+        @if (selectedRound() == null) {
+          No hay partidos en esta liga aún.
+        } @else {
+          No hay partidos para {{ getRoundLabel(selectedRound()) }}.
+        }
+      </p>
     </div>
   }
 </div>

@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -42,6 +42,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   // ── Filter state ──────────────────────────────────────────────────────────────
   readonly leagues = signal<LeagueRow[]>([]);
   readonly selectedLeagueId = signal<number | null>(null);
+  readonly selectedRound = signal<number | null>(null);
   readonly catalogs = signal<CatalogRow[]>([]);
   readonly teams = signal<TeamRow[]>([]);
 
@@ -53,6 +54,28 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   readonly expandedMatchId = signal<number | null>(null);
   readonly loadingMatches = signal(false);
   readonly loadingPeriods = signal<Set<number>>(new Set());
+  readonly roundOptions = computed(() => {
+    const rounds = [
+      ...new Set(
+        this.matches()
+          .map((match) => match.round)
+          .filter((round) => round != null),
+      ),
+    ].sort((a, b) => Number(a) - Number(b));
+
+    return [
+      { label: 'Todas las rondas', value: null },
+      ...rounds.map((round) => ({ label: `Ronda ${round}`, value: round })),
+    ];
+  });
+  readonly filteredMatches = computed(() => {
+    const selectedRound = this.selectedRound();
+    if (selectedRound == null) {
+      return this.matches();
+    }
+
+    return this.matches().filter((match) => match.round === selectedRound);
+  });
   readonly periodFields = matchPeriodFormFields['matchPeriodForm'].fields.filter(
     (field) => field.key !== 'match_id',
   );
@@ -120,6 +143,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
   async onLeagueChange(leagueId: number | null): Promise<void> {
     this.selectedLeagueId.set(leagueId);
+    this.selectedRound.set(null);
     this.expandedMatchId.set(null);
     this.periodsMap.set(new Map());
     this.edits.set(new Map());
@@ -149,6 +173,11 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     this.loadingMatches.set(false);
 
     this.subscribeRealtime(leagueId);
+  }
+
+  onRoundChange(round: number | null): void {
+    this.selectedRound.set(round);
+    this.expandedMatchId.set(null);
   }
 
   async toggleMatch(matchId: number): Promise<void> {
@@ -420,6 +449,10 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
     }
 
     return `Ronda ${round}`;
+  }
+
+  getRoundLabel(round: number | null): string {
+    return round == null ? 'Todas las rondas' : `Ronda ${round}`;
   }
 
   private toNumber(value: unknown, fallback: number): number {

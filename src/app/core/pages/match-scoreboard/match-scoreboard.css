@@ -40,6 +40,12 @@
 }
 
 /* ─── League filter ────────────────────────────────────────────── */
+.scoreboard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .scoreboard-filter {
   display: flex;
   flex-direction: column;
