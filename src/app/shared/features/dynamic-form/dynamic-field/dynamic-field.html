@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 p-6">
+<div class="flex flex-col gap-4 p-4">
   <!-- Templates reutilizables -->
 
   <!--Label -->
@@ -495,6 +495,8 @@
               [options]="resolvedOptions()"
               optionLabel="value"
               optionValue="key"
+              appendTo="body"
+              styleClass="w-full"
               (onChange)="logSelectChange($event.value)"
               [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
 
@@ -506,6 +508,8 @@
             [options]="resolvedOptions()"
             optionLabel="value"
             optionValue="key"
+            appendTo="body"
+            styleClass="w-full"
             (onChange)="logSelectChange($event.value)"
             [placeholder]="fieldProps().placeholder || 'Selecciona una opción'"
 
@@ -582,6 +586,7 @@
               [options]="resolvedOptions()"
               optionLabel="value"
               optionValue="key"
+              appendTo="body"
               (onChange)="logMultiSelectChange($event.value)"
               [placeholder]="fieldProps().placeholder || 'Selecciona opciones'"
               display="chip"
@@ -595,6 +600,7 @@
             [options]="resolvedOptions()"
             optionLabel="value"
             optionValue="key"
+            appendTo="body"
             (onChange)="logMultiSelectChange($event.value)"
             [placeholder]="fieldProps().placeholder || 'Selecciona opciones'"
             display="chip"

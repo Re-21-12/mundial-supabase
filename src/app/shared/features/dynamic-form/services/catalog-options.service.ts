@@ -11,6 +11,7 @@ export interface CatalogOption {
 export class CatalogOptionsService {
   private readonly supabaseService = inject(SupabaseService);
   private readonly optionsByField = signal<Record<string, CatalogOption[]>>({});
+  readonly revision = signal(0);
   private readonly loadedSources = new Set<string>();
 
   getOptions(fieldKey: string): CatalogOption[] {
@@ -68,6 +69,7 @@ export class CatalogOptionsService {
       ...current,
       [fieldKey]: options,
     }));
+    this.revision.update((value) => value + 1);
     this.loadedSources.add(cacheKey);
   }
 
@@ -77,5 +79,6 @@ export class CatalogOptionsService {
       delete next[fieldKey];
       return next;
     });
+    this.revision.update((value) => value + 1);
   }
 }

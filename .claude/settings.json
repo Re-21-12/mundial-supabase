@@ -50,7 +50,13 @@
       "Read(//mnt/c/Users/victo/**)",
       "mcp__supabase__apply_migration",
       "Bash(Find c:\\\\Users\\\\victo\\\\Mundial\\\\db\\\\script -name \"*.sql\" -type f)",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "Bash(where playwright *)",
+      "Bash(where npx *)",
+      "Bash(node -e \"require\\('playwright'\\)\")",
+      "Read(//c/tmp/**)",
+      "Bash(npx --yes playwright install chromium)",
+      "Bash(npx playwright *)"
     ]
   }
 }

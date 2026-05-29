@@ -1,7 +1,7 @@
 /* Estilos para componentes PrimeNG */
 :host {
   display: block;
-  color: #e2e8f0;
+  color: #f1f5f9;
 }
 
 :host ::ng-deep .p-inputgroup,
@@ -14,28 +14,29 @@
 
 :host ::ng-deep .p-inputgroup {
   overflow: hidden;
-  border-radius: 1rem;
+  border-radius: 0.875rem;
 }
 
 :host ::ng-deep .p-inputgroup-addon {
   display: grid;
   place-items: center;
-  min-width: 3.25rem;
+  min-width: 2.75rem;
   padding: 0;
-  border: 1px solid rgba(71, 85, 105, 0.55);
+  border: 1px solid rgba(94, 106, 128, 0.75);
   border-right: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.82));
-  color: #cbd5e1;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.92));
+  color: #e2e8f0;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
 }
 
 :host ::ng-deep .p-inputgroup-addon:last-child {
-  border-right: 1px solid rgba(71, 85, 105, 0.55);
+  border-right: 1px solid rgba(94, 106, 128, 0.75);
   border-left: 0;
 }
 
 :host ::ng-deep .p-inputgroup-addon i {
-  color: #cbd5e1;
-  font-size: 0.95rem;
+  color: #f8fafc;
+  font-size: 0.85rem;
 }
 
 :host ::ng-deep .p-inputtext,
@@ -49,14 +50,13 @@
 :host ::ng-deep .p-inputgroup textarea,
 :host ::ng-deep .p-inputwrapper .p-inputtext {
   width: 100%;
-  min-height: 3.25rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(71, 85, 105, 0.55);
-  border-left: 0;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(94, 106, 128, 0.72);
   background: rgba(15, 23, 42, 0.94);
   color: #f8fafc;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: 0.875rem;
+  line-height: 1.2;
   outline: none;
   box-shadow: none;
 }
@@ -66,21 +66,28 @@
 :host ::ng-deep .p-datepicker-input::placeholder,
 :host ::ng-deep .p-inputgroup input::placeholder,
 :host ::ng-deep textarea::placeholder {
-  color: rgba(148, 163, 184, 0.72);
+  color: rgba(148, 163, 184, 0.82);
 }
 
 :host ::ng-deep .p-inputgroup .p-inputtext:first-child,
 :host ::ng-deep .p-inputgroup .p-password,
 :host ::ng-deep .p-inputgroup .p-datepicker,
-:host ::ng-deep .p-inputgroup .p-select {
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem;
+:host ::ng-deep .p-inputgroup .p-select,
+:host ::ng-deep .p-inputgroup .p-multiselect {
+  border-top-right-radius: 0.875rem;
+  border-bottom-right-radius: 0.875rem;
 }
 
 :host ::ng-deep .p-password .p-password-input,
 :host ::ng-deep .p-datepicker .p-datepicker-input,
-:host ::ng-deep .p-select {
-  border-radius: 1rem;
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-multiselect {
+  border-radius: 0.875rem;
+}
+
+:host ::ng-deep .p-inputgroup .p-select,
+:host ::ng-deep .p-inputgroup .p-multiselect {
+  border-left: 0;
 }
 
 :host ::ng-deep .p-inputgroup:focus-within .p-inputgroup-addon,
@@ -88,14 +95,14 @@
 :host ::ng-deep .p-password:focus-within .p-inputpassword,
 :host ::ng-deep .p-select:focus-within,
 :host ::ng-deep .p-datepicker:focus-within .p-datepicker-input {
-  border-color: rgba(56, 189, 248, 0.95);
+  border-color: rgba(56, 189, 248, 0.98);
 }
 
 :host ::ng-deep .p-inputgroup:focus-within,
 :host ::ng-deep .p-password:focus-within,
 :host ::ng-deep .p-select:focus-within,
 :host ::ng-deep .p-datepicker:focus-within {
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.14);
 }
 
 :host ::ng-deep .p-password .p-password-toggle-mask,
@@ -109,7 +116,14 @@
 
 :host ::ng-deep .p-select .p-select-label,
 :host ::ng-deep .p-select .p-placeholder {
-  color: rgba(248, 250, 252, 0.92);
+  color: rgba(248, 250, 252, 0.98);
+  font-size: 0.875rem;
+}
+
+:host ::ng-deep .p-multiselect .p-multiselect-label,
+:host ::ng-deep .p-multiselect .p-placeholder {
+  color: rgba(248, 250, 252, 0.98);
+  font-size: 0.875rem;
 }
 
 :host ::ng-deep .p-select .p-select-dropdown {
@@ -123,7 +137,7 @@
 .field-label-wrap {
   display: flex;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.45rem;
 }
 
 .field-label {
@@ -131,14 +145,15 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0;
-  color: #e2e8f0;
-  font-size: 0.88rem;
-  font-weight: 600;
+  color: var(--card-foreground, #0f172a);
+  font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .field-required {
-  color: #fda4af;
+  color: var(--destructive, #ef4444);
   font-weight: 700;
 }
 

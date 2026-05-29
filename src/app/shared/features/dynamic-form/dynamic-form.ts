@@ -62,6 +62,7 @@ export class DynamicForm {
 
     effect(() => {
       const fields = this.fields() ?? [];
+      this.catalogOptionsService.revision();
 
       fields.forEach((field) => {
         if (field.optionsSource) {
