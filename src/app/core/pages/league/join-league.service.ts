@@ -61,7 +61,6 @@ export class JoinLeagueService {
   async joinByCode(
     code: string,
     userId: number,
-    teamName?: string,
   ): Promise<{ error?: string; leagueId?: number; pendingApproval?: boolean }> {
     if (!code.trim()) {
       return { error: 'Ingresa un código de invitación válido.' };
@@ -123,25 +122,7 @@ export class JoinLeagueService {
 
     const joinedLeagueId = Number(row.league_id);
 
-    // 5. Save team name if provided (update USER_LEAGUE directly after join)
-    if (teamName?.trim()) {
-      const { data: ul } = await this._db.client
-        .from('USER_LEAGUE')
-        .select('user_league_id')
-        .eq('user_id', userId)
-        .eq('league_id', joinedLeagueId)
-        .eq('is_deleted', false)
-        .maybeSingle();
-
-      if (ul) {
-        await this._db.client
-          .from('USER_LEAGUE')
-          .update({ team_name: teamName.trim(), updated_at: new Date().toISOString() } as any)
-          .eq('user_league_id', (ul as any).user_league_id);
-      }
-    }
-
-    // 6. Indicate pending approval if that's the current status
+    // 5. Indicate pending approval if that's the current status
     const { data: ulStatus } = await this._db.client
       .from('USER_LEAGUE')
       .select('approval_status')

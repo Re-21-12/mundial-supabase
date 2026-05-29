@@ -75,46 +75,11 @@
           } @else {
             <p class="jl-preview__fee">🎮 Liga de diversión — sin cuota</p>
           }
-          <button class="jl-submit" type="button" (click)="proceedToTeamName()">
+          <button class="jl-submit" type="button" (click)="confirmJoin()">
             Unirse a esta liga →
           </button>
         </div>
       }
-    }
-
-    <!-- ── Step 2: Nombre del equipo ────────────────────────────────────── -->
-    @case ('team_name') {
-      <h2 class="jl-title">Nombre de tu equipo</h2>
-      <p class="jl-desc">
-        Dale un nombre a tu equipo en
-        <strong>{{ previewLeague()?.name ?? 'la liga' }}</strong>.
-        Aparecerá en la tabla de posiciones.
-      </p>
-
-      <form class="jl-form" (ngSubmit)="confirmJoin()">
-        <label class="jl-label" for="jl-teamname-input">Nombre del equipo</label>
-        <input
-          id="jl-teamname-input"
-          class="jl-input jl-input--normal"
-          type="text"
-          [(ngModel)]="teamName"
-          name="teamName"
-          placeholder="Ej. Los Campeones, Dragones FC…"
-          maxlength="40"
-          autocomplete="off"
-          aria-label="Nombre del equipo"
-        />
-
-        @if (teamNameError()) {
-          <p class="jl-error" role="alert">{{ teamNameError() }}</p>
-        }
-        @if (errorMsg()) {
-          <p class="jl-error" role="alert">{{ errorMsg() }}</p>
-        }
-
-        <button class="jl-submit" type="submit">Confirmar y unirse</button>
-        <button class="jl-back" type="button" (click)="backToSearch()">← Volver</button>
-      </form>
     }
 
     <!-- ── Working / success ────────────────────────────────────────────── -->

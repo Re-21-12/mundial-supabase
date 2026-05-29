@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { JoinLeagueService, LeaguePreview } from '../../../core/pages/league/join-league.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 
-type JoinStep = 'search' | 'team_name' | 'working';
+type JoinStep = 'search' | 'working';
 
 @Component({
   selector: 'app-join-league',
@@ -32,10 +32,6 @@ export class JoinLeagueComponent {
   // Selected league (from preview or search result)
   private selectedLeague: LeaguePreview | null = null;
   protected readonly previewLeague = signal<LeaguePreview | null>(null);
-
-  // Step 2 — team name
-  protected teamName = '';
-  protected readonly teamNameError = signal('');
 
   // ── Step 1: search / preview ──────────────────────────────────────────────
 
@@ -78,36 +74,16 @@ export class JoinLeagueComponent {
     this.searchResults.set([]);
   }
 
-  protected proceedToTeamName() {
-    this.selectedLeague = this.previewLeague();
-    this.teamName = '';
-    this.teamNameError.set('');
-    this.step.set('team_name');
-  }
-
-  // ── Step 2: team name ─────────────────────────────────────────────────────
-
   protected async confirmJoin() {
-    const name = this.teamName.trim();
-    if (!name) {
-      this.teamNameError.set('El nombre del equipo es obligatorio.');
-      return;
-    }
-    if (name.length < 2) {
-      this.teamNameError.set('Debe tener al menos 2 caracteres.');
-      return;
-    }
-
-    this.teamNameError.set('');
     this.step.set('working');
     this.errorMsg.set('');
 
     const userId = Number(this.auth.getInternalUserId());
     const code = this.selectedLeague?.invitationCode ?? this.searchQuery;
-    const { leagueId, error } = await this.svc.joinByCode(code, userId, name);
+    const { leagueId, error } = await this.svc.joinByCode(code, userId);
 
     if (error) {
-      this.step.set('team_name');
+      this.step.set('search');
       this.errorMsg.set(error);
       return;
     }
@@ -117,7 +93,7 @@ export class JoinLeagueComponent {
     );
     setTimeout(() => {
       this.closed.emit();
-      if (leagueId) this.router.navigate(['/league-preview', leagueId]);
+      this.router.navigate(['/mis-ligas']);
     }, 1400);
   }
 
