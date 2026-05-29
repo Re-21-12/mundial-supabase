@@ -41,13 +41,13 @@ export class HomeRealtimeService implements OnDestroy {
       .eq('is_deleted', false)
       .gte('start_time', hoyMedianoche.toISOString())
       .order('start_time', { ascending: true })
-      .limit(5);
+      .limit(1000);
 
     const [periodRes, teamRes] = await Promise.all([
       this.dynamicService.fetchData<MatchPeriodRow>({
         table: 'MATCH_PERIOD',
         order: 'asc',
-        limit: 50,
+        limit: 2000,
         page: 0,
         columns: '*',
       }),

@@ -140,7 +140,20 @@ CREATE TRIGGER trigger_match_period_sync
 -- ── 5. Realtime for MATCH_PERIOD (scoreboard live updates) ───────────────────
 
 ALTER TABLE "MATCH_PERIOD" REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE "MATCH_PERIOD";
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables pbt
+    WHERE pbt.pubname = 'supabase_realtime'
+      AND pbt.schemaname = 'public'
+      AND pbt.tablename = 'MATCH_PERIOD'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE "MATCH_PERIOD";
+  END IF;
+END
+$$;
 
 -- ── 6. Grant execute so Supabase roles can call the helpers manually ─────────
 
@@ -157,4 +170,9 @@ VALUES (
   'db/script/v3.18-match-period-trigger.sql',
   NOW(),
   'applied'
-);
+) ON CONFLICT (version) DO UPDATE
+  SET name        = EXCLUDED.name,
+      description = EXCLUDED.description,
+      script_path = EXCLUDED.script_path,
+      applied_at   = EXCLUDED.applied_at,
+      status       = EXCLUDED.status;
