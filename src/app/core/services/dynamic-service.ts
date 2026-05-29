@@ -60,7 +60,7 @@ export class DynamicService {
         this.supabaseService.client
           .from(`${table}`)
           .select(query.columns, { count: 'exact' })
-          .order('created_at', { ascending: order === 'asc' })
+          .order('created_at', { ascending: order === 'desc' })
           .range(from, to),
       ));
     } else {

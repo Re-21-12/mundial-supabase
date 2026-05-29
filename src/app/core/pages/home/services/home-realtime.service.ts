@@ -46,7 +46,7 @@ export class HomeRealtimeService implements OnDestroy {
     const [periodRes, teamRes] = await Promise.all([
       this.dynamicService.fetchData<MatchPeriodRow>({
         table: 'MATCH_PERIOD',
-        order: 'asc',
+        order: 'desc',
         limit: 2000,
         page: 0,
         columns: '*',
