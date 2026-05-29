@@ -1,6 +1,4 @@
-import {
-  ChangeDetectionStrategy, Component, inject, output, signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { JoinLeagueService, LeaguePreview } from '../../../core/pages/league/join-league.service';
@@ -119,7 +117,7 @@ export class JoinLeagueComponent {
     );
     setTimeout(() => {
       this.closed.emit();
-      if (leagueId) this.router.navigate(['/league', leagueId]);
+      if (leagueId) this.router.navigate(['/league-preview', leagueId]);
     }, 1400);
   }
 
@@ -130,5 +128,7 @@ export class JoinLeagueComponent {
     this.errorMsg.set('');
   }
 
-  protected close() { this.closed.emit(); }
+  protected close() {
+    this.closed.emit();
+  }
 }

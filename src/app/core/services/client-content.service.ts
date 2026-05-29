@@ -121,7 +121,49 @@ export class ClientContentService {
       .order('name', { ascending: true });
 
     const userId = this.getCurrentUserId();
-    const scopedQuery = this.isClientUser() && userId ? query.eq('created_by', userId) : query;
+    if (this.isClientUser() && userId) {
+      const [membershipRes, createdRes] = await Promise.all([
+        this.db.client
+          .from('USER_LEAGUE')
+          .select('league_id')
+          .eq('user_id', userId)
+          .eq('is_deleted', false),
+        this.db.client
+          .from('LEAGUE')
+          .select('league_id')
+          .eq('created_by', userId)
+          .eq('is_deleted', false),
+      ]);
+
+      if (membershipRes.error) {
+        throw membershipRes.error;
+      }
+      if (createdRes.error) {
+        throw createdRes.error;
+      }
+
+      const leagueIds = [
+        ...new Set(
+          [
+            ...(membershipRes.data ?? []).map((row: any) => row.league_id),
+            ...(createdRes.data ?? []).map((row: any) => row.league_id),
+          ].filter(Boolean),
+        ),
+      ];
+
+      if (leagueIds.length === 0) {
+        return [];
+      }
+
+      const { data, error } = await query.in('league_id', leagueIds);
+      if (error) {
+        throw error;
+      }
+
+      return (data ?? []) as ClientLeagueRow[];
+    }
+
+    const scopedQuery = query;
     const { data, error } = await scopedQuery;
 
     if (error) {
