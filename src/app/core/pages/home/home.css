@@ -243,6 +243,32 @@
   gap: 0.5rem;
 }
 
+.match-card__league {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  color: color-mix(in oklch, var(--primary) 72%, var(--foreground));
+  font-size: 0.72rem;
+  font-weight: 700;
+  align-self: center;
+}
+
+.match-card__league-icon {
+  font-size: 0.8rem;
+}
+
+.match-card__league-label {
+  opacity: 0.75;
+}
+
+.match-card__league-name {
+  font-weight: 800;
+}
+
 .match-team {
   display: flex;
   flex-direction: column;

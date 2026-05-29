@@ -135,6 +135,7 @@ export class Home implements OnInit, OnDestroy {
         .filter((m) => m.league_id != null && this.allowedLeagueIds().has(m.league_id)),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
+      this.homeLeagues(),
     ),
   );
 
@@ -156,6 +157,7 @@ export class Home implements OnInit, OnDestroy {
       this.realtimeService.leagueMatches().filter((m) => m.grupo_id !== null),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
+      this.homeLeagues(),
     ),
   );
 
@@ -301,7 +303,7 @@ export class Home implements OnInit, OnDestroy {
 
   // ── Navigation ────────────────────────────────────────────────────────────────
   navigateToPredict(matchId: number): void {
-    this.router.navigate(['/prediction/prediction-client', matchId]);
+    this.router.navigate(['/prediction-client', matchId]);
   }
 
   navigateToCreateLeague(): void {
@@ -374,9 +376,11 @@ export class Home implements OnInit, OnDestroy {
     matches: MatchRow[],
     periods: MatchPeriodRow[],
     teams: TeamRow[],
+    leagues: LeagueForHome[],
   ): MatchCard[] {
     if (!Array.isArray(matches) || !Array.isArray(teams)) return [];
     const teamsMap = new Map(teams.map((t) => [t.team_id, t]));
+    const leaguesMap = new Map(leagues.map((league) => [league.league_id, league]));
 
     const placeholder = (id: number): TeamRow => ({
       team_id: id,
@@ -397,10 +401,13 @@ export class Home implements OnInit, OnDestroy {
       const homeTeam = teamsMap.get(match.first_team_id!) ?? placeholder(match.first_team_id ?? 0);
       const awayTeam =
         teamsMap.get(match.second_team_id!) ?? placeholder(match.second_team_id ?? 0);
+      const leagueName =
+        leaguesMap.get(match.league_id)?.name ??
+        (match.league_id ? `Liga ${match.league_id}` : 'Liga');
       const now = new Date();
       const isLive =
         new Date(match.start_time) <= now && new Date(match.end_time) > now && !match.is_deleted;
-      return { match, homeTeam, awayTeam, period, isLive };
+      return { match, homeTeam, awayTeam, leagueName, period, isLive };
     });
   }
 }

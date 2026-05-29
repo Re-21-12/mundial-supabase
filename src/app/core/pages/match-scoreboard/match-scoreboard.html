@@ -59,12 +59,19 @@
             </div>
 
             <div class="sb-match__teams">
-              <span class="sb-match__team">{{ match.first_team_id ?? '–' }}</span>
+              <span class="sb-match__team sb-match__team--home">
+                <span class="sb-match__team-id">{{ match.first_team_id ?? '–' }}</span>
+                <span class="sb-match__team-name">{{ getTeamName(match.first_team_id) }}</span>
+              </span>
               <span class="sb-match__score">{{ match.first_team_total }} : {{ match.second_team_total }}</span>
-              <span class="sb-match__team sb-match__team--away">{{ match.second_team_id ?? '–' }}</span>
+              <span class="sb-match__team sb-match__team--away">
+                <span class="sb-match__team-id">{{ match.second_team_id ?? '–' }}</span>
+                <span class="sb-match__team-name">{{ getTeamName(match.second_team_id) }}</span>
+              </span>
             </div>
 
             <div class="sb-match__meta">
+              <span class="sb-match__round">{{ getMatchRound(match) }}</span>
               <span class="sb-match__date">{{ match.start_time | date: 'dd/MM HH:mm' }}</span>
               <i [class]="expandedMatchId() === match.match_id ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
             </div>
@@ -83,8 +90,14 @@
                     <thead>
                       <tr>
                         <th>Período</th>
-                        <th class="text-center">{{ match.first_team_id ?? 'Local' }}</th>
-                        <th class="text-center">{{ match.second_team_id ?? 'Visita' }}</th>
+                        <th class="text-center">
+                          <span class="sb-table-team-id">{{ match.first_team_id ?? 'Local' }}</span>
+                          <span class="sb-table-team-name">{{ getTeamName(match.first_team_id) }}</span>
+                        </th>
+                        <th class="text-center">
+                          <span class="sb-table-team-id">{{ match.second_team_id ?? 'Visita' }}</span>
+                          <span class="sb-table-team-name">{{ getTeamName(match.second_team_id) }}</span>
+                        </th>
                         <th></th>
                       </tr>
                     </thead>
@@ -152,7 +165,7 @@
                     </tbody>
                     <tfoot>
                       <tr class="sb-period--total">
-                        <td><strong>Total</strong></td>
+                        <td><strong>Total</strong><br /><span class="sb-total-round">{{ getMatchRound(match) }}</span></td>
                         <td class="text-center"><strong>{{ match.first_team_total }}</strong></td>
                         <td class="text-center"><strong>{{ match.second_team_total }}</strong></td>
                         <td></td>

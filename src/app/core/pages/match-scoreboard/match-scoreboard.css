@@ -137,16 +137,32 @@
 }
 
 .sb-match__team {
-  font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--foreground);
-  flex: 1;
+}
+
+.sb-match__team--away { text-align: right; align-items: flex-end; }
+
+.sb-match__team-id {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted-foreground);
+}
+
+.sb-match__team-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.sb-match__team--away { text-align: right; }
 
 .sb-match__score {
   font-size: 1.25rem;
@@ -163,6 +179,15 @@
   flex-shrink: 0;
   color: var(--muted-foreground);
   font-size: 0.78rem;
+}
+
+.sb-match__round {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* ─── Match body (period control) ──────────────────────────────── */
@@ -192,6 +217,23 @@
   border-bottom: 1px solid var(--border);
 }
 
+.sb-table-team-id,
+.sb-table-team-name {
+  display: block;
+}
+
+.sb-table-team-id {
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+  font-weight: 700;
+}
+
+.sb-table-team-name {
+  font-size: 0.84rem;
+  color: var(--foreground);
+  font-weight: 800;
+}
+
 .sb-periods-table td {
   padding: 0.45rem 0.5rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
@@ -207,6 +249,12 @@
 .sb-period--editing td { background: rgba(37, 99, 235, 0.05); }
 
 .sb-period__label { color: var(--foreground); font-weight: 500; }
+
+.sb-total-round {
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
 
 .sb-score-val {
   font-variant-numeric: tabular-nums;

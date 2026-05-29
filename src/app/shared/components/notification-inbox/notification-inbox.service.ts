@@ -539,7 +539,7 @@ export class NotificationInboxService {
         title: '⏰ Últimos 15 minutos',
         body: `${teamsInfo}: ya no se podrán realizar más predicciones en 15 minutos.`,
         icon: '/assets/icons/match-icon.png',
-        actionUrl: `/league/${leagueId}/predictions`,
+        actionUrl: `/prediction-client/${matchId}`,
         priority: 'high',
         data: { matchId, leagueId, action: 'view_predictions' },
       },

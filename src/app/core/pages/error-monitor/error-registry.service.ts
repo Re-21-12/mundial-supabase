@@ -61,7 +61,9 @@ export class ErrorRegistryService {
     );
 
     if (error) {
-      throw error;
+      // Non-fatal: the client may not have INSERT/UPDATE permission on ERROR_CATALOG.
+      // Do not throw — throwing here re-enters the GlobalErrorHandler and causes a loop.
+      console.warn('[ErrorRegistry] ensureErrorDefinition skipped:', error.code, error.message);
     }
 
     return null;

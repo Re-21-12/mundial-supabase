@@ -16,6 +16,7 @@ type MatchRow = Database['public']['Tables']['MATCH']['Row'];
 type PeriodRow = Database['public']['Tables']['MATCH_PERIOD']['Row'];
 type LeagueRow = Database['public']['Tables']['LEAGUE']['Row'];
 type CatalogRow = Database['public']['Tables']['CATALOG']['Row'];
+type TeamRow = Database['public']['Tables']['TEAM']['Row'];
 
 interface PeriodEdit {
   periodId: number | null;
@@ -42,6 +43,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   readonly leagues = signal<LeagueRow[]>([]);
   readonly selectedLeagueId = signal<number | null>(null);
   readonly catalogs = signal<CatalogRow[]>([]);
+  readonly teams = signal<TeamRow[]>([]);
 
   // ── Data ──────────────────────────────────────────────────────────────────────
   readonly matches = signal<MatchRow[]>([]);
@@ -59,7 +61,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   readonly edits = signal<Map<string, PeriodEdit>>(new Map());
 
   async ngOnInit(): Promise<void> {
-    await Promise.all([this.loadLeagues(), this.loadCatalogs()]);
+    await Promise.all([this.loadLeagues(), this.loadCatalogs(), this.loadTeams()]);
   }
 
   ngOnDestroy(): void {
@@ -105,6 +107,15 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
       .eq('is_deleted', false)
       .order('name');
     if (data) this.catalogs.set(data as CatalogRow[]);
+  }
+
+  private async loadTeams(): Promise<void> {
+    const { data } = await this.supabase.client
+      .from('TEAM')
+      .select('team_id, name')
+      .eq('is_deleted', false)
+      .order('name');
+    if (data) this.teams.set(data as TeamRow[]);
   }
 
   async onLeagueChange(leagueId: number | null): Promise<void> {
@@ -351,22 +362,26 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   isLive(match: MatchRow): boolean {
     const m = match as any;
     if (m.phase === 'finished') return false;
-    return new Date(match.start_time) <= new Date() && new Date((match as any).end_time) > new Date() && !match.is_deleted;
+    return (
+      new Date(match.start_time) <= new Date() &&
+      new Date((match as any).end_time) > new Date() &&
+      !match.is_deleted
+    );
   }
 
   matchPhaseLabel(match: MatchRow): string {
     const phase = (match as any).phase ?? 'regulation';
     if (phase === 'extra_time') return 'Tiempo Extra';
-    if (phase === 'finished')   return 'Finalizado';
-    if (this.isLive(match))     return 'En vivo';
+    if (phase === 'finished') return 'Finalizado';
+    if (this.isLive(match)) return 'En vivo';
     return 'Próximo';
   }
 
   matchPhaseSeverity(match: MatchRow): 'success' | 'warn' | 'secondary' | 'danger' {
     const phase = (match as any).phase ?? 'regulation';
     if (phase === 'extra_time') return 'warn';
-    if (phase === 'finished')   return 'secondary';
-    if (this.isLive(match))     return 'success';
+    if (phase === 'finished') return 'secondary';
+    if (this.isLive(match)) return 'success';
     return 'secondary';
   }
 
@@ -389,6 +404,22 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   getCatalogName(catalogId: number): string {
     const c = this.catalogs().find((cat) => cat.catalog_id === catalogId);
     return c ? c.description || c.value : `Período ${catalogId}`;
+  }
+
+  getTeamName(teamId: number | null | undefined): string {
+    if (teamId == null) return 'Equipo';
+
+    const team = this.teams().find((item) => item.team_id === teamId);
+    return team?.name ?? `Equipo ${teamId}`;
+  }
+
+  getMatchRound(match: MatchRow): string {
+    const round = (match as Record<string, unknown>)['round'];
+    if (round === null || round === undefined || round === '') {
+      return 'Sin ronda';
+    }
+
+    return `Ronda ${round}`;
   }
 
   private toNumber(value: unknown, fallback: number): number {

@@ -12,6 +12,7 @@ export interface MatchCard {
   match: MatchRow;
   homeTeam: TeamRow;
   awayTeam: TeamRow;
+  leagueName: string;
   /** Marcador en vivo — actualizado via MATCH_PERIOD realtime */
   period?: MatchPeriodRow;
   /** Predicción del usuario actual para este partido */

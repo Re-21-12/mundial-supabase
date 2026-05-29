@@ -27,6 +27,15 @@ export const routes: Routes = [
       import('./core/pages/league-preview/league-preview').then((m) => m.LeaguePreviewPage),
   },
   {
+    path: 'prediction-client/:id',
+    title: 'Predicción de partido',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./core/pages/prediction/preditcion-client/preditcion-client').then(
+        (m) => m.PreditcionClient,
+      ),
+  },
+  {
     // Primary callback for Google OAuth and all Supabase redirects
     path: 'auth/callback',
     title: 'Auth Callback',
