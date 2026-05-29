@@ -74,6 +74,8 @@ export interface LeagueForHome {
   is_joined: boolean;
   accumulated_points: number;
   position: number;
+  /** null = not a member, 'approved' | 'pending_approval' | 'rejected' */
+  approval_status: 'approved' | 'pending_approval' | 'rejected' | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -151,7 +153,7 @@ export class UserLeaguesService {
   async loadLeaguesForHome(userId: number): Promise<LeagueForHome[]> {
     await (this._db.client as any).rpc('close_finished_leagues');
 
-    const [leagueRes, catalogRes] = await Promise.all([
+    const [leagueRes, catalogRes, myLeaguesRes] = await Promise.all([
       this._db.client
         .from('LEAGUE')
         .select('league_id, name, status, logo_url, buy_in_amount, invitation_code, catalog_id')
@@ -161,6 +163,12 @@ export class UserLeaguesService {
         .from('CATALOG')
         .select('catalog_id, value, description')
         .eq('is_deleted', false),
+      // All memberships for this user regardless of approval_status
+      this._db.client
+        .from('USER_LEAGUE')
+        .select('league_id, approval_status, accumulated_points')
+        .eq('user_id', userId)
+        .eq('is_deleted', false),
     ]);
 
     if (!leagueRes.data?.length) return [];
@@ -169,6 +177,14 @@ export class UserLeaguesService {
       ((catalogRes.data ?? []) as any[]).map((c) => [
         c.catalog_id,
         { value: c.value ?? 'Sin tipo', description: c.description ?? '' },
+      ]),
+    );
+
+    // league_id → user's membership (any status)
+    const myLeagueMap = new Map<number, { approval_status: string; accumulated_points: number }>(
+      ((myLeaguesRes.data ?? []) as any[]).map((ul: any) => [
+        ul.league_id,
+        { approval_status: ul.approval_status, accumulated_points: ul.accumulated_points ?? 0 },
       ]),
     );
 
@@ -183,7 +199,14 @@ export class UserLeaguesService {
           .order('accumulated_points', { ascending: false });
 
         const sorted = (members ?? []) as { user_id: number; accumulated_points: number }[];
-        const idx = sorted.findIndex((m) => m.user_id === userId);
+        const myMembership = myLeagueMap.get(l.league_id) ?? null;
+        const myStatus = (myMembership?.approval_status ?? null) as
+          | 'approved'
+          | 'pending_approval'
+          | 'rejected'
+          | null;
+        const isApproved = myStatus === 'approved';
+        const idx = isApproved ? sorted.findIndex((m) => m.user_id === userId) : -1;
         const cat = catalogMap.get(l.catalog_id);
 
         return {
@@ -196,19 +219,25 @@ export class UserLeaguesService {
           league_type: cat?.value ?? 'Sin tipo',
           league_type_desc: cat?.description ?? '',
           total_participants: sorted.length,
-          is_joined: idx >= 0,
-          accumulated_points: idx >= 0 ? (sorted[idx].accumulated_points ?? 0) : 0,
-          position: idx >= 0 ? idx + 1 : 0,
+          is_joined: isApproved,
+          accumulated_points: isApproved && idx >= 0 ? (sorted[idx].accumulated_points ?? 0) : 0,
+          position: isApproved && idx >= 0 ? idx + 1 : 0,
+          approval_status: myStatus,
         } satisfies LeagueForHome;
       }),
     );
 
-    // Show: all joined leagues (any status) + unjoined active/draft leagues
+    // Show: any league the user has a membership in + active/draft leagues they haven't joined
     return leagues
-      .filter((l) => l.is_joined || l.status === 'active' || l.status === 'draft')
+      .filter((l) => l.approval_status !== null || l.status === 'active' || l.status === 'draft')
       .sort((a, b) => {
         if (a.is_joined && !b.is_joined) return -1;
         if (!a.is_joined && b.is_joined) return 1;
+        // Pending comes before unjoined
+        const aPending = a.approval_status === 'pending_approval';
+        const bPending = b.approval_status === 'pending_approval';
+        if (aPending && !bPending) return -1;
+        if (!aPending && bPending) return 1;
         if (a.status === 'active' && b.status !== 'active') return -1;
         if (a.status !== 'active' && b.status === 'active') return 1;
         return a.name.localeCompare(b.name);

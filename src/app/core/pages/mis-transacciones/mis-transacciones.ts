@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
+import { AuthFacade } from '../../../shared/features/auth/auth.facade';
+import { WalletService } from '../wallet/wallet.service';
 import {
   ClientCardComponent,
   type ClientCardData,
@@ -116,6 +118,8 @@ function formatDate(dateStr: string | null): string {
 })
 export class MisTransaccionesPage implements OnInit {
   private readonly db = inject(SupabaseService);
+  private readonly auth = inject(AuthFacade);
+  private readonly walletService = inject(WalletService);
 
   protected readonly cards   = signal<ClientCardData[]>([]);
   protected readonly loading = signal(true);
@@ -135,7 +139,8 @@ export class MisTransaccionesPage implements OnInit {
   private async load() {
     this.loading.set(true);
 
-    const { data, error } = await (this.db.client as any)
+    const isAdmin = (this.auth.role() ?? '').toLowerCase() === 'admin';
+    let query = (this.db.client as any)
       .from('TRANSACTION')
       .select(`
         transaction_id, amount, description, transaction_date,
@@ -143,6 +148,22 @@ export class MisTransaccionesPage implements OnInit {
       `)
       .eq('is_deleted', false)
       .order('transaction_date', { ascending: false });
+
+    if (!isAdmin) {
+      const userId = Number(this.auth.getInternalUserId());
+      if (!userId) {
+        this.loading.set(false);
+        return;
+      }
+      const { data: wallet } = await this.walletService.getWallet(userId);
+      if (!wallet?.wallet_id) {
+        this.loading.set(false);
+        return;
+      }
+      query = query.eq('wallet_id', wallet.wallet_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('[MisTransacciones] load error:', error);

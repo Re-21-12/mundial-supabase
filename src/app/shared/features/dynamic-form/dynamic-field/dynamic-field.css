@@ -20,22 +20,23 @@
 :host ::ng-deep .p-inputgroup-addon {
   display: grid;
   place-items: center;
-  min-width: 2.75rem;
+  min-width: 2rem;
+  height: 100%;
   padding: 0;
-  border: 1px solid rgba(94, 106, 128, 0.75);
+  border: 1px solid rgba(100, 116, 139, 0.9);
   border-right: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.92));
-  color: #e2e8f0;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+  background: var(--muted, #f1f5f9);
+  color: var(--muted-foreground, #334155);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38);
+  box-sizing: border-box;
 }
 
 :host ::ng-deep .p-inputgroup-addon:last-child {
-  border-right: 1px solid rgba(94, 106, 128, 0.75);
-  border-left: 0;
+  border-right: 1px solid rgba(100, 116, 139, 0.9);
 }
 
 :host ::ng-deep .p-inputgroup-addon i {
-  color: #f8fafc;
+  color: inherit;
   font-size: 0.85rem;
 }
 
@@ -50,13 +51,13 @@
 :host ::ng-deep .p-inputgroup textarea,
 :host ::ng-deep .p-inputwrapper .p-inputtext {
   width: 100%;
-  min-height: 2.75rem;
-  padding: 0.55rem 0.85rem;
-  border: 1px solid rgba(94, 106, 128, 0.72);
-  background: rgba(15, 23, 42, 0.94);
-  color: #f8fafc;
-  font-size: 0.875rem;
-  line-height: 1.2;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba(100, 116, 139, 0.88);
+  background: var(--card, #ffffff);
+  color: var(--card-foreground, #0f172a);
+  font-size: 0.75rem;
+  line-height: 1;
   outline: none;
   box-shadow: none;
 }
@@ -74,15 +75,15 @@
 :host ::ng-deep .p-inputgroup .p-datepicker,
 :host ::ng-deep .p-inputgroup .p-select,
 :host ::ng-deep .p-inputgroup .p-multiselect {
-  border-top-right-radius: 0.875rem;
-  border-bottom-right-radius: 0.875rem;
+  border-top-right-radius: 0.65rem;
+  border-bottom-right-radius: 0.65rem;
 }
 
 :host ::ng-deep .p-password .p-password-input,
 :host ::ng-deep .p-datepicker .p-datepicker-input,
 :host ::ng-deep .p-select,
 :host ::ng-deep .p-multiselect {
-  border-radius: 0.875rem;
+  border-radius: 0.65rem;
 }
 
 :host ::ng-deep .p-inputgroup .p-select,
@@ -90,19 +91,26 @@
   border-left: 0;
 }
 
+:host ::ng-deep .p-inputgroup .p-select,
+:host ::ng-deep .p-inputgroup .p-multiselect,
+:host ::ng-deep .p-inputgroup .p-datepicker,
+:host ::ng-deep .p-inputgroup .p-password {
+  min-width: 0;
+}
+
 :host ::ng-deep .p-inputgroup:focus-within .p-inputgroup-addon,
 :host ::ng-deep .p-inputgroup:focus-within .p-inputtext,
 :host ::ng-deep .p-password:focus-within .p-inputpassword,
 :host ::ng-deep .p-select:focus-within,
 :host ::ng-deep .p-datepicker:focus-within .p-datepicker-input {
-  border-color: rgba(56, 189, 248, 0.98);
+  border-color: rgba(56, 189, 248, 1);
 }
 
 :host ::ng-deep .p-inputgroup:focus-within,
 :host ::ng-deep .p-password:focus-within,
 :host ::ng-deep .p-select:focus-within,
 :host ::ng-deep .p-datepicker:focus-within {
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.14);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.18);
 }
 
 :host ::ng-deep .p-password .p-password-toggle-mask,
@@ -116,13 +124,13 @@
 
 :host ::ng-deep .p-select .p-select-label,
 :host ::ng-deep .p-select .p-placeholder {
-  color: rgba(248, 250, 252, 0.98);
+  color: var(--card-foreground, #0f172a);
   font-size: 0.875rem;
 }
 
 :host ::ng-deep .p-multiselect .p-multiselect-label,
 :host ::ng-deep .p-multiselect .p-placeholder {
-  color: rgba(248, 250, 252, 0.98);
+  color: var(--card-foreground, #0f172a);
   font-size: 0.875rem;
 }
 
@@ -137,7 +145,7 @@
 .field-label-wrap {
   display: flex;
   align-items: center;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.2rem;
 }
 
 .field-label {
@@ -146,7 +154,7 @@
   gap: 0.35rem;
   margin: 0;
   color: var(--card-foreground, #0f172a);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1.2;

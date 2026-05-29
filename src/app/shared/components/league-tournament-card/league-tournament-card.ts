@@ -75,6 +75,11 @@ import type { LeagueForHome } from '../../../core/pages/user-league/user-leagues
             <i class="pi pi-arrow-right"></i>
             Ver liga
           </button>
+        } @else if (league().approval_status === 'pending_approval') {
+          <div class="tc-pending">
+            <i class="pi pi-clock"></i>
+            <span>Pendiente de aprobación</span>
+          </div>
         } @else if (canJoin()) {
           <button
             class="tc-btn tc-btn--join"
@@ -347,6 +352,23 @@ import type { LeagueForHome } from '../../../core/pages/user-league/user-leagues
       font-size: 0.75rem;
       padding: 0.5rem 0;
     }
+
+    .tc-pending {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1.5px dashed rgba(251, 191, 36, 0.45);
+      color: rgb(251, 191, 36);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .tc-pending i { font-size: 0.8rem; }
   `],
 })
 export class LeagueTournamentCardComponent {
@@ -389,6 +411,8 @@ export class LeagueTournamentCardComponent {
   protected readonly canJoin = computed(
     () =>
       !this.league().is_joined &&
+      this.league().approval_status !== 'pending_approval' &&
+      this.league().approval_status !== 'rejected' &&
       (this.league().status === 'active' || this.league().status === 'draft') &&
       !!this.league().invitation_code,
   );

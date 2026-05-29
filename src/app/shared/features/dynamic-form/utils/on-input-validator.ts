@@ -78,8 +78,8 @@ export function onKeypressEmail(event: KeyboardEvent): void {
   const input = event.target as HTMLInputElement;
   const key = event.key;
 
-  // Permitir tecleo progresivo: letras, números, punto, guion, guion bajo y '@'
-  const permitido = /^[A-Za-z0-9._\-@]$/;
+  // Permitir tecleo progresivo: letras, números, punto, +, guion, guion bajo y '@'
+  const permitido = /^[A-Za-z0-9._+\-@]$/;
   if (!permitido.test(key)) {
     event.preventDefault();
     return;

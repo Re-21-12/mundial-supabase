@@ -418,8 +418,13 @@ export class TransactionPage implements OnInit {
     const walletId = this.wallet()?.wallet_id;
     const { fromDate, toDate, catalogId, description } = this.filters();
 
-    if (!isAdmin && walletId) {
-      filters.push({ field: 'wallet_id', value: String(walletId), operator: 'eq' });
+    if (!isAdmin) {
+      if (!walletId) {
+        // Wallet not loaded yet or user has no wallet — return impossible filter to show zero rows
+        filters.push({ field: 'wallet_id', value: '-1', operator: 'eq' });
+      } else {
+        filters.push({ field: 'wallet_id', value: String(walletId), operator: 'eq' });
+      }
     }
 
     if (fromDate) {
@@ -458,8 +463,9 @@ export class TransactionPage implements OnInit {
     });
 
     let filtered = query;
-    if (!isAdmin && walletId) {
-      filtered = filtered.eq('wallet_id', walletId);
+    if (!isAdmin) {
+      // If wallet is unknown, export nothing rather than leaking all transactions
+      filtered = filtered.eq('wallet_id', walletId ?? -1);
     }
     if (fromDate) {
       filtered = filtered.gte('transaction_date', fromDate.toISOString().slice(0, 10));

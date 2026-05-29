@@ -227,9 +227,16 @@ export class Home implements OnInit, OnDestroy {
       } else {
         this.notif.notify('success', '¡Bienvenido!', `Te has unido a ${league.name}`);
         const leagues = await this.userLeaguesSvc.loadLeaguesForHome(userId);
-        this.homeLeagues.set(leagues);
-        if (result.leagueId && this.selectedLeagueId() === null) {
-          await this.selectLeague(result.leagueId);
+        const joinedLeagueId = result.leagueId ?? league.league_id;
+        this.homeLeagues.set(
+          joinedLeagueId
+            ? leagues.map((item) =>
+                item.league_id === joinedLeagueId ? { ...item, is_joined: true } : item,
+              )
+            : leagues,
+        );
+        if (joinedLeagueId && this.selectedLeagueId() === null) {
+          await this.selectLeague(joinedLeagueId);
         }
       }
     } finally {
@@ -298,7 +305,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   navigateToCreateLeague(): void {
-    this.router.navigate(['/league']);
+    this.router.navigate(this.isClientUser() ? ['/mis-ligas'] : ['/league']);
   }
 
   navigateToLeague(leagueId: number): void {

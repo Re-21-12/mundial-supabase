@@ -240,6 +240,7 @@ export const routes: Routes = [
         data: {
           description: 'List of league',
           icon: 'lucideDatabase',
+          adminOnly: true,
           requiredPermission: PERMISSIONS.LEAGUE.READ,
         },
         loadChildren: () =>

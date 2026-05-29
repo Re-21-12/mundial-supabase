@@ -56,7 +56,9 @@
       "Bash(node -e \"require\\('playwright'\\)\")",
       "Read(//c/tmp/**)",
       "Bash(npx --yes playwright install chromium)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "mcp__supabase__get_project_url",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://mwflkwazlhvrtckbbkpi.supabase.co/rest/v1/\" --max-time 10)"
     ]
   }
 }
