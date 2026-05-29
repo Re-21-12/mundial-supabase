@@ -114,7 +114,7 @@ BEGIN
 
     IF COALESCE(v_wallet_balance, 0) < v_entry_fee THEN
       error := 'Saldo insuficiente para ingresar a esta liga. Necesitas $'
-               || v_entry_fee || ' MXN.';
+               || v_entry_fee || ' Q.';
       RETURN NEXT; RETURN;
     END IF;
 

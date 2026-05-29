@@ -2115,7 +2115,7 @@ export const formFields: FormFields = {
         icon: 'pi pi-wallet',
         key: 'wager_amount',
         type: TypeFields.NUMBER,
-        label: 'Apuesta (MXN)',
+        label: 'Apuesta (Q)',
         placeholder: '0',
         state: {
           required: false,

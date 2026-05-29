@@ -49,6 +49,7 @@ import { NotificationInboxService } from '../components/notification-inbox/notif
 import { NotificationInboxComponent } from '../components/notification-inbox/notification-inbox.component';
 import { GlobalSearchComponent } from '../components/global-search/global-search.component';
 import { SupabaseAuthService } from '../../core/services/supabase-auth-service';
+import { SupabaseService } from '../../core/services/supabase-service';
 
 const PUBLIC_MENU_PATHS = new Set(['home', 'set-password', 'sign-in', 'login']);
 
@@ -108,6 +109,7 @@ export class LayoutComponent implements OnInit {
   private notificationService = inject(NotificationInboxService);
   private walletService = inject(WalletService);
   private supabaseAuthService = inject(SupabaseAuthService);
+  private supabaseService = inject(SupabaseService);
   private destroyRef = inject(DestroyRef);
   private sessionCheckInProgress = false;
   readonly authFacade = inject(AuthFacade);
@@ -117,6 +119,7 @@ export class LayoutComponent implements OnInit {
   protected readonly showNotifications = signal(false);
   protected readonly headerUnreadCount = signal(0);
   protected readonly walletBalance = signal<number | null>(null);
+  protected readonly showApprovalsMenu = signal(false);
 
   themeService = inject(ThemeService);
   titleService = inject(Title);
@@ -136,15 +139,23 @@ export class LayoutComponent implements OnInit {
           return this.canSeeRoute(route, userPermissions);
         }) ?? [];
 
-      this.menuItems.set(
-        visibleRoutes
-          .filter((route): route is Route & { path: string } => typeof route.path === 'string')
-          .map((route) => ({
-            path: route.path,
-            title: typeof route.title === 'string' ? route.title : route.path,
-            icon: typeof route.data?.['icon'] === 'string' ? route.data['icon'] : 'lucideCircle',
-          })),
-      );
+      const menuItems = visibleRoutes
+        .filter((route): route is Route & { path: string } => typeof route.path === 'string')
+        .map((route) => ({
+          path: route.path,
+          title: typeof route.title === 'string' ? route.title : route.path,
+          icon: typeof route.data?.['icon'] === 'string' ? route.data['icon'] : 'lucideCircle',
+        }));
+
+      if (this.showApprovalsMenu()) {
+        menuItems.push({
+          path: 'aprobaciones',
+          title: 'Aprobaciones',
+          icon: 'lucideShield',
+        });
+      }
+
+      this.menuItems.set(menuItems);
     });
   }
 
@@ -195,6 +206,10 @@ export class LayoutComponent implements OnInit {
       return true;
     }
 
+    if (route.data?.['hideFromSidebar'] === true) {
+      return false;
+    }
+
     // Rutas marcadas adminOnly solo aparecen para administradores
     if (route.data?.['adminOnly'] === true && this.authFacade.role() !== 'admin') {
       return false;
@@ -216,6 +231,21 @@ export class LayoutComponent implements OnInit {
     await this.verifyActiveSession();
     if (!this.authFacade.isLoggedIn()) {
       return;
+    }
+
+    const role = this.authFacade.role()?.toLowerCase();
+    if (role === 'admin') {
+      this.showApprovalsMenu.set(true);
+    } else {
+      const uid = Number(this.authFacade.getInternalUserId());
+      if (uid) {
+        const { count } = await this.supabaseService.client
+          .from('LEAGUE')
+          .select('league_id', { count: 'exact', head: true })
+          .eq('created_by', uid)
+          .eq('is_deleted', false);
+        this.showApprovalsMenu.set((count ?? 0) > 0);
+      }
     }
 
     await this.refreshUnreadCount();

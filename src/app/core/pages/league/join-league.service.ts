@@ -91,7 +91,7 @@ export class JoinLeagueService {
     // 3. Verificar saldo si es liga de apuesta
     if (isBettingLeague && walletRes.data.balance < buyInAmount) {
       return {
-        error: `Saldo insuficiente. Necesitas $${buyInAmount} MXN para unirte a "${name}". Tu saldo actual es $${walletRes.data.balance} MXN.`,
+        error: `Saldo insuficiente. Necesitas $${buyInAmount} Q para unirte a "${name}". Tu saldo actual es $${walletRes.data.balance} Q.`,
       };
     }
 

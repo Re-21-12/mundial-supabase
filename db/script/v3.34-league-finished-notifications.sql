@@ -77,7 +77,7 @@ BEGIN
       v_body :=
         'Terminaste en el lugar #' || v_rec.rank_pos ||
         ' con '  || v_rec.pts    || ' pts. ' ||
-        'Premio acreditado a tu wallet: $' || v_prize || ' MXN.';
+        'Premio acreditado a tu wallet: $' || v_prize || ' Q.';
     ELSE
       v_body :=
         'Terminaste en el lugar #' || v_rec.rank_pos ||

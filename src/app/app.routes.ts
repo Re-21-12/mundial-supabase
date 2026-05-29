@@ -486,6 +486,28 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'invitaciones',
+        title: 'Invitaciones',
+        data: {
+          description: 'Autorizar invitaciones desde la bandeja',
+          icon: 'lucideBell',
+          publicRoute: true,
+        },
+        loadComponent: () =>
+          import('./core/pages/invitaciones/invitaciones').then((m) => m.InvitacionesPage),
+      },
+      {
+        path: 'aprobaciones',
+        title: 'Aprobaciones',
+        data: {
+          description: 'Solicitudes de ingreso de tus ligas',
+          icon: 'lucideShield',
+          hideFromSidebar: true,
+        },
+        loadComponent: () =>
+          import('./core/pages/aprobaciones/aprobaciones').then((m) => m.AprobacionesPage),
+      },
+      {
         path: 'mis-ligas',
         title: 'Mis Ligas',
         data: {
