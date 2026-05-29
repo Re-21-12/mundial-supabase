@@ -88,8 +88,9 @@
   <div
     class="pc-card"
     [class.pc-card--highlight]="highlight"
-    [class.pc-card--live]="card.isLive"
-    [class.pc-card--finished]="card.isFinished"
+    [class.pc-card--live]="isLive(card)"
+    [class.pc-card--finished]="isFinished(card)"
+    [class.pc-card--warning]="isInWarningWindow(card)"
   >
     <!-- Card header: teams + score -->
     <div class="pc-card__header" (click)="toggleExpand(card.matchId)">
@@ -104,9 +105,9 @@
         </div>
 
         <div class="pc-card__score">
-          @if (card.isLive || card.isFinished) {
+          @if (isLive(card) || isFinished(card)) {
             <span class="pc-score">{{ card.homeScore }} – {{ card.awayScore }}</span>
-            @if (card.isLive) {
+            @if (isLive(card)) {
               <span class="pc-live-dot"></span>
             }
           } @else {
@@ -136,9 +137,15 @@
               · ${{ card.prediction.wagerAmount | number:'1.2-2' }}
             }
           </span>
-        } @else if (card.canPredict) {
+        } @else if (canPredict(card)) {
           <span class="pc-pred-badge pc-pred-badge--missing">
             <i class="pi pi-pencil"></i> Sin predicción
+          </span>
+        }
+
+        @if (isInWarningWindow(card)) {
+          <span class="pc-countdown-badge">
+            <i class="pi pi-clock"></i> {{ getCountdown(card) }}
           </span>
         }
 
@@ -152,15 +159,23 @@
     <!-- Expanded: prediction form -->
     @if (isExpanded(card.matchId)) {
       <div class="pc-card__body">
-        @if (!card.canPredict && !card.isLive) {
-          <p class="pc-locked-msg">
-            <i class="pi pi-lock"></i>
-            Las predicciones para este partido están cerradas.
-          </p>
-        } @else if (card.isLive) {
+        @if (isLive(card)) {
           <p class="pc-locked-msg pc-locked-msg--live">
             <i class="pi pi-circle-fill"></i>
             Partido en curso — predicciones bloqueadas.
+          </p>
+        } @else if (isInWarningWindow(card)) {
+          <div class="pc-countdown-warning">
+            <i class="pi pi-clock"></i>
+            <span>
+              Predicciones cerradas — el partido comienza en
+              <strong class="pc-countdown-time">{{ getCountdown(card) }}</strong>
+            </span>
+          </div>
+        } @else if (!canPredict(card)) {
+          <p class="pc-locked-msg">
+            <i class="pi pi-lock"></i>
+            Las predicciones para este partido están cerradas.
           </p>
         } @else {
           <p class="pc-form-hint">

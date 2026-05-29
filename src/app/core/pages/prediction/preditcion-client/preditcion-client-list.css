@@ -1,0 +1,10 @@
+.prediction-list { padding: 1rem; }
+.league-block { border: 1px solid #eee; padding: 0.6rem; margin-bottom: 0.8rem; border-radius: 6px; }
+.league-header { display:flex; justify-content:space-between; align-items:center; }
+.matches { list-style:none; padding:0; margin:0.6rem 0 0 0; }
+.match-row { display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; border-bottom:1px dashed #f0f0f0; }
+.match-info { display:flex; flex-direction:column; }
+.teams { font-weight:600; }
+.start { color: #666; font-size:0.9rem; }
+.actions { display:flex; gap:0.5rem; align-items:center; }
+.error { color: #c00; }

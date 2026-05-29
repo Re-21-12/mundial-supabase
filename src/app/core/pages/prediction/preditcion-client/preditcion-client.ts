@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
@@ -28,7 +29,7 @@ import {
   styleUrl: './preditcion-client.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PreditcionClient implements OnInit {
+export class PreditcionClient implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly svc = inject(PredictionClientService);
@@ -38,6 +39,8 @@ export class PreditcionClient implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly submitting = signal<number | null>(null);
   protected readonly saved = signal<Set<number>>(new Set());
+  protected readonly now = signal<Date>(new Date());
+  private tickInterval: ReturnType<typeof setInterval> | null = null;
 
   protected readonly league = signal<PredictionLeagueInfo | null>(null);
   protected readonly userLeagueId = signal<number | null>(null);
@@ -84,13 +87,17 @@ export class PreditcionClient implements OnInit {
   protected readonly groupedCards = computed(() => {
     const all = this.cards();
     const focused = this.focusedMatchId();
-    const upcoming = all.filter((c) => !c.isFinished && c.matchId !== focused);
-    const finished = all.filter((c) => c.isFinished && c.matchId !== focused);
+    const now = this.now();
+    const isDone = (c: PredictionMatchCard) => new Date(c.endTime) < now;
+    const upcoming = all.filter((c) => !isDone(c) && c.matchId !== focused);
+    const finished = all.filter((c) => isDone(c) && c.matchId !== focused);
     const focusedCard = all.find((c) => c.matchId === focused) ?? null;
     return { focusedCard, upcoming, finished };
   });
 
   async ngOnInit(): Promise<void> {
+    this.tickInterval = setInterval(() => this.now.set(new Date()), 1000);
+
     const matchId = Number(this.route.snapshot.paramMap.get('id'));
     if (!matchId) {
       this.error.set('Partido no encontrado.');
@@ -186,6 +193,45 @@ export class PreditcionClient implements OnInit {
     } else {
       this.notif.notify('error', 'Error', 'No se pudo guardar la predicción.');
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.tickInterval !== null) clearInterval(this.tickInterval);
+  }
+
+  // ── Reactive time helpers ──────────────────────────────────────────────────
+
+  protected canPredict(card: PredictionMatchCard): boolean {
+    return this.minutesUntilStart(card) > 15;
+  }
+
+  protected isLive(card: PredictionMatchCard): boolean {
+    const now = this.now();
+    return new Date(card.startTime) <= now && new Date(card.endTime) >= now;
+  }
+
+  protected isFinished(card: PredictionMatchCard): boolean {
+    return new Date(card.endTime) < this.now();
+  }
+
+  /** True when 0 < minutesUntilStart <= 15 (warning window, predictions closed). */
+  protected isInWarningWindow(card: PredictionMatchCard): boolean {
+    const mins = this.minutesUntilStart(card);
+    return mins > 0 && mins <= 15;
+  }
+
+  protected minutesUntilStart(card: PredictionMatchCard): number {
+    return (new Date(card.startTime).getTime() - this.now().getTime()) / 60000;
+  }
+
+  protected getCountdown(card: PredictionMatchCard): string {
+    const totalSecs = Math.max(
+      0,
+      Math.floor((new Date(card.startTime).getTime() - this.now().getTime()) / 1000),
+    );
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
   goBack(): void {

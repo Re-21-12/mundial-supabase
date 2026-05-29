@@ -1,0 +1,29 @@
+<div class="prediction-list">
+  <h2>Selecciona partido y liga</h2>
+
+  <div *ngIf="loading()">Cargando...</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div *ngIf="!loading() && leagues().length === 0">No estás inscrito en ninguna liga.</div>
+
+  <div *ngFor="let item of leagues()" class="league-block">
+    <div class="league-header">
+      <h3>{{ item.league.name }}</h3>
+      <small>Buy-in: {{ item.league.buy_in_amount | number }}</small>
+    </div>
+
+    <ul class="matches">
+      <li *ngFor="let m of item.matches" class="match-row">
+        <div class="match-info">
+          <div class="teams">{{ m.homeTeamName }} vs {{ m.awayTeamName }}</div>
+          <div class="start">{{ formatDate(m.startTime) }}</div>
+        </div>
+        <div class="actions">
+          <button pButton type="button" label="Apostar" (click)="goToMatch(m.matchId)" [disabled]="!m.canPredict"></button>
+          <p-tag *ngIf="!m.canPredict" severity="danger" value="Cerrado"></p-tag>
+          <p-tag *ngIf="m.isLive" severity="warning" value="En curso"></p-tag>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -199,6 +199,101 @@ export class PredictionClientService {
     return { league, userLeagueId, cards, focusedMatchId: matchId };
   }
 
+  /**
+   * Lista las ligas a las que pertenece el usuario y los próximos partidos por liga.
+   * Útil para que el cliente seleccione un partido antes de apostar.
+   */
+  async listLeaguesWithUpcomingMatches(): Promise<
+    Array<{ league: PredictionLeagueInfo; userLeagueId: number; matches: PredictionMatchCard[] }>
+  > {
+    const userId = Number(this.auth.getInternalUserId());
+    if (!userId) return [];
+
+    const now = new Date().toISOString();
+
+    // Obtener ligas del usuario
+    const { data: userLeagues } = await this.db.client
+      .from('USER_LEAGUE')
+      .select('user_league_id, league_id, league:LEAGUE(league_id, name, buy_in_amount)')
+      .eq('user_id', userId)
+      .eq('is_deleted', false);
+
+    const leagues = (userLeagues ?? []) as any[];
+    if (leagues.length === 0) return [];
+
+    const leagueIds = leagues.map((l) => l.league_id);
+
+    // Cargar próximos partidos de esas ligas (futuros o en curso)
+    const { data: matchesRes } = await this.db.client
+      .from('MATCH')
+      .select(MATCH_SELECT)
+      .in('league_id', leagueIds)
+      .eq('is_deleted', false)
+      .gte('end_time', now)
+      .order('start_time', { ascending: true })
+      .limit(500);
+
+    const matches = (matchesRes ?? []) as any[];
+
+    // Mapear por liga
+    const byLeague = new Map<number, any[]>();
+    for (const m of matches) {
+      const arr = byLeague.get(m.league_id) ?? [];
+      arr.push(m);
+      byLeague.set(m.league_id, arr);
+    }
+
+    // Construir resultado con el mismo shape que PredictionMatchCard
+    const result: Array<{
+      league: PredictionLeagueInfo;
+      userLeagueId: number;
+      matches: PredictionMatchCard[];
+    }> = [];
+    const nowDate = new Date();
+
+    for (const ul of leagues) {
+      const leagueRow = (ul as any).league as any;
+      const leagueInfo: PredictionLeagueInfo = {
+        league_id: leagueRow.league_id,
+        name: leagueRow.name,
+        buy_in_amount: leagueRow.buy_in_amount ?? 0,
+      };
+
+      const userLeagueId: number = (ul as any).user_league_id;
+      const ms = (byLeague.get(leagueInfo.league_id) ?? []).map((m) => {
+        const start = new Date(m.start_time);
+        const end = new Date(m.end_time);
+        const isLive = start <= nowDate && end >= nowDate;
+        const isFinished = end < nowDate;
+        const minutesUntilStart = (start.getTime() - nowDate.getTime()) / 60000;
+        const canPredict = minutesUntilStart > 15;
+
+        return {
+          matchId: m.match_id,
+          leagueId: m.league_id,
+          homeTeamName: (m.homeTeam as any)?.name ?? 'Local',
+          awayTeamName: (m.awayTeam as any)?.name ?? 'Visitante',
+          homeTeamLogo: (m.homeTeam as any)?.logo_url ?? null,
+          awayTeamLogo: (m.awayTeam as any)?.logo_url ?? null,
+          startTime: m.start_time,
+          endTime: m.end_time,
+          homeScore: m.first_team_total ?? 0,
+          awayScore: m.second_team_total ?? 0,
+          grupoId: m.grupo_id,
+          round: m.round,
+          isLive,
+          isFinished,
+          canPredict,
+          prediction: null,
+        } as PredictionMatchCard;
+      });
+
+      result.push({ league: leagueInfo, userLeagueId, matches: ms });
+    }
+
+    return result;
+  }
+
   async upsertPrediction(data: PredictionUpsert): Promise<boolean> {
     const { data: existing } = await this.db.client
       .from('PREDICTION')

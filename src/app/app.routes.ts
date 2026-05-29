@@ -27,6 +27,15 @@ export const routes: Routes = [
       import('./core/pages/league-preview/league-preview').then((m) => m.LeaguePreviewPage),
   },
   {
+    path: 'prediction-client',
+    title: 'Predicciones',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./core/pages/prediction/preditcion-client/preditcion-client-list').then(
+        (m) => m.PreditcionClientList,
+      ),
+  },
+  {
     path: 'prediction-client/:id',
     title: 'Predicción de partido',
     canActivate: [authGuard],
