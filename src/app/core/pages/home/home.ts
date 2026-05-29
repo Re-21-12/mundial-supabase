@@ -307,7 +307,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   navigateToCreateLeague(): void {
-    this.router.navigate(this.isClientUser() ? ['/mis-ligas'] : ['/league']);
+    this.router.navigate(['/league']);
   }
 
   navigateToLeague(leagueId: number): void {

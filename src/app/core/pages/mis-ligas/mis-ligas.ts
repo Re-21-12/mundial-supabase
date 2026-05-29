@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   OnDestroy,
   OnInit,
@@ -13,7 +12,6 @@ import { SupabaseService } from '../../services/supabase-service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { NotificationService } from '../../../shared/services/notification-service';
 import { ButtonModule } from 'primeng/button';
-import { JoinLeagueComponent } from '../../../shared/components/join-league/join-league.component';
 import { ClientContentService } from '../../services/client-content.service';
 import {
   ClientCardComponent,
@@ -34,7 +32,7 @@ interface LeagueRow {
 @Component({
   selector: 'app-mis-ligas',
   standalone: true,
-  imports: [ClientCardComponent, ButtonModule, JoinLeagueComponent],
+  imports: [ClientCardComponent, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ml-page">
@@ -44,21 +42,16 @@ interface LeagueRow {
             <i class="pi pi-trophy"></i>
             Mis Ligas
           </h2>
-          <p class="ml-subtitle">
-            Las ligas, equipos y estadios se limitan a lo que creaste o a lo que te uniste como
-            cliente.
-          </p>
+          <p class="ml-subtitle">Crea una liga nueva o revisa las ligas a las que ya perteneces.</p>
         </div>
-        @if (canCreateLeague()) {
-          <div class="ml-actions">
-            <p-button
-              label="Agregar liga"
-              icon="pi pi-plus"
-              severity="primary"
-              (click)="openJoinDialog()"
-            />
-          </div>
-        }
+        <div class="ml-actions">
+          <p-button
+            label="Crear liga nueva"
+            icon="pi pi-plus"
+            severity="primary"
+            (click)="createLeague()"
+          />
+        </div>
       </div>
 
       @if (loading()) {
@@ -80,10 +73,6 @@ interface LeagueRow {
         </div>
       }
     </div>
-
-    @if (showJoinDialog()) {
-      <app-join-league (closed)="closeJoinDialog()" />
-    }
   `,
   styles: [
     `
@@ -173,8 +162,6 @@ export class MisLigasPage implements OnInit, OnDestroy {
 
   protected readonly cards = signal<ClientCardData[]>([]);
   protected readonly loading = signal(true);
-  protected readonly canCreateLeague = computed(() => this.clientContent.isClientUser());
-  protected readonly showJoinDialog = signal(false);
 
   async ngOnInit() {
     await this.load();
@@ -261,16 +248,7 @@ export class MisLigasPage implements OnInit, OnDestroy {
   }
 
   protected createLeague(): void {
-    this.openJoinDialog();
-  }
-
-  protected openJoinDialog(): void {
-    this.showJoinDialog.set(true);
-  }
-
-  protected closeJoinDialog(): void {
-    this.showJoinDialog.set(false);
-    void this.load();
+    void this.router.navigate(['/league']);
   }
 
   protected onAction({ card, key }: { card: ClientCardData; key: string }) {
