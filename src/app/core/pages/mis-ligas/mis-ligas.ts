@@ -253,7 +253,7 @@ export class MisLigasPage implements OnInit, OnDestroy {
     if (key === 'chat') {
       this.router.navigate(['/league', card.id, 'chat']);
     } else {
-      this.router.navigate(['/league', card.id]);
+      this.router.navigate(['/league', card.id, 'standings']);
     }
   }
 }

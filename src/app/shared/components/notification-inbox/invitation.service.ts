@@ -32,16 +32,16 @@ export class InvitationService {
     // 1. Find the user by email
     const { data: user, error: userErr } = await client
       .from('USER')
-      .select('user_id')
+      .select('user_id, name')
       .eq('email', email)
-      .single<{ user_id: number }>();
+      .single<{ user_id: number; name: string }>();
 
     if (userErr || !user) {
       console.error('[Invitation] USER lookup error:', userErr);
       return { success: false, error: 'No se encontró un usuario con ese email.' };
     }
 
-    // 2. Upsert USER_LEAGUE with pending_approval — admin must approve after user accepts
+    // 2. Upsert USER_LEAGUE with 'approved' — registered users join immediately
     const { data: existing } = await client
       .from('USER_LEAGUE')
       .select('user_league_id, is_deleted, approval_status')
@@ -50,17 +50,18 @@ export class InvitationService {
       .maybeSingle<{ user_league_id: number; is_deleted: boolean; approval_status: string }>();
 
     let userLeagueId: number;
+    let alreadyMember = false;
 
     if (existing && !existing.is_deleted && existing.approval_status === 'approved') {
-      // Already an active approved member — reuse record
+      alreadyMember = true;
       userLeagueId = existing.user_league_id;
     } else if (existing && existing.is_deleted) {
-      // Soft-deleted — reactivate with pending_approval
+      // Soft-deleted — reactivate and approve directly
       const { data: reactivated, error: reErr } = await client
         .from('USER_LEAGUE')
         .update({
           is_deleted: false,
-          approval_status: 'pending_approval',
+          approval_status: 'approved',
           updated_at: new Date().toISOString(),
           updated_by: inviterId,
         } as any)
@@ -73,10 +74,18 @@ export class InvitationService {
       }
       userLeagueId = reactivated.user_league_id;
     } else if (existing && !existing.is_deleted) {
-      // Already pending_approval — reuse record (allow re-sending invitation)
+      // Pending/rejected → approve directly
+      await client
+        .from('USER_LEAGUE')
+        .update({
+          approval_status: 'approved',
+          updated_at: new Date().toISOString(),
+          updated_by: inviterId,
+        } as any)
+        .eq('user_league_id', existing.user_league_id);
       userLeagueId = existing.user_league_id;
     } else {
-      // Fresh record — pending_approval until admin approves
+      // Fresh record — approve directly (registered user, no manual approval needed)
       const { data: ul, error: ulErr } = await client
         .from('USER_LEAGUE')
         .insert({
@@ -84,7 +93,7 @@ export class InvitationService {
           user_id: user.user_id,
           created_by: inviterId,
           accumulated_points: 0,
-          approval_status: 'pending_approval',
+          approval_status: 'approved',
         } as any)
         .select('user_league_id')
         .single<{ user_league_id: number }>();
@@ -96,12 +105,11 @@ export class InvitationService {
       userLeagueId = ul.user_league_id;
     }
 
-    // 3. Create token + expiry
+    // 3. Create token + expiry (link lets them navigate directly to the league)
     const token = uuidv4();
     const expiration = new Date(Date.now() + EXPIRATION_HOURS * 3_600_000).toISOString();
 
-    // 4. Create MAGIC_LINK entry so acceptMagicLink() can process the token
-    //    (existing-user invitations use the same /invite?token= route)
+    // 4. Create MAGIC_LINK
     const { error: mlErr } = await client.from('MAGIC_LINK').insert({
       token,
       email: email.toLowerCase(),
@@ -114,7 +122,6 @@ export class InvitationService {
 
     if (mlErr) {
       console.error('[Invitation] MAGIC_LINK insert error (existing user):', mlErr);
-      // Non-fatal — continue with INVITATION record
     }
 
     // 5. Create INVITATION record
@@ -136,6 +143,30 @@ export class InvitationService {
         success: false,
         error: `Error al registrar la invitación. (${invErr.code}: ${invErr.message})`,
       };
+    }
+
+    // 6. Notify the user that they were added (skip if already a member)
+    if (!alreadyMember) {
+      const { data: league } = await client
+        .from('LEAGUE')
+        .select('name')
+        .eq('league_id', leagueId)
+        .single<{ name: string }>();
+
+      this._notifications
+        .sendNotification(
+          {
+            userId: user.user_id,
+            leagueId,
+            type: 'league_update',
+            title: '¡Te agregaron a una liga!',
+            body: `Fuiste añadido a ${league?.name ?? 'una liga'}. Ya puedes participar.`,
+            actionUrl: `/league/${leagueId}/standings`,
+            priority: 'high',
+          },
+          inviterId,
+        )
+        .catch((err) => console.warn('[Invitation] Join notification failed:', err));
     }
 
     const emailSent = await this._sendEmail(email, token, leagueId, 'existing');
@@ -438,6 +469,20 @@ export class InvitationService {
       .catch((err) => console.warn('[Invitation] Rejection notification failed:', err));
 
     return { success: true };
+  }
+
+  // ─── Check approved membership ───────────────────────────────────────────
+
+  async isApprovedMember(userId: number, leagueId: number): Promise<boolean> {
+    const { data } = await this._db.client
+      .from('USER_LEAGUE')
+      .select('user_league_id')
+      .eq('user_id', userId)
+      .eq('league_id', leagueId)
+      .eq('approval_status', 'approved')
+      .eq('is_deleted', false)
+      .maybeSingle<{ user_league_id: number }>();
+    return !!data;
   }
 
   // ─── Public token lookup (no auth required) ──────────────────────────────

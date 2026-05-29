@@ -63,11 +63,21 @@ export class InvitePage implements OnInit {
 
     this.resolvedUserId = userId;
 
-    // Fetch league name before asking for team name
+    // Fetch league info from token
     const info = await this.invitationService.getLeagueFromToken(this.token);
     if (info) {
       this.leagueId = info.leagueId;
       this.leagueName.set(info.leagueName);
+    }
+
+    // If the user is already an approved member (auto-joined when invitation was sent),
+    // skip the team-name step and process the token immediately.
+    if (this.leagueId) {
+      const alreadyApproved = await this.invitationService.isApprovedMember(userId, this.leagueId);
+      if (alreadyApproved) {
+        await this.processToken(this.token, userId, '');
+        return;
+      }
     }
 
     this.state.set('set_team_name');
