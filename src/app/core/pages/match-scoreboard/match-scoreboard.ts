@@ -11,6 +11,11 @@ import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { formFields as matchPeriodFormFields } from '../match-period/match-period-form';
 import type { Database } from '../../../types/database.types';
+import {
+  getMatchPhaseLabel,
+  getMatchPhaseSeverity,
+  isMatchClosed,
+} from './match-phase.util';
 
 type MatchRow = Database['public']['Tables']['MATCH']['Row'];
 type PeriodRow = Database['public']['Tables']['MATCH_PERIOD']['Row'];
@@ -399,23 +404,15 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
   }
 
   matchPhaseLabel(match: MatchRow): string {
-    const phase = (match as any).phase ?? 'regulation';
-    if (phase === 'extra_time') return 'Tiempo Extra';
-    if (phase === 'finished') return 'Finalizado';
-    if (this.isLive(match)) return 'En vivo';
-    return 'Próximo';
+    return getMatchPhaseLabel(match);
   }
 
   matchPhaseSeverity(match: MatchRow): 'success' | 'warn' | 'secondary' | 'danger' {
-    const phase = (match as any).phase ?? 'regulation';
-    if (phase === 'extra_time') return 'warn';
-    if (phase === 'finished') return 'secondary';
-    if (this.isLive(match)) return 'success';
-    return 'secondary';
+    return getMatchPhaseSeverity(match);
   }
 
   isMatchClosed(match: MatchRow): boolean {
-    return (match as any).phase === 'finished';
+    return isMatchClosed(match);
   }
 
   isLoadingPeriods(matchId: number): boolean {
