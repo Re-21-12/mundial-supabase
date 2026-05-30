@@ -104,6 +104,7 @@ export const routes: Routes = [
           description: 'Asignar equipos al bracket eliminatorio',
           icon: 'lucideTrophy',
           requiredPermission: PERMISSIONS.BRACKET.UPDATE,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/admin-bracket/admin-bracket.routes').then(
@@ -112,11 +113,12 @@ export const routes: Routes = [
       },
       {
         path: 'admin/migrations',
-        title: 'Migraciones',
+        title: 'Migraciones DB',
         data: {
           description: 'Historial de migraciones de base de datos',
-          icon: 'lucideDatabase',
+          icon: 'lucideSliders',
           requiredPermission: PERMISSIONS.ADMIN.READ,
+          adminOnly: true,
         },
         loadChildren: () =>
           import('./core/pages/admin-migrations/admin-migrations.routes').then(

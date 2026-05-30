@@ -149,9 +149,19 @@ export class PredictionClientService {
     const predMap = new Map<number, any>(predictions.map((p: any) => [p.match_id, p]));
     const now = new Date();
 
+    const normalizeToUtcIso = (ts: string | null | undefined): string => {
+      if (!ts) return ts ?? '';
+      // If it already contains timezone info, return as-is
+      if (ts.endsWith('Z') || /[\+\-]\d{2}:?\d{2}$/.test(ts)) return ts;
+      // Replace space with T if necessary and append Z to treat as UTC
+      return ts.includes('T') ? `${ts}Z` : ts.replace(' ', 'T') + 'Z';
+    };
+
     const cards: PredictionMatchCard[] = ((matchesRes.data ?? []) as any[]).map((m) => {
-      const start = new Date(m.start_time);
-      const end = new Date(m.end_time);
+      const startIso = normalizeToUtcIso(m.start_time);
+      const endIso = normalizeToUtcIso(m.end_time);
+      const start = new Date(startIso);
+      const end = new Date(endIso);
       const isLive = start <= now && end >= now;
       const isFinished = end < now;
       // Predictions close 15 minutes before the match STARTS (not before it ends)
@@ -166,8 +176,8 @@ export class PredictionClientService {
         awayTeamName: (m.awayTeam as any)?.name ?? 'Visitante',
         homeTeamLogo: (m.homeTeam as any)?.logo_url ?? null,
         awayTeamLogo: (m.awayTeam as any)?.logo_url ?? null,
-        startTime: m.start_time,
-        endTime: m.end_time,
+        startTime: startIso || m.start_time,
+        endTime: endIso || m.end_time,
         homeScore: m.first_team_total ?? 0,
         awayScore: m.second_team_total ?? 0,
         grupoId: m.grupo_id,
@@ -250,6 +260,11 @@ export class PredictionClientService {
       matches: PredictionMatchCard[];
     }> = [];
     const nowDate = new Date();
+    const normalizeToUtcIso2 = (ts: string | null | undefined): string => {
+      if (!ts) return ts ?? '';
+      if (ts.endsWith('Z') || /[\+\-]\d{2}:?\d{2}$/.test(ts)) return ts;
+      return ts.includes('T') ? `${ts}Z` : ts.replace(' ', 'T') + 'Z';
+    };
 
     for (const ul of leagues) {
       const leagueRow = (ul as any).league as any;
@@ -261,8 +276,10 @@ export class PredictionClientService {
 
       const userLeagueId: number = (ul as any).user_league_id;
       const ms = (byLeague.get(leagueInfo.league_id) ?? []).map((m) => {
-        const start = new Date(m.start_time);
-        const end = new Date(m.end_time);
+        const startIso = normalizeToUtcIso2(m.start_time);
+        const endIso = normalizeToUtcIso2(m.end_time);
+        const start = new Date(startIso);
+        const end = new Date(endIso);
         const isLive = start <= nowDate && end >= nowDate;
         const isFinished = end < nowDate;
         const minutesUntilStart = (start.getTime() - nowDate.getTime()) / 60000;
@@ -275,8 +292,8 @@ export class PredictionClientService {
           awayTeamName: (m.awayTeam as any)?.name ?? 'Visitante',
           homeTeamLogo: (m.homeTeam as any)?.logo_url ?? null,
           awayTeamLogo: (m.awayTeam as any)?.logo_url ?? null,
-          startTime: m.start_time,
-          endTime: m.end_time,
+          startTime: startIso || m.start_time,
+          endTime: endIso || m.end_time,
           homeScore: m.first_team_total ?? 0,
           awayScore: m.second_team_total ?? 0,
           grupoId: m.grupo_id,

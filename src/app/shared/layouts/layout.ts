@@ -35,6 +35,7 @@ import {
   lucideUsers,
   lucideMapPin,
   lucideUserCog,
+  lucideTrophy,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
@@ -100,6 +101,7 @@ interface SidebarMenuItem {
       lucideUsers,
       lucideMapPin,
       lucideUserCog,
+      lucideTrophy,
     }),
   ],
 })

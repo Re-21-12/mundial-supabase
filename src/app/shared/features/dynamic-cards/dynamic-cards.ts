@@ -1,5 +1,5 @@
 import { Component, inject, output } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { DynamicTableService } from '../dynamic-table/services/dynamic-table.service';
 import { TypeOption } from '../dynamic-table/interfaces/table-interface';
 
@@ -12,7 +12,6 @@ import { TypeOption } from '../dynamic-table/interfaces/table-interface';
 export class DynamicCards {
   tableService = inject(DynamicTableService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   delete = output<string>();
   pageChange = output<{ first: number; rows: number }>();
 
@@ -64,7 +63,7 @@ export class DynamicCards {
       return;
     }
 
-    this.router.navigate([rowId], { relativeTo: this.route });
+    this.router.navigateByUrl(`${this._basePath()}/${rowId}`);
   }
 
   goToEdit(rowData: Record<string, unknown>) {
@@ -80,7 +79,22 @@ export class DynamicCards {
       return;
     }
 
-    this.router.navigate([rowId, 'edit'], { relativeTo: this.route });
+    this.router.navigateByUrl(`${this._basePath()}/${rowId}/edit`);
+  }
+
+  /** Derives the absolute base path from the current URL, stripping any id/action segments. */
+  private _basePath(): string {
+    const segments = this.router.url
+      .split('?')[0]
+      .split('/')
+      .filter((s) => s.length > 0 && s !== 'edit' && s !== 'detail');
+
+    // Remove a trailing numeric id (e.g. /league/123 → /league)
+    if (segments.length > 0 && /^\d+$/.test(segments[segments.length - 1])) {
+      segments.pop();
+    }
+
+    return '/' + segments.join('/');
   }
 
   onDelete(rowData: Record<string, unknown>) {
