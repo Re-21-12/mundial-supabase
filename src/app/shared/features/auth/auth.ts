@@ -8,6 +8,7 @@ import {
   OAuthProviderOption,
 } from '../../layouts/auth-overlay/auth-overlay';
 import { AuthFacade } from './auth.facade';
+import { getPasswordUpdateErrorMessage } from './auth-error.util';
 import { Provider } from '@supabase/supabase-js';
 import { environment } from '../../../../environments/environment';
 
@@ -186,7 +187,22 @@ export class Auth implements OnInit {
         if (!newPassword) {
           return;
         }
-        await this.authFacade.setNewPassword(newPassword);
+        {
+          const { error } = await this.authFacade.setNewPassword(newPassword);
+
+          if (error) {
+            this.authError.set(
+              getPasswordUpdateErrorMessage(
+                error,
+                'No se pudo actualizar la password. Intenta nuevamente.',
+              ),
+            );
+            this.resetCaptcha();
+            return;
+          }
+
+          await this.authFacade.signOut();
+        }
         this.resetCaptcha();
         return;
     }

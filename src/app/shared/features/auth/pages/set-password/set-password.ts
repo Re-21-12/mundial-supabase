@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../auth.facade';
+import { getPasswordUpdateErrorMessage } from '../../auth-error.util';
 
 @Component({
   selector: 'app-set-password-page',
@@ -45,9 +46,20 @@ export class SetPasswordPage {
 
     try {
       const { newPassword } = this.form.getRawValue();
-      await this.authFacade.setNewPassword(newPassword);
+      const { error } = await this.authFacade.setNewPassword(newPassword);
+
+      if (error) {
+        this.errorMessage.set(
+          getPasswordUpdateErrorMessage(
+            error,
+            'No se pudo actualizar la password. Verifica tu enlace e intenta de nuevo.',
+          ),
+        );
+        return;
+      }
+
       this.successMessage.set('Password actualizada correctamente.');
-      await this.router.navigate(['/home']);
+      await this.authFacade.signOut();
     } catch {
       this.errorMessage.set(
         'No se pudo actualizar la password. Verifica tu enlace e intenta de nuevo.',

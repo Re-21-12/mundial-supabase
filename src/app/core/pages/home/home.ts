@@ -132,7 +132,9 @@ export class Home implements OnInit, OnDestroy {
     this.buildMatchCards(
       this.realtimeService
         .matches()
-        .filter((m) => m.league_id != null && this.allowedLeagueIds().has(m.league_id)),
+        .filter((m) => m.league_id != null && this.allowedLeagueIds().has(m.league_id))
+        .slice(0, this.PAGE_SIZE)
+        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
       this.homeLeagues(),
