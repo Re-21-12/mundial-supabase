@@ -166,7 +166,7 @@ export class WorldCupGroupsComponent {
   }
 
   formatMatchTime(card: MatchCard): string {
-    return new Date(card.match.start_time).toLocaleDateString('es-MX', {
+    return new Date(card.match.start_time).toLocaleDateString('es-GT', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',

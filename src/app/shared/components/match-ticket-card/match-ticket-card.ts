@@ -43,13 +43,13 @@ export class MatchTicketCardComponent {
     const t = this.card().startTime;
     if (!t) return '—';
     const d = new Date(t);
-    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' });
   });
 
   protected readonly timeLabel = computed(() => {
     const t = this.card().startTime;
     if (!t) return '';
-    return new Date(t).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    return new Date(t).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
   });
 
   protected readonly hasScore = computed(() => this.card().status !== 'upcoming');

@@ -239,7 +239,7 @@ export class PreditcionClient implements OnInit, OnDestroy {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('es-MX', {
+    return new Date(dateStr).toLocaleDateString('es-GT', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',

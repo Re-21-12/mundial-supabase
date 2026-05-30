@@ -119,11 +119,7 @@ export class AdminBracketPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     const [leagueRes, teamRes] = await Promise.all([
-      this.db.client
-        .from('LEAGUE')
-        .select('league_id, name')
-        .eq('is_deleted', false)
-        .order('name'),
+      this.db.client.from('LEAGUE').select('league_id, name').eq('is_deleted', false).order('name'),
       this.db.client.from('TEAM').select('team_id, name').eq('is_deleted', false).order('name'),
     ]);
     if (leagueRes.data) this.leagues.set(leagueRes.data as League[]);
@@ -153,16 +149,14 @@ export class AdminBracketPage implements OnInit {
       const ms = data as KnockoutMatch[];
       this.matches.set(ms);
       const editMap = new Map<number, MatchEdit>();
-      ms
-        .filter((m) => m.round === 1)
-        .forEach((m) =>
-          editMap.set(m.match_id, {
-            homeTeamId: m.first_team_id,
-            awayTeamId: m.second_team_id,
-            saving: false,
-            dirty: false,
-          }),
-        );
+      ms.filter((m) => m.round === 1).forEach((m) =>
+        editMap.set(m.match_id, {
+          homeTeamId: m.first_team_id,
+          awayTeamId: m.second_team_id,
+          saving: false,
+          dirty: false,
+        }),
+      );
       this.edits.set(editMap);
     }
     this.loading.set(false);
@@ -269,10 +263,7 @@ export class AdminBracketPage implements OnInit {
         const grouped = standings
           .filter((s) => s.grupo_id === grupo.grupo_id)
           .sort(
-            (a, b) =>
-              b.points - a.points ||
-              b.goal_diff - a.goal_diff ||
-              b.goals_for - a.goals_for,
+            (a, b) => b.points - a.points || b.goal_diff - a.goal_diff || b.goals_for - a.goals_for,
           )
           .map((s) => s.team_id);
         groupMap.set(grupo.name, grouped);
@@ -331,7 +322,7 @@ export class AdminBracketPage implements OnInit {
   }
 
   formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-MX', {
+    return new Date(iso).toLocaleDateString('es-GT', {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',

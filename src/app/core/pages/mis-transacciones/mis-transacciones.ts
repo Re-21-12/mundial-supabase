@@ -29,8 +29,10 @@ function formatAmount(amount: number): string {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('es-MX', {
-    day: '2-digit', month: 'short', year: 'numeric',
+  return new Date(dateStr).toLocaleDateString('es-GT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
 }
 
@@ -46,7 +48,11 @@ function formatDate(dateStr: string | null): string {
           <i class="pi pi-wallet"></i>
           Mis Transacciones
         </h2>
-        <div class="mt-summary" [class.mt-summary--pos]="balance() >= 0" [class.mt-summary--neg]="balance() < 0">
+        <div
+          class="mt-summary"
+          [class.mt-summary--pos]="balance() >= 0"
+          [class.mt-summary--neg]="balance() < 0"
+        >
           <span class="mt-summary-label">Balance</span>
           <span class="mt-summary-value">{{ formatAmount(balance()) }}</span>
         </div>
@@ -54,7 +60,7 @@ function formatDate(dateStr: string | null): string {
 
       @if (loading()) {
         <div class="mt-grid">
-          @for (n of [1,2,3,4,5,6]; track n) {
+          @for (n of [1, 2, 3, 4, 5, 6]; track n) {
             <div class="mt-skeleton"></div>
           }
         </div>
@@ -72,56 +78,99 @@ function formatDate(dateStr: string | null): string {
       }
     </div>
   `,
-  styles: [`
-    .mt-page {
-      padding: 1.5rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .mt-header {
-      display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
-    }
-    .mt-title {
-      font-size: 1.25rem; font-weight: 700;
-      display: flex; align-items: center; gap: .5rem; margin: 0;
-    }
-    .mt-summary {
-      display: flex; flex-direction: column; align-items: flex-end;
-      padding: 8px 16px; border-radius: 12px;
-      background: var(--muted); border: 1px solid var(--border);
-    }
-    .mt-summary-label { font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
-    .mt-summary-value { font-size: 1.2rem; font-weight: 800; }
-    .mt-summary--pos .mt-summary-value { color: oklch(0.55 0.16 148); }
-    .mt-summary--neg .mt-summary-value { color: var(--destructive); }
-    .mt-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-    .mt-skeleton {
-      height: 200px; border-radius: 20px;
-      background: var(--card); animation: pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
-    .mt-empty {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: .75rem; min-height: 200px;
-      color: var(--muted-foreground); font-size: .95rem;
-    }
-    .mt-empty .pi { font-size: 2rem; }
-  `],
+  styles: [
+    `
+      .mt-page {
+        padding: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .mt-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .mt-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+      }
+      .mt-summary {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        padding: 8px 16px;
+        border-radius: 12px;
+        background: var(--muted);
+        border: 1px solid var(--border);
+      }
+      .mt-summary-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted-foreground);
+      }
+      .mt-summary-value {
+        font-size: 1.2rem;
+        font-weight: 800;
+      }
+      .mt-summary--pos .mt-summary-value {
+        color: oklch(0.55 0.16 148);
+      }
+      .mt-summary--neg .mt-summary-value {
+        color: var(--destructive);
+      }
+      .mt-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+      }
+      .mt-skeleton {
+        height: 200px;
+        border-radius: 20px;
+        background: var(--card);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      .mt-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        min-height: 200px;
+        color: var(--muted-foreground);
+        font-size: 0.95rem;
+      }
+      .mt-empty .pi {
+        font-size: 2rem;
+      }
+    `,
+  ],
 })
 export class MisTransaccionesPage implements OnInit {
   private readonly db = inject(SupabaseService);
   private readonly auth = inject(AuthFacade);
   private readonly walletService = inject(WalletService);
 
-  protected readonly cards   = signal<ClientCardData[]>([]);
+  protected readonly cards = signal<ClientCardData[]>([]);
   protected readonly loading = signal(true);
   protected readonly formatAmount = formatAmount;
 
@@ -142,10 +191,12 @@ export class MisTransaccionesPage implements OnInit {
     const isAdmin = (this.auth.role() ?? '').toLowerCase() === 'admin';
     let query = (this.db.client as any)
       .from('TRANSACTION')
-      .select(`
+      .select(
+        `
         transaction_id, amount, description, transaction_date,
         catalog:CATALOG(description)
-      `)
+      `,
+      )
       .eq('is_deleted', false)
       .order('transaction_date', { ascending: false });
 
@@ -185,9 +236,7 @@ export class MisTransaccionesPage implements OnInit {
             type: isPositive ? 'success' : 'danger',
           },
           metric: { value: r.amount, label: formatAmount(r.amount) },
-          details: [
-            { icon: 'pi-calendar', text: formatDate(r.transaction_date) },
-          ],
+          details: [{ icon: 'pi-calendar', text: formatDate(r.transaction_date) }],
         };
       }),
     );

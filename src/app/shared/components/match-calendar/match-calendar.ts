@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { MatchCard } from '../../../core/pages/home/models/home.models';
 
@@ -33,7 +27,7 @@ export class MatchCalendarComponent {
   readonly DOW_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   readonly monthLabel = computed(() =>
-    this.viewDate().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }),
+    this.viewDate().toLocaleDateString('es-GT', { month: 'long', year: 'numeric' }),
   );
 
   readonly calendarDays = computed((): CalendarDay[] => {
@@ -109,13 +103,11 @@ export class MatchCalendarComponent {
 
   selectDay(day: CalendarDay): void {
     if (!day.matches.length) return;
-    this.selectedDay.update((prev) =>
-      prev?.date.getTime() === day.date.getTime() ? null : day,
-    );
+    this.selectedDay.update((prev) => (prev?.date.getTime() === day.date.getTime() ? null : day));
   }
 
   formatTime(dateStr: string): string {
-    return new Date(dateStr).toLocaleTimeString('es-MX', {
+    return new Date(dateStr).toLocaleTimeString('es-GT', {
       hour: '2-digit',
       minute: '2-digit',
     });

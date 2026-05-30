@@ -268,7 +268,7 @@ export class LeagueChatComponent implements OnInit, OnDestroy, AfterViewChecked 
   }
 
   protected formatTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
   }
 
   protected formatDay(iso: string): string {
@@ -278,7 +278,7 @@ export class LeagueChatComponent implements OnInit, OnDestroy, AfterViewChecked 
     yesterday.setDate(today.getDate() - 1);
     if (d.toDateString() === today.toDateString()) return 'Hoy';
     if (d.toDateString() === yesterday.toDateString()) return 'Ayer';
-    return d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+    return d.toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
   protected isSameDay(a: ChatMessage, b: ChatMessage): boolean {

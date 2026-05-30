@@ -37,7 +37,7 @@ export class HeroBannerComponent {
 
   formatDate(dateStr: string): string {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('es-MX', {
+    return d.toLocaleDateString('es-GT', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',

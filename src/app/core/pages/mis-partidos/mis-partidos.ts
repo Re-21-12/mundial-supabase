@@ -17,9 +17,15 @@ import { ClientContentService, type ClientMatchRow } from '../../services/client
 function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
   if (row.scored_at) return 'finished';
 
+  const normalize = (ts?: string | null) => {
+    if (!ts) return null;
+    if (ts.endsWith('Z') || /[\+\-]\d{2}:?\d{2}$/.test(ts)) return ts;
+    return ts.includes('T') ? `${ts}Z` : ts.replace(' ', 'T') + 'Z';
+  };
+
   const now = Date.now();
-  const start = row.start_time ? new Date(row.start_time).getTime() : null;
-  const end = row.end_time ? new Date(row.end_time).getTime() : null;
+  const start = row.start_time ? new Date(normalize(row.start_time) as string).getTime() : null;
+  const end = row.end_time ? new Date(normalize(row.end_time) as string).getTime() : null;
 
   if (start && end && now >= start && now <= end) return 'live';
   return 'upcoming';
@@ -205,6 +211,17 @@ export class MisPartidosPage implements OnInit {
         rows.map((row) => {
           const status = matchStatus(row);
 
+          const normalize = (ts?: string | null) => {
+            if (!ts) return null;
+            if (ts.endsWith('Z') || /[\+\-]\d{2}:?\d{2}$/.test(ts)) return ts;
+            return ts.includes('T') ? `${ts}Z` : ts.replace(' ', 'T') + 'Z';
+          };
+
+          const startIso = normalize(row.start_time) ?? row.start_time;
+          const startTimeMs = startIso ? new Date(startIso).getTime() : null;
+          const nowMs = Date.now();
+          const minutesUntilStart = startTimeMs ? (startTimeMs - nowMs) / 60000 : Infinity;
+
           return {
             matchId: row.match_id,
             homeTeam: row.home_team
@@ -221,14 +238,14 @@ export class MisPartidosPage implements OnInit {
                   logoUrl: row.away_team.logo_url,
                 }
               : { id: 0, name: 'Por definir', logoUrl: null },
-            startTime: row.start_time,
-            endTime: row.end_time,
+            startTime: startIso,
+            endTime: normalize(row.end_time) ?? row.end_time,
             homeScore: row.first_team_total,
             awayScore: row.second_team_total,
             stadiumName: row.stadium?.name ?? null,
             leagueName: row.league?.name ?? null,
             status,
-            canPredict: status === 'upcoming' && this.isClientUser(),
+            canPredict: status === 'upcoming' && this.isClientUser() && minutesUntilStart > 15,
           };
         }),
       );
