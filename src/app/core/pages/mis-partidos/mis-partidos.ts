@@ -179,10 +179,9 @@ export class MisPartidosPage implements OnInit {
   protected readonly cards = signal<MatchTicketData[]>([]);
   protected readonly loading = signal(true);
   protected readonly activeFilter = signal<'all' | 'upcoming' | 'live' | 'finished'>('all');
-  protected readonly isClientUser = computed(() => {
-    const role = this.auth.role()?.toLowerCase();
-    return role === 'client' || role === 'cliente';
-  });
+  protected readonly canUserPredict = computed(() =>
+    this.auth.permissions().includes('prediction:create'),
+  );
 
   protected readonly filters = [
     { label: 'Todos', value: 'all' as const },
@@ -245,7 +244,7 @@ export class MisPartidosPage implements OnInit {
             stadiumName: row.stadium?.name ?? null,
             leagueName: row.league?.name ?? null,
             status,
-            canPredict: status === 'upcoming' && this.isClientUser() && minutesUntilStart > 15,
+            canPredict: status === 'upcoming' && this.canUserPredict() && minutesUntilStart > 15,
           };
         }),
       );
