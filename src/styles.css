@@ -109,6 +109,14 @@
   }
 }
 
+/* ── Sidebar mobile scroll fix ───────────────────────────────────── */
+/* NoopScrollStrategy is used for the sidebar sheet on mobile, so we
+   lock background scroll via CSS instead of relying on BlockScrollStrategy
+   (which sets position:fixed on <html> and breaks iOS inner scroll). */
+[data-sidebar="content"] {
+  touch-action: pan-y;
+}
+
 /* ── Mobile-first layout overrides ── */
 @media (max-width: 640px) {
   /* Tighter header padding */

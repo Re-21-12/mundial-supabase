@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
+import { ScrollStrategyOptions } from '@angular/cdk/overlay';
 import { BrnSheetImports } from '@spartan-ng/brain/sheet';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { classes, hlm } from '@spartan-ng/helm/utils';
@@ -29,6 +30,7 @@ import { injectHlmSidebarConfig } from './hlm-sidebar.token';
 			<hlm-sheet
 				[side]="side()"
 				[state]="_sidebarService.openMobile() ? 'open' : 'closed'"
+				[scrollStrategy]="_noopScrollStrategy"
 				(stateChanged)="_sidebarService.setOpenMobile($event === 'open')"
 			>
 				<hlm-sheet-content
@@ -62,6 +64,8 @@ import { injectHlmSidebarConfig } from './hlm-sidebar.token';
 export class HlmSidebar {
 	protected readonly _sidebarService = inject(HlmSidebarService);
 	private readonly _config = injectHlmSidebarConfig();
+	private readonly _ssos = inject(ScrollStrategyOptions);
+	protected readonly _noopScrollStrategy = this._ssos.noop();
 	public readonly sidebarWidthMobile = input<string>(this._config.sidebarWidthMobile);
 
 	public readonly side = input<'left' | 'right'>('left');

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationInboxService } from './notification-inbox.service';
 import { SupabaseService } from '../../../core/services/supabase-service';
+import { LeagueRoleService } from '../../../core/services/league-role.service';
 
 export type InvitationType = 'existing' | 'anonymous';
 
@@ -23,6 +24,7 @@ const EXPIRATION_HOURS = 48;
 export class InvitationService {
   private readonly _db = inject(SupabaseService);
   private readonly _notifications = inject(NotificationInboxService);
+  private readonly _leagueRole = inject(LeagueRoleService);
 
   // ─── Existing user ────────────────────────────────────────────────────────
 
@@ -105,7 +107,14 @@ export class InvitationService {
       userLeagueId = ul.user_league_id;
     }
 
-    // 3. Create token + expiry (link lets them navigate directly to the league)
+    // 3. Assign user_league role (idempotent — skipped if already has it)
+    if (!alreadyMember) {
+      this._leagueRole
+        .ensureLeagueMemberRole(user.user_id, inviterId)
+        .catch((err) => console.warn('[Invitation] Role assignment failed:', err));
+    }
+
+    // 4. Create token + expiry (link lets them navigate directly to the league)
     const token = uuidv4();
     const expiration = new Date(Date.now() + EXPIRATION_HOURS * 3_600_000).toISOString();
 
@@ -403,6 +412,11 @@ export class InvitationService {
       .eq('user_league_id', userLeagueId);
 
     if (updateErr) return { success: false, error: updateErr.message };
+
+    // Assign user_league role now that the participant is approved
+    this._leagueRole
+      .ensureLeagueMemberRole(ul.user_id, approverId)
+      .catch((err) => console.warn('[Invitation] Role assignment failed:', err));
 
     const leagueName = (ul.LEAGUE as any)?.name ?? 'la liga';
 

@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
+import { LeagueRoleService } from '../../services/league-role.service';
 
 export type PendingParticipant = {
   user_league_id: number;
@@ -14,6 +15,7 @@ export type PendingParticipant = {
 @Injectable({ providedIn: 'root' })
 export class ApprovalService {
   private readonly _db = inject(SupabaseService);
+  private readonly _leagueRole = inject(LeagueRoleService);
 
   // ── Query helpers ─────────────────────────────────────────────────────────
 
@@ -95,7 +97,12 @@ export class ApprovalService {
     // 1. Update approval status
     await this.approve(userLeagueId, adminId);
 
-    // 2. Notify the user they were accepted
+    // 2. Assign user_league role (idempotent)
+    this._leagueRole
+      .ensureLeagueMemberRole(userId, adminId)
+      .catch((err) => console.warn('[Approval] Role assignment failed:', err));
+
+    // 4. Notify the user they were accepted
     await this._db.client.from('NOTIFICATION_INBOX').insert({
       user_id: userId,
       league_id: leagueId,
@@ -112,7 +119,7 @@ export class ApprovalService {
       is_deleted: false,
     } as any);
 
-    // 3. Soft-delete the participant_approval notification from the admin's inbox
+    // 5. Soft-delete the participant_approval notification from the admin's inbox
     await this._clearApprovalNotification(userLeagueId, leagueId, adminId, now);
   }
 

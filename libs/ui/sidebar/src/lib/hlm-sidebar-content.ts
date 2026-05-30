@@ -10,6 +10,6 @@ import { classes } from '@spartan-ng/helm/utils';
 })
 export class HlmSidebarContent {
 	constructor() {
-		classes(() => 'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden');
+		classes(() => 'flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain group-data-[collapsible=icon]:overflow-hidden');
 	}
 }

@@ -6,9 +6,26 @@
 
 .standings-header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.standings-header__title-row {
+  display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 1.25rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.standings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .standings-title {
@@ -192,4 +209,119 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .standings-wrapper {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .standings-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .standings-header__title-row {
+    justify-content: space-between;
+  }
+
+  .standings-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .chat-btn,
+  .approvals-btn,
+  .invite-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .standings-table,
+  .standings-table thead,
+  .standings-table tbody,
+  .standings-table tr,
+  .standings-table th,
+  .standings-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .standings-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .standings-table tbody tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--card);
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  }
+
+  .standings-table tbody tr:hover {
+    background: var(--card);
+  }
+
+  .standings-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .standings-table td::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+  }
+
+  .standings-table td:last-child {
+    border-bottom: none;
+  }
+
+  .col-rank,
+  .col-trend,
+  .col-pts {
+    text-align: right;
+  }
+
+  .col-rank {
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .col-team {
+    align-items: flex-start;
+  }
+
+  .team-badge {
+    max-width: min(100%, 14rem);
+    white-space: normal;
+    text-align: right;
+  }
+
+  .trend {
+    font-size: 0.84rem;
+  }
+
+  .medal {
+    font-size: 1.2rem;
+  }
 }

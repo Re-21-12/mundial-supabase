@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
 import { MagicLinkService } from '../../../shared/components/notification-inbox/magic-link.service';
 import { NotificationInboxService } from '../../../shared/components/notification-inbox/notification-inbox.service';
+import { LeagueRoleService } from '../../services/league-role.service';
 
 const MATCH_DURATION_MINUTES = 120;
 const PREDICTION_CLOSE_MINUTES = 15;
@@ -36,6 +37,7 @@ export class LeagueCreationService {
   private supabaseService = inject(SupabaseService);
   private magicLinkService = inject(MagicLinkService);
   private notificationService = inject(NotificationInboxService);
+  private leagueRole = inject(LeagueRoleService);
 
   /**
    * Creates a new league with initial configuration
@@ -132,6 +134,10 @@ export class LeagueCreationService {
       }
 
       // Note: creator is auto-joined by trg_auto_join_league_creator DB trigger (v3.53)
+      // Assign user_league role to the creator so they can make predictions in their own league
+      this.leagueRole
+        .ensureLeagueMemberRole(payload.createdBy, payload.createdBy)
+        .catch((err) => console.warn('[LeagueCreation] Role assignment failed:', err));
 
       return { success: true, leagueId };
     } catch (error) {

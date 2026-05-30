@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
 import { WalletService } from '../wallet/wallet.service';
+import { LeagueRoleService } from '../../services/league-role.service';
 
 export interface LeaguePreview {
   leagueId: number;
@@ -15,6 +16,7 @@ export interface LeaguePreview {
 export class JoinLeagueService {
   private readonly _db = inject(SupabaseService);
   private readonly _wallet = inject(WalletService);
+  private readonly _leagueRole = inject(LeagueRoleService);
 
   // ── Preview por código de invitación ──────────────────────────────────────
 
@@ -132,6 +134,13 @@ export class JoinLeagueService {
       .maybeSingle();
 
     const pendingApproval = (ulStatus as any)?.approval_status === 'pending_approval';
+
+    // Assign user_league role only when the user is immediately approved (no manual approval needed)
+    if (!pendingApproval) {
+      this._leagueRole
+        .ensureLeagueMemberRole(userId, userId)
+        .catch((err) => console.warn('[JoinLeague] Role assignment failed:', err));
+    }
 
     return { leagueId: joinedLeagueId, pendingApproval };
   }

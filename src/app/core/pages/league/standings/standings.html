@@ -1,33 +1,38 @@
 <div class="standings-wrapper">
   <header class="standings-header">
-    <h2 class="standings-title">Tabla de Posiciones</h2>
-    <span class="live-badge" aria-label="Actualización en tiempo real">● Live</span>
-    <a class="chat-btn" [routerLink]="['/league', leagueId, 'chat']" aria-label="Ir al chat de la liga">
-      <i class="pi pi-comments"></i>
-      Chat
-    </a>
-    @if (isLeagueOwner()) {
-      <a
-        class="approvals-btn"
-        [routerLink]="['/league', leagueId, 'approvals']"
-        aria-label="Ver solicitudes de ingreso pendientes"
-      >
-        <i class="pi pi-user-plus"></i>
-        Aprobar
-        @if (pendingCount() > 0) {
-          <span class="approvals-badge">{{ pendingCount() }}</span>
-        }
+    <div class="standings-header__title-row">
+      <h2 class="standings-title">Tabla de Posiciones</h2>
+      <span class="live-badge" aria-label="Actualización en tiempo real">● Live</span>
+    </div>
+
+    <div class="standings-actions">
+      <a class="chat-btn" [routerLink]="['/league', leagueId, 'chat']" aria-label="Ir al chat de la liga">
+        <i class="pi pi-comments"></i>
+        Chat
       </a>
-    }
-    <button
-      class="invite-btn"
-      type="button"
-      (click)="showInvite.set(!showInvite())"
-      [attr.aria-expanded]="showInvite()"
-    >
-      <i class="pi pi-send"></i>
-      {{ showInvite() ? 'Cerrar' : 'Invitar' }}
-    </button>
+      @if (isLeagueOwner()) {
+        <a
+          class="approvals-btn"
+          [routerLink]="['/league', leagueId, 'approvals']"
+          aria-label="Ver solicitudes de ingreso pendientes"
+        >
+          <i class="pi pi-user-plus"></i>
+          Aprobar
+          @if (pendingCount() > 0) {
+            <span class="approvals-badge">{{ pendingCount() }}</span>
+          }
+        </a>
+      }
+      <button
+        class="invite-btn"
+        type="button"
+        (click)="showInvite.set(!showInvite())"
+        [attr.aria-expanded]="showInvite()"
+      >
+        <i class="pi pi-send"></i>
+        {{ showInvite() ? 'Cerrar' : 'Invitar' }}
+      </button>
+    </div>
   </header>
 
   @if (showInvite()) {
@@ -54,13 +59,13 @@
       <tbody>
         @for (row of standings(); track row.user_league_id; let i = $index) {
           <tr [class.top-three]="i < 3">
-            <td class="col-rank">
+            <td class="col-rank" data-label="#">
               @if (i === 0) { <span class="medal gold">🥇</span> }
               @else if (i === 1) { <span class="medal silver">🥈</span> }
               @else if (i === 2) { <span class="medal bronze">🥉</span> }
               @else { {{ i + 1 }} }
             </td>
-            <td class="col-trend">
+            <td class="col-trend" data-label="Variación">
               @if (row.rankChange === null) {
                 <span class="trend trend--neutral" title="Sin datos previos">—</span>
               } @else if (row.rankChange > 0) {
@@ -75,15 +80,15 @@
                 <span class="trend trend--neutral" title="Sin cambio">—</span>
               }
             </td>
-            <td class="col-team">
+            <td class="col-team" data-label="Equipo">
               @if (row.team_name) {
                 <span class="team-badge">{{ row.team_name }}</span>
               } @else {
                 <span class="team-badge team-badge--empty">Sin nombre</span>
               }
             </td>
-            <td class="col-name">{{ row.user_name }}</td>
-            <td class="col-pts">{{ row.accumulated_points }}</td>
+            <td class="col-name" data-label="Jugador">{{ row.user_name }}</td>
+            <td class="col-pts" data-label="Pts">{{ row.accumulated_points }}</td>
           </tr>
         }
       </tbody>

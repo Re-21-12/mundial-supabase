@@ -241,6 +241,6 @@ export class MisPartidosPage implements OnInit {
   }
 
   protected onPredict(card: MatchTicketData): void {
-    void this.router.navigate(['/prediction'], { queryParams: { matchId: card.matchId } });
+    void this.router.navigate(['/prediction-client', card.matchId]);
   }
 }

@@ -153,7 +153,7 @@ BEGIN
     SELECT league_reward_id
     INTO   v_reward_id
     FROM   "LEAGUE_REWARD"
-    WHERE  league_id  = v_league_id
+    WHERE  "LEAGUE_REWARD".league_id  = v_league_id
       AND  is_deleted = false
     ORDER  BY league_reward_id DESC
     LIMIT  1
