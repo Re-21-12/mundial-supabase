@@ -186,6 +186,40 @@
   line-height: 1;
 }
 
+.simulate-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #a5b4fc;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.simulate-btn:hover:not(:disabled) { background: #c7d2fe; }
+.simulate-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.advance-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #86efac;
+  background: #dcfce7;
+  color: #14532d;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.advance-btn:hover:not(:disabled) { background: #bbf7d0; }
+.advance-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .invite-btn {
   margin-left: auto;
   display: flex;
@@ -232,6 +266,8 @@
 
   .chat-btn,
   .approvals-btn,
+  .simulate-btn,
+  .advance-btn,
   .invite-btn {
     width: 100%;
     justify-content: center;

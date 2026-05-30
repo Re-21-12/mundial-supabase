@@ -18,6 +18,7 @@ import {
   type ClientCardData,
 } from '../../../shared/components/client-card/client-card';
 import { CreateLeagueDialogComponent } from '../../../shared/components/create-league-dialog/create-league-dialog';
+import { SimulateMatchService } from '../../services/simulate-match.service';
 
 interface LeagueRow {
   league_id: number;
@@ -165,6 +166,8 @@ export class MisLigasPage implements OnInit, OnDestroy {
   private readonly auth = inject(AuthFacade);
   private readonly notif = inject(NotificationService);
   private readonly clientContent = inject(ClientContentService);
+  private readonly simulateSvc = inject(SimulateMatchService);
+  private readonly simulatingLeague = signal<number | null>(null);
 
   private channel: RealtimeChannel | null = null;
 
@@ -238,6 +241,12 @@ export class MisLigasPage implements OnInit, OnDestroy {
                 icon: 'pi-arrow-right',
                 variant: 'ghost' as const,
               },
+              {
+                key: 'simulate',
+                label: this.simulatingLeague() === r.league_id ? 'Simulando…' : 'Simular partido',
+                icon: 'pi-bolt',
+                variant: 'secondary' as const,
+              },
             ],
             expandable: r.invitation_code
               ? {
@@ -268,8 +277,26 @@ export class MisLigasPage implements OnInit, OnDestroy {
   protected onAction({ card, key }: { card: ClientCardData; key: string }) {
     if (key === 'chat') {
       this.router.navigate(['/league', card.id, 'chat']);
+    } else if (key === 'simulate') {
+      void this.onSimulate(card.id);
     } else {
       this.router.navigate(['/league', card.id, 'standings']);
+    }
+  }
+
+  private async onSimulate(leagueId: number): Promise<void> {
+    if (this.simulatingLeague() !== null) return;
+    this.simulatingLeague.set(leagueId);
+    await this.load(); // refresh label
+
+    const result = await this.simulateSvc.simulateNextMatch(leagueId);
+    this.simulatingLeague.set(null);
+
+    if (result.success) {
+      this.notif.notify('success', 'Partido simulado', result.summary ?? '');
+      await this.load();
+    } else {
+      this.notif.notify('warn', 'Sin partidos', result.error ?? 'No hay partidos pendientes.');
     }
   }
 }

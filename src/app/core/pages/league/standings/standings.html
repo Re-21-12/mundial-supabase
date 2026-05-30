@@ -10,7 +10,7 @@
         <i class="pi pi-comments"></i>
         Chat
       </a>
-      @if (isLeagueOwner()) {
+      @if (isLeagueOwner() || isAdmin()) {
         <a
           class="approvals-btn"
           [routerLink]="['/league', leagueId, 'approvals']"
@@ -22,6 +22,28 @@
             <span class="approvals-badge">{{ pendingCount() }}</span>
           }
         </a>
+
+        <button
+          class="simulate-btn"
+          type="button"
+          [disabled]="simulating()"
+          (click)="onSimulateMatch()"
+          title="Simular resultado del próximo partido pendiente"
+        >
+          <i class="pi pi-bolt"></i>
+          {{ simulating() ? 'Simulando…' : 'Simular partido' }}
+        </button>
+
+        <button
+          class="advance-btn"
+          type="button"
+          [disabled]="advancing()"
+          (click)="onAdvanceBracket()"
+          title="Asignar equipos clasificados a ronda 1 del bracket"
+        >
+          <i class="pi pi-sitemap"></i>
+          {{ advancing() ? 'Avanzando…' : 'Avanzar bracket' }}
+        </button>
       }
       <button
         class="invite-btn"

@@ -16,7 +16,8 @@ Aplicación web para crear y gestionar ligas privadas de predicciones del Mundia
 6. [Edge Functions](#edge-functions)
 7. [Sistema de roles y permisos](#sistema-de-roles-y-permisos)
 8. [Flujo de un partido](#flujo-de-un-partido)
-9. [Cómo correr el proyecto](#cómo-correr-el-proyecto)
+9. [Sistema de puntuación y premios](#sistema-de-puntuación-y-premios)
+10. [Cómo correr el proyecto](#cómo-correr-el-proyecto)
 
 ---
 
@@ -328,6 +329,99 @@ USING (user_id = get_my_user_id())
          ↓
 9. Sistema evalúa predicciones y distribuye premios de la liga
 ```
+
+---
+
+## Sistema de puntuación y premios
+
+### Reglas de puntuación por predicción
+
+Cada usuario predice el marcador exacto de un partido antes del cierre (15 minutos antes del inicio). Al registrar el resultado final, el sistema compara la predicción con el resultado real y otorga puntos según estas reglas:
+
+| Caso | Ejemplo predicción | Resultado real | Puntos |
+| ---- | ------------------ | -------------- | ------ |
+| Marcador exacto | Argentina 2 – Nigeria 1 | Argentina 2 – Nigeria 1 | **3 pts** |
+| Dirección correcta (ganador acertado, score distinto) | Argentina 2 – Nigeria 1 | Argentina 3 – Nigeria 1 | **1 pt** |
+| Empate acertado (score distinto) | Argentina 1 – Nigeria 1 | Argentina 2 – Nigeria 2 | **1 pt** |
+| Empate exacto | Argentina 0 – Nigeria 0 | Argentina 0 – Nigeria 0 | **3 pts** |
+| Dirección incorrecta | Argentina 2 – Nigeria 1 | Argentina 0 – Nigeria 1 | **0 pts** |
+
+> **Regla de dirección:** se usa `Math.sign(pred_local - pred_visitante)` vs `Math.sign(real_local - real_visitante)`. Si ambos signos coinciden (+1, −1 o 0), el resultado fue acertado.
+
+### Dónde se almacenan los puntos
+
+Los puntos se acumulan en la columna `accumulated_points` de la tabla `USER_LEAGUE`. Cada usuario tiene un registro por liga; los puntos de partidos distintos se **suman incrementalmente** sobre ese mismo campo. El valor final determina el ranking en la tabla de posiciones (`standings`).
+
+```
+PREDICTION (first_team_score, second_team_score)
+       +
+MATCH (first_team_total, second_team_total)
+       ↓
+  calcPoints()  →  0 | 1 | 3
+       ↓
+USER_LEAGUE.accumulated_points += pts
+```
+
+### Flujo completo de evaluación
+
+```
+Admin registra resultado final del partido
+         ↓
+league-scoring.service → evaluatePredictionsForMatch(matchId)
+         ↓
+¿MATCH.scored_at ya tiene valor?
+   SÍ → salir (idempotente, no re-procesa)
+   NO → continuar
+         ↓
+Obtener first_team_total + second_team_total del MATCH
+         ↓
+Consultar todas las PREDICTION del partido (is_deleted = false)
+         ↓
+Para cada predicción:
+   pts = calcPoints(pred_home, pred_away, actual_home, actual_away)
+   si pts > 0:
+     USER_LEAGUE.accumulated_points += pts
+         ↓
+Marcar MATCH.scored_at = NOW()   ← garantiza idempotencia
+         ↓
+checkAndCloseLeague(leagueId)
+   ¿Quedan partidos sin scored_at en la liga?
+      SÍ → no cerrar aún
+      NO → LEAGUE.status = 'finished' → distributeLeagueRewards()
+```
+
+> La misma lógica existe en la base de datos como función SQL `calculate_prediction_points()` y el trigger `trg_recompute_points_from_prediction`, que recalculan puntos cuando se inserta o actualiza una `PREDICTION` directamente en Postgres.
+
+### Distribución de premios al cierre de liga
+
+Al cerrarse la liga, el 95 % del pozo se reparte entre participantes y el 5 % va a la plataforma (4 % plataforma + 1 % premio global).
+
+**Distribución normal (≥ 4 participantes sin empates):**
+
+| Posición | Porcentaje del pozo |
+| -------- | ------------------- |
+| 1.º lugar | 50 % |
+| 2.º lugar | 25 % |
+| 3.º lugar | 10 % |
+| Último lugar | 10 % |
+| Plataforma | 5 % (4 % plataforma + 1 % fondo global) |
+
+**Reglas de desempate (tie-breaking):**
+
+| Situación | Distribución |
+| --------- | ------------ |
+| Todos empatados | 95 % dividido en partes iguales |
+| Empate en 1.er lugar | 85 % dividido entre los empatados / 10 % al último |
+| Empate en 2.º lugar | 50 % al 1.º / 35 % dividido entre los empatados / 10 % al último |
+| Empate en 3.er lugar | 50 % al 1.º / 25 % al 2.º / 10 % dividido entre los empatados / 10 % al último |
+| Empate en último lugar | 10 % dividido entre los empatados |
+
+### Premio global (1 % del pozo de todas las ligas)
+
+Al cierre de cada liga, el 1 % del pozo entra a un fondo global distribuido así:
+
+- **50 %** → los tres mejores jugadores a nivel global (por suma de `accumulated_points` en todas sus ligas): 1.º 50 % · 2.º 25 % · 3.º 10 % del 50 %.
+- **50 %** → todos los miembros de la liga con el mayor promedio de `accumulated_points`.
 
 ---
 

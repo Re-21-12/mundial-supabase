@@ -55,7 +55,7 @@
             <div class="jl-result" role="listitem" (click)="selectLeague(league)">
               <span class="jl-result__name">{{ league.name }}</span>
               @if (league.isBettingLeague) {
-                <span class="jl-result__badge">💰 ${{ league.buyInAmount }}</span>
+                <span class="jl-result__badge">💰 Q{{ league.buyInAmount }}</span>
               } @else {
                 <span class="jl-result__badge jl-result__badge--fun">🎮 Diversión</span>
               }
@@ -70,7 +70,7 @@
           <p class="jl-preview__name">{{ previewLeague()!.name }}</p>
           @if (previewLeague()!.isBettingLeague) {
             <p class="jl-preview__fee">
-              💰 Cuota de entrada: <strong>${{ previewLeague()!.buyInAmount }} Q</strong>
+              💰 Cuota de entrada: <strong>Q{{ previewLeague()!.buyInAmount }}</strong>
             </p>
           } @else {
             <p class="jl-preview__fee">🎮 Liga de diversión — sin cuota</p>
