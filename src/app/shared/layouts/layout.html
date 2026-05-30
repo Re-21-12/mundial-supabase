@@ -29,7 +29,7 @@
   </hlm-sidebar>
   <!-- End Side bar -->
  <!-- Wfull y display flex  -->
-  <main hlmSidebarInset class="flex flex-col min-h-screen min-w-0 overflow-x-hidden">
+  <main hlmSidebarInset class="flex flex-col min-h-screen min-w-0 overflow-x-clip">
     <header class="flex h-12 items-center justify-between px-4 border-b">
       <div class="flex items-center gap-2">
         <!-- Toggle -->
@@ -74,7 +74,7 @@
           </button>
 
           @if (showNotifications()) {
-            <div class="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] z-50 shadow-xl rounded-lg overflow-hidden">
+            <div class="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-0.75rem)] z-50 shadow-xl rounded-lg overflow-hidden overflow-x-hidden">
               <app-notification-inbox />
             </div>
           }

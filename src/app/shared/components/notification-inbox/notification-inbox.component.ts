@@ -341,17 +341,63 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
       @media (max-width: 640px) {
         .notification-inbox {
-          max-height: 400px;
+          max-height: min(400px, calc(100dvh - 6rem));
+        }
+
+        .inbox-header {
+          padding: 10px 12px;
+        }
+
+        .inbox-title {
+          font-size: 14px;
         }
 
         .inbox-actions {
-          flex-direction: column;
-          gap: 4px;
+          gap: 6px;
+        }
+
+        .btn-mark-read {
+          font-size: 11px;
+          padding: 3px 6px;
+          white-space: nowrap;
         }
 
         .notification-item {
-          gap: 8px;
+          display: grid;
+          grid-template-columns: 32px 1fr auto;
+          grid-template-areas:
+            "icon content actions"
+            ". approval approval";
+          gap: 6px 8px;
           padding: 10px 12px;
+        }
+
+        .notif-icon,
+        .notif-icon-placeholder {
+          grid-area: icon;
+          align-self: flex-start;
+        }
+
+        .notif-content {
+          grid-area: content;
+        }
+
+        .notif-actions {
+          grid-area: actions;
+          align-self: flex-start;
+        }
+
+        .approval-actions {
+          grid-area: approval;
+          margin-top: 0;
+          gap: 6px;
+        }
+
+        .btn-approve,
+        .btn-reject {
+          flex: 1;
+          font-size: 11px;
+          padding: 5px 8px;
         }
 
         .notif-title {
