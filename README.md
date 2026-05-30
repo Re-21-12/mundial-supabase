@@ -416,3 +416,6 @@ vercel --prod
 ```
 
 Asegurarse de actualizar `src/environments/environment.prod.ts` con la URL de Vercel y agregarla como Redirect URL en Supabase Auth.
+
+<!-- revision de estilos -->
+
