@@ -9,7 +9,7 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 0.75rem;
 }
 
@@ -20,7 +20,7 @@
 
 :host ::ng-deep .dynamic-table-shell .p-datatable-wrapper {
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   max-width: 100%;
   width: 100%;
   min-width: 0;

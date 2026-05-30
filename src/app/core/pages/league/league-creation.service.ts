@@ -8,10 +8,10 @@ const PREDICTION_CLOSE_MINUTES = 15;
 
 export interface LeagueCreationPayload {
   name: string;
-  leagueType: 'apuesta' | 'diversión'; // From CATALOG
-  entryPrice?: number; // If leagueType is 'apuesta'
-  description?: string;
-  maxParticipants?: number;
+  /** catalog_id from CATALOG table (table_id=21). 23=Gratis, 24=Pago */
+  catalogId: number;
+  /** Cuota de entrada. 0 = gratis. >0 = liga de apuesta. */
+  buyInAmount: number;
   createdBy: number;
 }
 
@@ -49,19 +49,9 @@ export class LeagueCreationService {
         return { success: false, error: 'Supabase client not initialized' };
       }
 
-      // Get the correct catalog ID for league type
-      const { data: catalogData, error: catalogError } = await client
-        .from('CATALOG')
-        .select('catalog_id')
-        .eq('neumonic', payload.leagueType)
-        .eq('table_name', 'LEAGUE')
-        .maybeSingle();
+      const buyInAmount = Math.max(0, Number(payload.buyInAmount ?? 0));
 
-      if (catalogError || !catalogData) {
-        return { success: false, error: `Invalid league type: ${payload.leagueType}` };
-      }
-
-      // Get current WORLD_LEAGUE (default to 1 for 2026 World Cup)
+      // Get active WORLD_LEAGUE
       const { data: worldLeague, error: worldError } = await client
         .from('WORLD_LEAGUE')
         .select('world_league_id')
@@ -70,26 +60,17 @@ export class LeagueCreationService {
         .maybeSingle();
 
       if (worldError || !worldLeague) {
-        return { success: false, error: 'No active World League found' };
+        return { success: false, error: 'No hay una World League activa configurada.' };
       }
 
-      const buyInAmount = payload.leagueType === 'apuesta' ? Number(payload.entryPrice ?? 0) : 0;
-
-      if (payload.leagueType === 'apuesta' && buyInAmount <= 0) {
-        return {
-          success: false,
-          error: 'La liga de apuesta debe incluir una cuota de participación mayor a 0.',
-        };
-      }
-
-      // Create league
+      // Create league — catalog_id comes directly from the form (no neumonic lookup)
       const { data: leagueData, error: leagueError } = await client
         .from('LEAGUE')
         .insert({
           world_league_id: worldLeague.world_league_id,
           user_id: payload.createdBy,
-          name: payload.name,
-          catalog_id: catalogData.catalog_id,
+          name: payload.name.trim(),
+          catalog_id: payload.catalogId,
           buy_in_amount: buyInAmount,
           status: 'active',
           created_by: payload.createdBy,
@@ -105,11 +86,11 @@ export class LeagueCreationService {
 
       const leagueId = leagueData?.[0]?.league_id;
 
-      // Create LEAGUE_REWARD entry
+      // Create LEAGUE_REWARD for paid leagues
       if (buyInAmount > 0) {
         await client.from('LEAGUE_REWARD').insert({
           league_id: leagueId,
-          mundial_id: 1, // 2026 World Cup
+          mundial_id: 1,
           total_collected_amount: 0,
           platform_fee_5pct: 0,
           global_prize_1pct: 0,
@@ -119,7 +100,7 @@ export class LeagueCreationService {
         } as any);
       }
 
-      // Create RULES_LEAGUE with default rules
+      // Create default RULES_LEAGUE
       const defaultRules = [
         {
           dimension: 'scoring',
@@ -136,11 +117,6 @@ export class LeagueCreationService {
           value: `${MATCH_DURATION_MINUTES}_minutes`,
           description: `Duración del partido: ${MATCH_DURATION_MINUTES} minutos`,
         },
-        {
-          dimension: 'league_type',
-          value: payload.leagueType,
-          description: `Tipo de liga: ${payload.leagueType}`,
-        },
       ];
 
       for (const rule of defaultRules) {
@@ -155,8 +131,7 @@ export class LeagueCreationService {
         } as any);
       }
 
-      // Add creator as league member
-      await this.addUserToLeague(leagueId, payload.createdBy);
+      // Note: creator is auto-joined by trg_auto_join_league_creator DB trigger (v3.53)
 
       return { success: true, leagueId };
     } catch (error) {

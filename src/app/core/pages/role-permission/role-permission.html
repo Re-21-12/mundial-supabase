@@ -41,9 +41,9 @@
             <p-checkbox
               [binary]="true"
               [ngModel]="userHasRole(role.role_id)"
-              [disabled]="!selectedUserId() || isSaving('ur-' + role.role_id)"
+              [disabled]="!selectedUserId() || isSaving('ur-' + role.role_id) || (userRoleMap().size > 0 && !userHasRole(role.role_id))"
               (ngModelChange)="toggleUserRole(role.role_id, $event)"
-              pTooltip="{{ selectedUserId() ? 'Asignar/quitar rol al usuario' : 'Selecciona un usuario primero' }}"
+              [pTooltip]="!selectedUserId() ? 'Selecciona un usuario primero' : (userRoleMap().size > 0 && !userHasRole(role.role_id)) ? 'Quita el rol actual antes de asignar otro' : 'Asignar/quitar rol al usuario'"
               tooltipPosition="right"
             />
 

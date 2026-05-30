@@ -5,49 +5,44 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { AuthFacade } from '../../features/auth/auth.facade';
 import { LeagueCreationService } from '../../../core/pages/league/league-creation.service';
 import { NotificationService } from '../../services/notification-service';
+import { DynamicForm } from '../../features/dynamic-form/dynamic-form';
+import { formFields } from '../../features/dynamic-form/utils/forms';
 
 @Component({
   selector: 'app-create-league-dialog',
   standalone: true,
-  imports: [FormsModule, ButtonModule],
+  imports: [DynamicForm],
   templateUrl: './create-league-dialog.html',
   styleUrl: './create-league-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateLeagueDialogComponent {
-  private readonly auth = inject(AuthFacade);
+  private readonly auth      = inject(AuthFacade);
   private readonly leagueSvc = inject(LeagueCreationService);
-  private readonly notif = inject(NotificationService);
+  private readonly notif     = inject(NotificationService);
 
-  readonly created = output<number>();
+  readonly created   = output<number>();
   readonly cancelled = output<void>();
 
   protected readonly submitting = signal(false);
-  protected readonly name = signal('');
-  protected readonly leagueType = signal<'diversión' | 'apuesta'>('diversión');
-  protected readonly entryPrice = signal<number | null>(null);
+  protected readonly fields = formFields['leagueCreationForm'].fields;
 
-  protected get isApuesta() {
-    return this.leagueType() === 'apuesta';
+  protected cancel(): void {
+    this.cancelled.emit();
   }
 
-  protected get isValid(): boolean {
-    const n = this.name().trim();
-    if (!n) return false;
-    if (this.isApuesta) {
-      const p = this.entryPrice();
-      return p !== null && p > 0;
-    }
-    return true;
-  }
+  protected async onFormData(jsonData: string): Promise<void> {
+    if (this.submitting()) return;
 
-  protected async submit(): Promise<void> {
-    if (!this.isValid || this.submitting()) return;
+    const data = JSON.parse(jsonData) as {
+      name: string;
+      catalog_id: number;
+      buy_in_amount: number;
+    };
+
     const userId = Number(this.auth.getInternalUserId());
     if (!userId) {
       this.notif.notify('error', 'Error', 'Debes iniciar sesión.');
@@ -56,10 +51,10 @@ export class CreateLeagueDialogComponent {
 
     this.submitting.set(true);
     const result = await this.leagueSvc.createLeague({
-      name: this.name().trim(),
-      leagueType: this.leagueType(),
-      entryPrice: this.isApuesta ? (this.entryPrice() ?? 0) : undefined,
-      createdBy: userId,
+      name:        data.name,
+      catalogId:   Number(data.catalog_id),
+      buyInAmount: Number(data.buy_in_amount ?? 0),
+      createdBy:   userId,
     });
     this.submitting.set(false);
 
@@ -68,11 +63,7 @@ export class CreateLeagueDialogComponent {
       return;
     }
 
-    this.notif.notify('success', '¡Liga creada!', `"${this.name().trim()}" está lista.`);
+    this.notif.notify('success', '¡Liga creada!', `"${data.name.trim()}" está lista.`);
     this.created.emit(result.leagueId);
-  }
-
-  protected cancel(): void {
-    this.cancelled.emit();
   }
 }
