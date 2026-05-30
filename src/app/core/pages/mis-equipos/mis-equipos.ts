@@ -85,7 +85,7 @@ interface TeamRow {
         justify-content: center;
         gap: 0.75rem;
         min-height: 200px;
-        color: var(--muted-foreground);
+        color: #64748b;
       }
       .me-empty .pi {
         font-size: 2rem;
