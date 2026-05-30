@@ -4,7 +4,9 @@ export type MatchRow = Database['public']['Tables']['MATCH']['Row'];
 export type MatchPhase = 'regulation' | 'extra_time' | 'penalty' | 'finished';
 
 export function getMatchPhase(match: MatchRow): MatchPhase {
-  return ((match as Record<string, unknown>)['phase'] as MatchPhase | null | undefined) ?? 'regulation';
+  return (
+    ((match as Record<string, unknown>)['phase'] as MatchPhase | null | undefined) ?? 'regulation'
+  );
 }
 
 export function getMatchPhaseLabel(match: MatchRow): string {
@@ -33,10 +35,20 @@ export function getMatchPhaseSeverity(
       return 'secondary';
     case 'regulation':
     default:
-      return 'success';
+      return isMatchLive(match) ? 'success' : 'secondary';
   }
 }
 
 export function isMatchClosed(match: MatchRow): boolean {
   return getMatchPhase(match) === 'finished';
+}
+
+export function isMatchLive(match: MatchRow): boolean {
+  const phase = getMatchPhase(match);
+  if (phase === 'finished') {
+    return false;
+  }
+
+  const now = new Date();
+  return new Date(match.start_time) <= now && new Date(match.end_time) > now && !match.is_deleted;
 }

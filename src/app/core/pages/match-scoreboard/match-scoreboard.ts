@@ -14,6 +14,7 @@ import type { Database } from '../../../types/database.types';
 import {
   getMatchPhaseLabel,
   getMatchPhaseSeverity,
+  isMatchLive,
   isMatchClosed,
 } from './match-phase.util';
 
@@ -394,13 +395,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
   // ── View helpers ──────────────────────────────────────────────────────────────
   isLive(match: MatchRow): boolean {
-    const m = match as any;
-    if (m.phase === 'finished') return false;
-    return (
-      new Date(match.start_time) <= new Date() &&
-      new Date((match as any).end_time) > new Date() &&
-      !match.is_deleted
-    );
+    return isMatchLive(match);
   }
 
   matchPhaseLabel(match: MatchRow): string {
