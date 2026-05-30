@@ -419,4 +419,11 @@
   @if (showJoinDialog()) {
     <app-join-league (closed)="closeJoinDialog()" />
   }
+
+  @if (showCreateLeagueDialog()) {
+    <app-create-league-dialog
+      (created)="onLeagueCreated($event)"
+      (cancelled)="showCreateLeagueDialog.set(false)"
+    />
+  }
 </div>

@@ -17,6 +17,7 @@ import {
   ClientCardComponent,
   type ClientCardData,
 } from '../../../shared/components/client-card/client-card';
+import { CreateLeagueDialogComponent } from '../../../shared/components/create-league-dialog/create-league-dialog';
 
 interface LeagueRow {
   league_id: number;
@@ -32,7 +33,7 @@ interface LeagueRow {
 @Component({
   selector: 'app-mis-ligas',
   standalone: true,
-  imports: [ClientCardComponent, ButtonModule],
+  imports: [ClientCardComponent, ButtonModule, CreateLeagueDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ml-page">
@@ -49,7 +50,7 @@ interface LeagueRow {
             label="Crear liga nueva"
             icon="pi pi-plus"
             severity="primary"
-            (click)="createLeague()"
+            (click)="showCreateDialog.set(true)"
           />
         </div>
       </div>
@@ -73,6 +74,13 @@ interface LeagueRow {
         </div>
       }
     </div>
+
+    @if (showCreateDialog()) {
+      <app-create-league-dialog
+        (created)="onLeagueCreated($event)"
+        (cancelled)="showCreateDialog.set(false)"
+      />
+    }
   `,
   styles: [
     `
@@ -162,6 +170,7 @@ export class MisLigasPage implements OnInit, OnDestroy {
 
   protected readonly cards = signal<ClientCardData[]>([]);
   protected readonly loading = signal(true);
+  protected readonly showCreateDialog = signal(false);
 
   async ngOnInit() {
     await this.load();
@@ -248,7 +257,12 @@ export class MisLigasPage implements OnInit, OnDestroy {
   }
 
   protected createLeague(): void {
-    void this.router.navigate(['/league']);
+    this.showCreateDialog.set(true);
+  }
+
+  protected async onLeagueCreated(_leagueId: number): Promise<void> {
+    this.showCreateDialog.set(false);
+    await this.load();
   }
 
   protected onAction({ card, key }: { card: ClientCardData; key: string }) {

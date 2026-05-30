@@ -1,0 +1,92 @@
+<!-- Backdrop -->
+<div class="cld-backdrop" (click)="cancel()" aria-hidden="true"></div>
+
+<!-- Dialog -->
+<div class="cld-dialog" role="dialog" aria-modal="true" aria-labelledby="cld-title">
+  <div class="cld-header">
+    <span class="cld-header__icon"><i class="pi pi-trophy"></i></span>
+    <h2 class="cld-title" id="cld-title">Crear nueva liga</h2>
+    <button type="button" class="cld-close" (click)="cancel()" aria-label="Cerrar">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <div class="cld-body">
+    <!-- Nombre -->
+    <div class="cld-field">
+      <label class="cld-label" for="cld-name">Nombre de la liga <span class="cld-required">*</span></label>
+      <input
+        id="cld-name"
+        type="text"
+        class="cld-input"
+        placeholder="Ej: Liga de la oficina"
+        maxlength="60"
+        [value]="name()"
+        (input)="name.set($any($event.target).value)"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Tipo -->
+    <div class="cld-field">
+      <label class="cld-label">Tipo de liga</label>
+      <div class="cld-type-row">
+        <button
+          type="button"
+          class="cld-type-btn"
+          [class.cld-type-btn--active]="leagueType() === 'diversión'"
+          (click)="leagueType.set('diversión')">
+          <i class="pi pi-heart"></i>
+          <span>Diversión</span>
+          <small>Sin apuestas</small>
+        </button>
+        <button
+          type="button"
+          class="cld-type-btn"
+          [class.cld-type-btn--active]="leagueType() === 'apuesta'"
+          (click)="leagueType.set('apuesta')">
+          <i class="pi pi-wallet"></i>
+          <span>Apuesta</span>
+          <small>Con cuota de entrada</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cuota (solo si apuesta) -->
+    @if (isApuesta) {
+      <div class="cld-field">
+        <label class="cld-label" for="cld-price">Cuota de entrada (Q) <span class="cld-required">*</span></label>
+        <div class="cld-input-prefix">
+          <span class="cld-prefix">$</span>
+          <input
+            id="cld-price"
+            type="number"
+            class="cld-input cld-input--number"
+            placeholder="0.00"
+            min="1"
+            step="0.01"
+            [value]="entryPrice() ?? ''"
+            (input)="entryPrice.set(+$any($event.target).value || null)"
+          />
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="cld-footer">
+    <button type="button" class="cld-btn cld-btn--ghost" (click)="cancel()">
+      Cancelar
+    </button>
+    <button
+      type="button"
+      class="cld-btn cld-btn--primary"
+      [disabled]="!isValid || submitting()"
+      (click)="submit()">
+      @if (submitting()) {
+        <i class="pi pi-spin pi-spinner"></i> Creando…
+      } @else {
+        <i class="pi pi-check"></i> Crear liga
+      }
+    </button>
+  </div>
+</div>

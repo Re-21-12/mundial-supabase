@@ -26,6 +26,7 @@ import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { NotificationService } from '../../../shared/services/notification-service';
 import { JoinLeagueService } from '../league/join-league.service';
 import { LeagueTournamentCardComponent } from '../../../shared/components/league-tournament-card/league-tournament-card';
+import { CreateLeagueDialogComponent } from '../../../shared/components/create-league-dialog/create-league-dialog';
 import type { LeagueForHome } from '../user-league/user-leagues.service';
 import type { LeagueDetail } from '../user-league/user-leagues.service';
 import type { MatchCard, MatchPeriodRow, GrupoCard } from './models/home.models';
@@ -46,6 +47,7 @@ import type { MatchRow, TeamRow } from './models/home.models';
     DigitFlowComponent,
     MatchCalendarComponent,
     LeagueTournamentCardComponent,
+    CreateLeagueDialogComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -64,6 +66,7 @@ export class Home implements OnInit, OnDestroy {
 
   // ── Core state ───────────────────────────────────────────────────────────────
   protected readonly showJoinDialog = signal(false);
+  protected readonly showCreateLeagueDialog = signal(false);
   protected readonly now = signal(Date.now());
   protected readonly safeVideoUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
     'https://www.youtube.com/embed/Sd1fz57if_I?autoplay=1&controls=0&rel=0&loop=1&playlist=Sd1fz57if_I&mute=1&disablekb=1&modestbranding=1',
@@ -309,7 +312,17 @@ export class Home implements OnInit, OnDestroy {
   }
 
   navigateToCreateLeague(): void {
-    this.router.navigate(['/league']);
+    this.showCreateLeagueDialog.set(true);
+  }
+
+  async onLeagueCreated(leagueId: number): Promise<void> {
+    this.showCreateLeagueDialog.set(false);
+    const userId = Number(this.auth.getInternalUserId());
+    if (userId) {
+      const leagues = await this.userLeaguesSvc.loadLeaguesForHome(userId);
+      this.homeLeagues.set(leagues);
+      await this.selectLeague(leagueId);
+    }
   }
 
   navigateToLeague(leagueId: number): void {

@@ -1,29 +1,186 @@
-<div class="prediction-list">
-  <h2>Selecciona partido y liga</h2>
+<div class="pcl-page">
 
-  <div *ngIf="loading()">Cargando...</div>
-  <div *ngIf="error()" class="error">{{ error() }}</div>
-
-  <div *ngIf="!loading() && leagues().length === 0">No estás inscrito en ninguna liga.</div>
-
-  <div *ngFor="let item of leagues()" class="league-block">
-    <div class="league-header">
-      <h3>{{ item.league.name }}</h3>
-      <small>Buy-in: {{ item.league.buy_in_amount | number }}</small>
-    </div>
-
-    <ul class="matches">
-      <li *ngFor="let m of item.matches" class="match-row">
-        <div class="match-info">
-          <div class="teams">{{ m.homeTeamName }} vs {{ m.awayTeamName }}</div>
-          <div class="start">{{ formatDate(m.startTime) }}</div>
-        </div>
-        <div class="actions">
-          <button pButton type="button" label="Apostar" (click)="goToMatch(m.matchId)" [disabled]="!m.canPredict"></button>
-          <p-tag *ngIf="!m.canPredict" severity="danger" value="Cerrado"></p-tag>
-          <p-tag *ngIf="m.isLive" severity="warn" value="En curso"></p-tag>
-        </div>
-      </li>
-    </ul>
+  <!-- Header -->
+  <div class="pcl-header">
+    <h2 class="pcl-header__title">
+      <i class="pi pi-bolt"></i> Mis Predicciones
+    </h2>
+    <p class="pcl-header__sub">Selecciona una liga y predice el resultado antes del cierre.</p>
   </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="pcl-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando ligas…</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (error()) {
+    <div class="pcl-error">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Sin ligas -->
+  @else if (leagueGroups().length === 0) {
+    <div class="pcl-empty">
+      <i class="pi pi-trophy"></i>
+      <p class="pcl-empty__title">Sin ligas disponibles</p>
+      <p class="pcl-empty__hint">Únete a una liga para poder hacer predicciones.</p>
+    </div>
+  }
+
+  @else {
+    <!-- League tabs -->
+    @if (leagueGroups().length > 1) {
+      <div class="pcl-tabs" role="tablist">
+        @for (g of leagueGroups(); track g.league.league_id) {
+          <button
+            type="button"
+            role="tab"
+            class="pcl-tab"
+            [class.pcl-tab--active]="selectedLeagueId() === g.league.league_id"
+            [attr.aria-selected]="selectedLeagueId() === g.league.league_id"
+            (click)="selectLeague(g.league.league_id)">
+            {{ g.league.name }}
+            @if (g.league.buy_in_amount > 0) {
+              <span class="pcl-tab__badge">$</span>
+            }
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Selected league matches -->
+    @if (selectedGroup(); as group) {
+      <div class="pcl-league-info">
+        <span class="pcl-league-name">
+          <i class="pi pi-trophy"></i>
+          {{ group.league.name }}
+        </span>
+        @if (group.league.buy_in_amount > 0) {
+          <span class="pcl-paid-tag">
+            <i class="pi pi-wallet"></i> Liga de apuesta · ${{ group.league.buy_in_amount | number:'1.2-2' }} Q
+          </span>
+        }
+        <span class="pcl-match-count">{{ upcomingCount() }} partido(s) activos</span>
+      </div>
+
+      <!-- Sin partidos en esta liga -->
+      @if (group.matches.length === 0) {
+        <div class="pcl-empty pcl-empty--inline">
+          <i class="pi pi-calendar"></i>
+          <p>No hay partidos próximos en esta liga.</p>
+        </div>
+      } @else {
+        <div class="pcl-cards">
+          @for (m of group.matches; track m.matchId) {
+            <div
+              class="pcl-card"
+              [class.pcl-card--live]="isLive(m)"
+              [class.pcl-card--warning]="isInWarningWindow(m)"
+              [class.pcl-card--finished]="isFinished(m)">
+
+              <!-- Match teams -->
+              <div class="pcl-card__teams">
+                <div class="pcl-team">
+                  @if (m.homeTeamLogo) {
+                    <img [src]="m.homeTeamLogo" [alt]="m.homeTeamName" [title]="m.homeTeamName" class="pcl-team__logo" />
+                  } @else {
+                    <span class="pcl-team__emoji">🏠</span>
+                  }
+                  <span class="pcl-team__name">{{ m.homeTeamName }}</span>
+                </div>
+
+                <div class="pcl-card__vs">
+                  @if (isLive(m) || isFinished(m)) {
+                    <span class="pcl-score">{{ m.homeScore }} – {{ m.awayScore }}</span>
+                    @if (isLive(m)) {
+                      <span class="pcl-live-dot"></span>
+                    }
+                  } @else {
+                    <span class="pcl-vs">vs</span>
+                  }
+                </div>
+
+                <div class="pcl-team pcl-team--away">
+                  @if (m.awayTeamLogo) {
+                    <img [src]="m.awayTeamLogo" [alt]="m.awayTeamName" [title]="m.awayTeamName" class="pcl-team__logo" />
+                  } @else {
+                    <span class="pcl-team__emoji">✈️</span>
+                  }
+                  <span class="pcl-team__name">{{ m.awayTeamName }}</span>
+                </div>
+              </div>
+
+              <!-- Meta row -->
+              <div class="pcl-card__meta">
+                <span class="pcl-meta__date">
+                  <i class="pi pi-calendar"></i>
+                  {{ formatDate(m.startTime) }}
+                </span>
+
+                @if (m.prediction) {
+                  <span class="pcl-pred-badge">
+                    <i class="pi pi-check"></i>
+                    {{ m.prediction.firstTeamScore }} – {{ m.prediction.secondTeamScore }}
+                  </span>
+                }
+
+                @if (isInWarningWindow(m)) {
+                  <span class="pcl-countdown-badge">
+                    <i class="pi pi-clock"></i> {{ getCountdown(m) }}
+                  </span>
+                }
+
+                @if (isLive(m)) {
+                  <span class="pcl-status-badge pcl-status-badge--live">
+                    <span class="pcl-live-dot pcl-live-dot--sm"></span> En vivo
+                  </span>
+                } @else if (isFinished(m)) {
+                  <span class="pcl-status-badge pcl-status-badge--done">Finalizado</span>
+                } @else if (isInWarningWindow(m)) {
+                  <span class="pcl-status-badge pcl-status-badge--warn">Cierra pronto</span>
+                } @else if (canPredict(m)) {
+                  <span class="pcl-status-badge pcl-status-badge--open">Abierto</span>
+                } @else {
+                  <span class="pcl-status-badge pcl-status-badge--closed">Cerrado</span>
+                }
+              </div>
+
+              <!-- Action -->
+              <div class="pcl-card__footer">
+                @if (isLive(m)) {
+                  <button type="button" class="pcl-btn pcl-btn--ghost" disabled>
+                    <i class="pi pi-lock"></i> Partido en curso
+                  </button>
+                } @else if (isFinished(m)) {
+                  <button type="button" class="pcl-btn pcl-btn--ghost" (click)="goToMatch(m.matchId)">
+                    <i class="pi pi-eye"></i> Ver predicción
+                  </button>
+                } @else if (!canPredict(m)) {
+                  <button type="button" class="pcl-btn pcl-btn--ghost" disabled>
+                    <i class="pi pi-lock"></i> Predicciones cerradas
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="pcl-btn pcl-btn--primary"
+                    (click)="goToMatch(m.matchId)">
+                    <i class="pi pi-bolt"></i>
+                    {{ m.prediction ? 'Editar predicción' : 'Predecir resultado' }}
+                  </button>
+                }
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
 </div>
