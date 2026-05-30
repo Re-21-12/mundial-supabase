@@ -60,7 +60,13 @@
       "mcp__supabase__get_project_url",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://mwflkwazlhvrtckbbkpi.supabase.co/rest/v1/\" --max-time 10)",
       "Bash(xargs grep -l \"countdown\\\\|timer\\\\|minutesUntil\")",
-      "Bash(xargs grep -l \"INVITATION\\\\|MAGIC_LINK\")"
+      "Bash(xargs grep -l \"INVITATION\\\\|MAGIC_LINK\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\victo\\\\Mundial\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(awk '{print $NF}')",
+      "Bash(grep -v \"^\\\\.$\")",
+      "Bash(grep -v \"^\\\\.\\\\.$\")",
+      "Bash(grep -E \"\\\\.md$|\\\\.txt$\")"
     ]
   }
 }
