@@ -50,6 +50,7 @@
         <h3 class="pc-section__title">
           <i class="pi pi-star-fill"></i> Partido seleccionado
         </h3>
+        <p class="pc-section__match-label">{{ getMatchLabel(focused) }}</p>
         <ng-container
           *ngTemplateOutlet="matchCard; context: { $implicit: focused, highlight: true }" />
       </section>
@@ -97,7 +98,7 @@
       <div class="pc-card__teams">
         <div class="pc-team pc-team--home">
           @if (card.homeTeamLogo) {
-            <img [src]="card.homeTeamLogo" [alt]="card.homeTeamName" [title]="card.homeTeamName" class="pc-team__logo" />
+            <img [src]="card.homeTeamLogo" [alt]="card.homeTeamName" title="{{ card.homeTeamName }}" class="pc-team__logo" />
           } @else {
             <span class="pc-team__emoji">🏠</span>
           }
@@ -117,7 +118,7 @@
 
         <div class="pc-team pc-team--away">
           @if (card.awayTeamLogo) {
-            <img [src]="card.awayTeamLogo" [alt]="card.awayTeamName" [title]="card.awayTeamName" class="pc-team__logo" />
+            <img [src]="card.awayTeamLogo" [alt]="card.awayTeamName" title="{{ card.awayTeamName }}" class="pc-team__logo" />
           } @else {
             <span class="pc-team__emoji">✈️</span>
           }
@@ -126,6 +127,7 @@
       </div>
 
       <div class="pc-card__meta">
+        <span class="pc-meta__match">{{ getMatchLabel(card) }}</span>
         <span class="pc-meta__date">{{ formatDate(card.startTime) }}</span>
         <span class="pc-meta__round">{{ getRoundLabel(card) }}</span>
 

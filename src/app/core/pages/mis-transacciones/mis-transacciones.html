@@ -1,0 +1,35 @@
+<div class="mt-page">
+  <div class="mt-header">
+    <h2 class="mt-title">
+      <i class="pi pi-wallet"></i>
+      Mis Transacciones
+    </h2>
+    <div
+      class="mt-summary"
+      [class.mt-summary--pos]="balance() >= 0"
+      [class.mt-summary--neg]="balance() < 0"
+    >
+      <span class="mt-summary-label">Balance</span>
+      <span class="mt-summary-value">{{ formatAmount(balance()) }}</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="mt-grid">
+      @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+        <div class="mt-skeleton"></div>
+      }
+    </div>
+  } @else if (cards().length === 0) {
+    <div class="mt-empty">
+      <i class="pi pi-wallet"></i>
+      <p>Sin movimientos registrados.</p>
+    </div>
+  } @else {
+    <div class="mt-grid">
+      @for (card of cards(); track card.id) {
+        <app-client-card [card]="card"></app-client-card>
+      }
+    </div>
+  }
+</div>

@@ -52,14 +52,14 @@
   border: 1px solid var(--border);
 }
 .ticket__badge--live {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--destructive) 15%, transparent), transparent);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.14), transparent);
   color: var(--destructive);
-  border-color: color-mix(in srgb, var(--destructive) 28%, transparent);
+  border-color: rgba(239, 68, 68, 0.28);
 }
 .ticket__badge--finished {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--muted) 12%, transparent), transparent);
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.12), transparent);
   color: var(--muted-foreground);
-  border-color: color-mix(in srgb, var(--muted) 24%, transparent);
+  border-color: rgba(148, 163, 184, 0.24);
 }
 
 /* Live pulsing dot */
@@ -92,6 +92,14 @@
   color: var(--muted-foreground);
 }
 
+.ticket__match-id {
+  padding: 0 20px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+}
+
 /* ─── Match section ────────────────────────────────────────────── */
 .ticket__match {
   display: grid;
@@ -114,8 +122,8 @@
   width: var(--avatar-size);
   height: var(--avatar-size);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  border: 2px solid color-mix(in srgb, var(--border) 60%, transparent);
+  background: var(--card);
+  border: 2px solid rgba(226, 232, 240, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,7 +234,7 @@
 }
 .ticket__meta-item .pi {
   font-size: 0.7rem;
-  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--card-foreground) 30%);
+  color: #64748b;
   flex-shrink: 0;
 }
 

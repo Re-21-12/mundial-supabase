@@ -8,29 +8,27 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
 import { HeroBannerComponent } from './hero-banner/hero-banner';
 import { StatsBarComponent } from './stats-bar/stats-bar';
 import { HomeRealtimeService } from './services/home-realtime.service';
 import { JoinLeagueComponent } from '../../../shared/components/join-league/join-league.component';
 import { TournamentBracketComponent } from '../../../shared/components/tournament-bracket/tournament-bracket';
 import { WorldGlobeComponent } from '../../../shared/components/world-globe/world-globe';
-import { MatchCalendarComponent } from '../../../shared/components/match-calendar/match-calendar';
 import { DigitFlowComponent } from 'ngx-digit-flow';
 import { UserLeaguesService } from '../user-league/user-leagues.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { NotificationService } from '../../../shared/services/notification-service';
 import { JoinLeagueService } from '../league/join-league.service';
-import { LeagueTournamentCardComponent } from '../../../shared/components/league-tournament-card/league-tournament-card';
 import { CreateLeagueDialogComponent } from '../../../shared/components/create-league-dialog/create-league-dialog';
+import { HomeMatchGridComponent } from './match-grid/home-match-grid';
 import type { LeagueForHome } from '../user-league/user-leagues.service';
 import type { LeagueDetail } from '../user-league/user-leagues.service';
 import type { MatchCard, MatchPeriodRow, GrupoCard } from './models/home.models';
 import type { MatchRow, TeamRow } from './models/home.models';
+import { LeagueTournamentCardComponent } from './league-tournament-card/league-tournament-card';
+import { MatchCalendarComponent } from './match-calendar/match-calendar';
 
 @Component({
   selector: 'app-home',
@@ -38,16 +36,15 @@ import type { MatchRow, TeamRow } from './models/home.models';
     HeroBannerComponent,
     StatsBarComponent,
     ButtonModule,
-    CardModule,
-    TagModule,
     CommonModule,
     JoinLeagueComponent,
     TournamentBracketComponent,
     WorldGlobeComponent,
     DigitFlowComponent,
-    MatchCalendarComponent,
     LeagueTournamentCardComponent,
     CreateLeagueDialogComponent,
+    MatchCalendarComponent,
+    HomeMatchGridComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -61,16 +58,13 @@ export class Home implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly notif = inject(NotificationService);
   private readonly joinLeagueSvc = inject(JoinLeagueService);
-  private readonly sanitizer = inject(DomSanitizer);
   private clockTimer: ReturnType<typeof window.setInterval> | null = null;
 
   // ── Core state ───────────────────────────────────────────────────────────────
   protected readonly showJoinDialog = signal(false);
   protected readonly showCreateLeagueDialog = signal(false);
   protected readonly now = signal(Date.now());
-  protected readonly safeVideoUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-    'https://www.youtube.com/embed/Sd1fz57if_I?autoplay=1&controls=0&rel=0&loop=1&playlist=Sd1fz57if_I&mute=1&disablekb=1&modestbranding=1',
-  );
+  protected readonly videoUrl = 'https://www.youtube.com/watch?v=Sd1fz57if_I';
 
   // ── Leagues ──────────────────────────────────────────────────────────────────
   protected readonly homeLeagues = signal<LeagueForHome[]>([]);
@@ -86,10 +80,6 @@ export class Home implements OnInit, OnDestroy {
   readonly joinedLeagues = computed<LeagueForHome[]>(() =>
     this.homeLeagues().filter((l) => l.is_joined),
   );
-
-  // ── Match pagination ──────────────────────────────────────────────────────────
-  protected readonly PAGE_SIZE = 6;
-  protected readonly matchPage = signal(0);
 
   // ── League filter ─────────────────────────────────────────────────────────────
   protected readonly showFilter = signal(false);
@@ -136,7 +126,6 @@ export class Home implements OnInit, OnDestroy {
       this.realtimeService
         .matches()
         .filter((m) => m.league_id != null && this.allowedLeagueIds().has(m.league_id))
-        .slice(0, this.PAGE_SIZE)
         .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()),
       this.realtimeService.periods(),
       this.realtimeService.teams(),
@@ -144,14 +133,9 @@ export class Home implements OnInit, OnDestroy {
     ),
   );
 
-  readonly totalMatchPages = computed(() =>
-    Math.max(1, Math.ceil(this.carouselMatches().length / this.PAGE_SIZE)),
+  readonly liveCarouselMatches = computed<MatchCard[]>(() =>
+    this.carouselMatches().filter((card) => this.isLiveMatch(card)),
   );
-
-  readonly pagedMatches = computed<MatchCard[]>(() => {
-    const start = this.matchPage() * this.PAGE_SIZE;
-    return this.carouselMatches().slice(start, start + this.PAGE_SIZE);
-  });
 
   // ── Torneo (Fase de Grupos + Partidos) ───────────────────────────────────────
   readonly selectedLeagueId = signal<number | null>(null);
@@ -168,26 +152,11 @@ export class Home implements OnInit, OnDestroy {
 
   readonly grupos = computed<GrupoCard[]>(() => this.realtimeService.grupos());
 
-  // ── Match detail expansion ────────────────────────────────────────────────────
-  protected readonly expandedMatchId = signal<number | null>(null);
-
-  toggleMatchDetail(matchId: number): void {
-    this.expandedMatchId.update((id) => (id === matchId ? null : matchId));
-  }
-
-  isMatchExpanded(matchId: number): boolean {
-    return this.expandedMatchId() === matchId;
-  }
-
-  getMatchPeriods(matchId: number): MatchPeriodRow[] {
-    return this.realtimeService.periods().filter((p) => p.match_id === matchId);
-  }
-
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
   async ngOnInit(): Promise<void> {
     this.clockTimer = window.setInterval(() => {
       this.now.set(Date.now());
-    }, 1000);
+    }, 30000);
 
     await this.realtimeService.connect();
     const userId = Number(this.auth.getInternalUserId());
@@ -279,15 +248,6 @@ export class Home implements OnInit, OnDestroy {
 
   setMatchView(view: 'grid' | 'bracket' | 'calendar'): void {
     this.matchView.set(view);
-    this.matchPage.set(0);
-  }
-
-  goNextPage(): void {
-    this.matchPage.update((p) => Math.min(p + 1, this.totalMatchPages() - 1));
-  }
-
-  goPrevPage(): void {
-    this.matchPage.update((p) => Math.max(p - 1, 0));
   }
 
   // ── Filter toggle ─────────────────────────────────────────────────────────────
@@ -345,47 +305,21 @@ export class Home implements OnInit, OnDestroy {
     return `#${pos}`;
   }
 
-  getLiveLabel(card: MatchCard): string {
-    return card.isLive ? 'En vivo' : ' Próximo';
-  }
-
-  getLiveSeverity(card: MatchCard): 'success' | 'secondary' {
-    return card.isLive ? 'success' : 'secondary';
-  }
-
-  getScore(card: MatchCard): string {
-    if (!card.period) return '-  :  -';
-    return `${card.match.first_team_total ?? 0}  :  ${card.match.second_team_total ?? 0}`;
-  }
-
-  formatMatchDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('es-GT', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  canPredictMatch(card: MatchCard): boolean {
-    const now = new Date();
-    const startTime = new Date(card.match.start_time);
-    const differenceInMs = startTime.getTime() - now.getTime();
-    const differenceInMinutes = differenceInMs / (1000 * 60);
-    if (differenceInMinutes < 15) return false;
-    return differenceInMinutes >= 15;
-  }
-
-  getElapsedTime(startTime: string): { minutes: number; seconds: number } {
-    const elapsedMs = Math.max(0, this.now() - new Date(startTime).getTime());
-    return {
-      minutes: Math.floor(elapsedMs / 60000),
-      seconds: Math.floor((elapsedMs % 60000) / 1000),
-    };
-  }
-
   protected readonly matchView = signal<'grid' | 'bracket' | 'calendar'>('grid');
+
+  private isLiveMatch(card: MatchCard): boolean {
+    if (card.match.is_deleted) {
+      return false;
+    }
+
+    const now = this.now();
+    const startTime = new Date(card.match.start_time).getTime();
+    const endTime = new Date(card.match.end_time).getTime();
+
+    return (
+      Number.isFinite(startTime) && Number.isFinite(endTime) && now >= startTime && now < endTime
+    );
+  }
 
   private buildMatchCards(
     matches: MatchRow[],
@@ -411,18 +345,21 @@ export class Home implements OnInit, OnDestroy {
       logo_url: null,
     });
 
-    return matches.map((match) => {
-      const period = periods.find((p) => p.match_id === match.match_id);
-      const homeTeam = teamsMap.get(match.first_team_id!) ?? placeholder(match.first_team_id ?? 0);
-      const awayTeam =
-        teamsMap.get(match.second_team_id!) ?? placeholder(match.second_team_id ?? 0);
-      const leagueName =
-        leaguesMap.get(match.league_id)?.name ??
-        (match.league_id ? `Liga ${match.league_id}` : 'Liga');
-      const now = new Date();
-      const isLive =
-        new Date(match.start_time) <= now && new Date(match.end_time) > now && !match.is_deleted;
-      return { match, homeTeam, awayTeam, leagueName, period, isLive };
-    });
+    return matches
+      .filter((match) => match.first_team_id !== null && match.second_team_id !== null)
+      .map((match) => {
+        const period = periods.find((p) => p.match_id === match.match_id);
+        const homeTeam =
+          teamsMap.get(match.first_team_id!) ?? placeholder(match.first_team_id ?? 0);
+        const awayTeam =
+          teamsMap.get(match.second_team_id!) ?? placeholder(match.second_team_id ?? 0);
+        const leagueName =
+          leaguesMap.get(match.league_id)?.name ??
+          (match.league_id ? `Liga ${match.league_id}` : 'Liga');
+        const now = new Date();
+        const isLive =
+          new Date(match.start_time) <= now && new Date(match.end_time) > now && !match.is_deleted;
+        return { match, homeTeam, awayTeam, leagueName, period, isLive };
+      });
   }
 }

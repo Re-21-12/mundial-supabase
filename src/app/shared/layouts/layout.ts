@@ -36,6 +36,8 @@ import {
   lucideMapPin,
   lucideUserCog,
   lucideTrophy,
+  lucideMenu,
+  lucideX,
 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { BrnNavigationMenuImports } from '@spartan-ng/brain/navigation-menu';
@@ -102,6 +104,8 @@ interface SidebarMenuItem {
       lucideMapPin,
       lucideUserCog,
       lucideTrophy,
+      lucideMenu,
+      lucideX,
     }),
   ],
 })
@@ -119,6 +123,7 @@ export class LayoutComponent implements OnInit {
   protected readonly menuItems = signal<SidebarMenuItem[]>([]);
   protected readonly title = signal('');
   protected readonly showNotifications = signal(false);
+  protected readonly showMobileMenu = signal(false);
   protected readonly headerUnreadCount = signal(0);
   protected readonly walletBalance = signal<number | null>(null);
   protected readonly showApprovalsMenu = signal(false);
@@ -175,6 +180,14 @@ export class LayoutComponent implements OnInit {
 
   protected toggleNotifications(): void {
     this.showNotifications.update((v) => !v);
+  }
+
+  protected toggleMobileMenu(): void {
+    this.showMobileMenu.update((v) => !v);
+  }
+
+  protected closeMobileMenu(): void {
+    this.showMobileMenu.set(false);
   }
 
   private async refreshUnreadCount(): Promise<void> {
@@ -277,6 +290,7 @@ export class LayoutComponent implements OnInit {
       .subscribe(() => {
         // Close notification dropdown on every navigation
         this.showNotifications.set(false);
+        this.showMobileMenu.set(false);
 
         // Update page title from the activated route
         let route = this.activatedRoute;

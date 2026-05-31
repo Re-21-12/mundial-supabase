@@ -6,6 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import {
@@ -14,9 +15,26 @@ import {
 } from '../../../shared/components/match-ticket-card/match-ticket-card';
 import { ClientContentService, type ClientMatchRow } from '../../services/client-content.service';
 
-function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
-  if (row.scored_at) return 'finished';
+type StatusFilter = 'all' | 'upcoming' | 'live' | 'finished';
+type HourSlot = 'all' | 'morning' | 'afternoon' | 'night';
+type RoundFilter = 'all' | number;
 
+const ROUND_LABELS: Record<number, string> = {
+  0: 'Fase de Grupos',
+  1: 'Dieciseisavos',
+  2: 'Octavos de Final',
+  3: 'Cuartos de Final',
+  4: 'Semifinales',
+  5: 'Final / 3er Lugar',
+};
+
+function roundLabel(round: number | null | undefined, grupoId: number | null | undefined): string {
+  if (round === null || round === undefined) return 'Sin ronda';
+  if (round === 0 && grupoId != null) return 'Fase de Grupos';
+  return ROUND_LABELS[round] ?? `Ronda ${round}`;
+}
+
+function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
   const normalize = (ts?: string | null) => {
     if (!ts) return null;
     if (ts.endsWith('Z') || /[\+\-]\d{2}:?\d{2}$/.test(ts)) return ts;
@@ -31,145 +49,21 @@ function matchStatus(row: ClientMatchRow): 'upcoming' | 'live' | 'finished' {
   return 'upcoming';
 }
 
+function hourSlot(startTime: string | null): HourSlot {
+  if (!startTime) return 'all';
+  const h = new Date(startTime).getHours();
+  if (h < 12) return 'morning';
+  if (h < 18) return 'afternoon';
+  return 'night';
+}
+
 @Component({
   selector: 'app-mis-partidos',
   standalone: true,
-  imports: [MatchTicketCardComponent],
+  imports: [MatchTicketCardComponent, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="mp-page">
-      <div class="mp-header">
-        <h2 class="mp-title">
-          <i class="pi pi-calendar-clock"></i>
-          Mis Partidos
-        </h2>
-        <div class="mp-filters">
-          @for (f of filters; track f.value) {
-            <button
-              class="mp-filter-btn"
-              [class.mp-filter-btn--active]="activeFilter() === f.value"
-              type="button"
-              (click)="activeFilter.set(f.value)"
-            >
-              {{ f.label }}
-            </button>
-          }
-        </div>
-      </div>
-
-      @if (loading()) {
-        <div class="mp-skeleton-grid">
-          @for (n of [1, 2, 3, 4, 5, 6]; track n) {
-            <div class="mp-skeleton"></div>
-          }
-        </div>
-      } @else if (filtered().length === 0) {
-        <div class="mp-empty">
-          <i class="pi pi-inbox"></i>
-          <p>No hay partidos en esta categoría.</p>
-        </div>
-      } @else {
-        <div class="mp-grid">
-          @for (card of filtered(); track card.matchId) {
-            <app-match-ticket-card [card]="card" (predict)="onPredict($event)" />
-          }
-        </div>
-      }
-    </div>
-  `,
-  styles: [
-    `
-      .mp-page {
-        padding: clamp(var(--gap-small), 2vw, 1.5rem);
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      .mp-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-
-      .mp-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0;
-      }
-
-      .mp-filters {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-      }
-
-      .mp-filter-btn {
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border: 1px solid var(--border);
-        background: transparent;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-
-      .mp-filter-btn--active,
-      .mp-filter-btn:hover {
-        background: var(--primary);
-        color: var(--primary-foreground);
-        border-color: var(--primary);
-      }
-
-      .mp-grid,
-      .mp-skeleton-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.25rem;
-      }
-
-      .mp-skeleton {
-        height: 240px;
-        border-radius: 20px;
-        background: var(--card);
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.45;
-        }
-      }
-
-      .mp-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        min-height: 200px;
-        color: var(--muted-foreground);
-        font-size: 0.95rem;
-      }
-
-      .mp-empty .pi {
-        font-size: 2rem;
-      }
-    `,
-  ],
+  templateUrl: './mis-partidos.html',
+  styleUrls: ['./mis-partidos.css'],
 })
 export class MisPartidosPage implements OnInit {
   private readonly router = inject(Router);
@@ -178,25 +72,101 @@ export class MisPartidosPage implements OnInit {
 
   protected readonly cards = signal<MatchTicketData[]>([]);
   protected readonly loading = signal(true);
-  protected readonly activeFilter = signal<'all' | 'upcoming' | 'live' | 'finished'>('all');
+  protected readonly now = signal(new Date());
+  private tickInterval: ReturnType<typeof setInterval> | null = null;
+
+  // ── Filtros ────────────────────────────────────────────────────────────────
+  protected readonly activeFilter = signal<StatusFilter>('all');
+  protected readonly filterHour = signal<HourSlot>('all');
+  protected readonly filterLeague = signal<string>('');
+  protected readonly filterStadium = signal<string>('');
+  protected readonly filterRound = signal<RoundFilter>('all');
+  protected readonly showExtraFilters = signal(false);
+
   protected readonly canUserPredict = computed(() =>
     this.auth.permissions().includes('prediction:create'),
   );
 
-  protected readonly filters = [
-    { label: 'Todos', value: 'all' as const },
-    { label: 'Próximos', value: 'upcoming' as const },
-    { label: 'En vivo', value: 'live' as const },
-    { label: 'Finalizados', value: 'finished' as const },
+  protected readonly statusFilters: { label: string; value: StatusFilter }[] = [
+    { label: 'Todos', value: 'all' },
+    { label: 'Próximos', value: 'upcoming' },
+    { label: 'En vivo', value: 'live' },
+    { label: 'Finalizados', value: 'finished' },
   ];
 
+  protected readonly hourSlots: { label: string; value: HourSlot; icon: string }[] = [
+    { label: 'Cualquier hora', value: 'all', icon: 'pi-clock' },
+    { label: 'Mañana (00–12)', value: 'morning', icon: 'pi-sun' },
+    { label: 'Tarde (12–18)', value: 'afternoon', icon: 'pi-cloud' },
+    { label: 'Noche (18–24)', value: 'night', icon: 'pi-moon' },
+  ];
+
+  protected readonly availableLeagues = computed(() =>
+    [
+      ...new Set(
+        this.cards()
+          .map((c) => c.leagueName)
+          .filter(Boolean) as string[],
+      ),
+    ].sort(),
+  );
+
+  protected readonly availableStadiums = computed(() =>
+    [
+      ...new Set(
+        this.cards()
+          .map((c) => c.stadiumName)
+          .filter(Boolean) as string[],
+      ),
+    ].sort(),
+  );
+
+  protected readonly availableRounds = computed(() =>
+    [
+      ...new Set(
+        this.cards()
+          .map((c) => c.round)
+          .filter((r): r is number => r != null),
+      ),
+    ]
+      .sort((a, b) => a - b)
+      .map((r) => ({ value: r, label: ROUND_LABELS[r] ?? `Ronda ${r}` })),
+  );
+
+  protected readonly hasActiveExtraFilters = computed(
+    () =>
+      this.filterHour() !== 'all' ||
+      this.filterLeague() !== '' ||
+      this.filterStadium() !== '' ||
+      this.filterRound() !== 'all',
+  );
+
   protected readonly filtered = computed(() => {
-    const filter = this.activeFilter();
-    const all = this.cards();
-    return filter === 'all' ? all : all.filter((card) => card.status === filter);
+    const status = this.activeFilter();
+    const hour = this.filterHour();
+    const league = this.filterLeague();
+    const stadium = this.filterStadium();
+    const round = this.filterRound();
+
+    return this.visibleCards().filter((card) => {
+      if (status !== 'all' && card.status !== status) return false;
+      if (hour !== 'all' && hourSlot(card.startTime) !== hour) return false;
+      if (league && card.leagueName !== league) return false;
+      if (stadium && card.stadiumName !== stadium) return false;
+      if (round !== 'all' && card.round !== round) return false;
+      return true;
+    });
   });
 
+  protected readonly visibleCards = computed(() =>
+    this.cards().map((card) => ({
+      ...card,
+      status: this.resolveCardStatus(card),
+    })),
+  );
+
   async ngOnInit(): Promise<void> {
+    this.tickInterval = setInterval(() => this.now.set(new Date()), 30000);
     await this.load();
   }
 
@@ -243,6 +213,8 @@ export class MisPartidosPage implements OnInit {
             awayScore: row.second_team_total,
             stadiumName: row.stadium?.name ?? null,
             leagueName: row.league?.name ?? null,
+            round: row.round,
+            grupoId: row.grupo_id,
             status,
             canPredict: status === 'upcoming' && this.canUserPredict() && minutesUntilStart > 15,
           };
@@ -256,7 +228,44 @@ export class MisPartidosPage implements OnInit {
     this.loading.set(false);
   }
 
+  protected clearExtraFilters(): void {
+    this.filterHour.set('all');
+    this.filterLeague.set('');
+    this.filterStadium.set('');
+    this.filterRound.set('all');
+  }
+
   protected onPredict(card: MatchTicketData): void {
     void this.router.navigate(['/prediction-client', card.matchId]);
+  }
+
+  private resolveCardStatus(card: MatchTicketData): 'upcoming' | 'live' | 'finished' {
+    if (card.status === 'finished') {
+      return 'finished';
+    }
+
+    const nowMs = this.now().getTime();
+    const startMs = card.startTime ? new Date(card.startTime).getTime() : null;
+    const endMs = card.endTime ? new Date(card.endTime).getTime() : null;
+
+    if (endMs !== null && nowMs >= endMs) {
+      return 'finished';
+    }
+
+    if (startMs !== null && endMs !== null && nowMs >= startMs && nowMs < endMs) {
+      return 'live';
+    }
+
+    if (startMs !== null && nowMs < startMs) {
+      return 'upcoming';
+    }
+
+    return 'finished';
+  }
+
+  ngOnDestroy(): void {
+    if (this.tickInterval !== null) {
+      clearInterval(this.tickInterval);
+    }
   }
 }

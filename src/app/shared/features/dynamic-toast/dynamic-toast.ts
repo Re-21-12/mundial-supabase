@@ -4,7 +4,8 @@ import { ToastModule } from 'primeng/toast';
   selector: 'app-dynamic-toast',
   standalone: true,
   imports: [ToastModule],
-  template: `<p-toast [breakpoints]="{ '920px': { width: '50%' } }" />`,
+  templateUrl: './dynamic-toast.html',
+  styleUrl: './dynamic-toast.css',
   // providers: [MessageService] <-- ELIMINA ESTA LÍNEA
 })
 export class DynamicToast {}

@@ -1,5 +1,6 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, output, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DeviceInfoService } from '../../../core/services/device-info-service';
 import { TableModule } from 'primeng/table';
 import { PaginatorModule } from 'primeng/paginator';
 import {
@@ -47,9 +48,15 @@ export class DynamicTable {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly deviceInfo = inject(DeviceInfoService);
   delete = output<string>(); /* Para eliminar registros */
   bulkUpload = output<any[]>(); /* Emite los registros parseados para carga masiva */
   pageChange = output<{ first: number; rows: number }>(); /* Para cambios de página */
+
+  protected readonly isMobile = signal(false);
+
+  // Menos botones de página en mobile
+  protected readonly pageLinks = computed(() => (this.isMobile() ? 3 : 5));
 
   // Estado para previsualización y mapeo
   parsedRows: Record<string, unknown>[] = [];
@@ -61,10 +68,82 @@ export class DynamicTable {
   readonly lookupLabels = signal<Record<string, Map<string, string>>>({});
   private readonly loadedLookupSignatures = new Map<string, string>();
 
+  // ── Filtros ──────────────────────────────────────────────────────────────────
+  protected readonly globalSearch = signal('');
+  protected readonly columnFilters = signal<Record<string, string>>({});
+  protected readonly filterFirst = signal(0);
+  private filtersInitialized = false;
+
+  protected readonly hasActiveFilters = computed(
+    () =>
+      this.globalSearch().trim().length > 0 ||
+      this.tableProps().columns.some((col) => !!this.columnFilters()[col.field]?.trim()),
+  );
+
+  protected readonly filteredData = computed(() => {
+    const data = this.tableProps().data as Record<string, unknown>[];
+    const columns = this.tableProps().columns;
+    const global = this.globalSearch().toLowerCase().trim();
+    const colFilters = this.columnFilters();
+
+    const hasGlobal = global.length > 0;
+    const hasColFilter = columns.some((col) => !!colFilters[col.field]?.trim());
+
+    if (!hasGlobal && !hasColFilter) return data;
+
+    return data.filter((row) => {
+      for (const col of columns) {
+        const term = colFilters[col.field]?.trim();
+        if (!term) continue;
+
+        const inputType = this.filterInputType(col);
+
+        if (inputType === 'date') {
+          // Compare raw ISO string: date input gives YYYY-MM-DD
+          if (!String(row[col.field] ?? '').startsWith(term)) return false;
+          continue;
+        }
+
+        const display = this.formatCellValue(this.getDisplayCellValue(row, col)).toLowerCase();
+        const lTerm = term.toLowerCase();
+
+        if (inputType === 'boolean' || inputType === 'select') {
+          // Exact match for discrete selects
+          if (display !== lTerm) return false;
+        } else {
+          if (!display.includes(lTerm)) return false;
+        }
+      }
+
+      if (hasGlobal) {
+        const matchesAny = columns.some((col) => {
+          const display = this.formatCellValue(this.getDisplayCellValue(row, col)).toLowerCase();
+          return display.includes(global);
+        });
+        if (!matchesAny) return false;
+      }
+      return true;
+    });
+  });
+
   constructor() {
+    this.deviceInfo.isMobile$.subscribe((m) => this.isMobile.set(m));
+
     effect(() => {
       const columns = this.tableProps().columns ?? [];
       void this.loadLookupColumns(columns);
+    });
+
+    effect(() => {
+      this.globalSearch();
+      this.columnFilters();
+      if (this.filtersInitialized) {
+        untracked(() => {
+          this.filterFirst.set(0);
+          this.tableService.onPageChange({ first: 0, rows: this.tableService.getPageSize() });
+        });
+      }
+      this.filtersInitialized = true;
     });
   }
 
@@ -396,8 +475,42 @@ export class DynamicTable {
   }
 
   onPageChange(event: { first: number; rows: number }) {
+    this.filterFirst.set(event.first);
     this.tableService.onPageChange(event);
     this.pageChange.emit(event);
+  }
+
+  protected filterInputType(
+    col: TableColumnTemplateModel,
+  ): 'text' | 'number' | 'date' | 'boolean' | 'select' | 'image' {
+    if (col.type === 'image') return 'image';
+    if (col.optionsSource) return 'select';
+    if (col.dataType === 'boolean') return 'boolean';
+    if (col.dataType === 'date') return 'date';
+    if (col.dataType === 'number') return 'number';
+    return 'text';
+  }
+
+  protected getLookupOptions(col: TableColumnTemplateModel): { key: string; label: string }[] {
+    const map = this.lookupLabels()[col.field];
+    if (!map) return [];
+    return Array.from(map.entries())
+      .map(([key, label]) => ({ key, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  protected setColumnFilter(field: string, event: Event): void {
+    const value = (event.target as HTMLInputElement | HTMLSelectElement).value;
+    this.columnFilters.update((filters) => ({ ...filters, [field]: value }));
+  }
+
+  protected setColumnFilterValue(field: string, value: string): void {
+    this.columnFilters.update((f) => ({ ...f, [field]: value }));
+  }
+
+  protected clearAllFilters(): void {
+    this.globalSearch.set('');
+    this.columnFilters.set({});
   }
 
   /** Manejo del input de archivo desde la plantilla */

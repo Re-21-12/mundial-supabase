@@ -1,0 +1,22 @@
+<div class="ms-page">
+  <h2 class="ms-title"><i class="pi pi-map-marker"></i> Estadios de mis ligas</h2>
+
+  @if (loading()) {
+    <div class="ms-grid">
+      @for (n of [1, 2, 3, 4]; track n) {
+        <div class="ms-skeleton"></div>
+      }
+    </div>
+  } @else if (cards().length === 0) {
+    <div class="ms-empty">
+      <i class="pi pi-map-marker"></i>
+      <p>No hay estadios en tus ligas aún.</p>
+    </div>
+  } @else {
+    <div class="ms-grid">
+      @for (card of cards(); track card.id) {
+        <app-client-card [card]="card" />
+      }
+    </div>
+  }
+</div>

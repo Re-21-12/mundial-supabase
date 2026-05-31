@@ -1,0 +1,78 @@
+<div class="notification-inbox">
+  <div class="inbox-header">
+    <h3 class="inbox-title">📬 Notificaciones</h3>
+    <div class="inbox-actions">
+      @if (unreadCount() > 0) {
+        <button class="btn-mark-read" (click)="markAllAsRead()" title="Marcar todas como leídas">
+          ✓ Todas leídas
+        </button>
+      }
+      <span class="unread-badge">{{ unreadCount() }}</span>
+    </div>
+  </div>
+
+  <div class="notifications-list">
+    @if (notifications().length === 0) {
+      <div class="empty-state">
+        <p>No tienes notificaciones</p>
+      </div>
+    } @else {
+      @for (notif of notifications(); track notif.notification_id) {
+        <div
+          class="notification-item"
+          [class.unread]="!notif.is_read"
+          [class.priority-urgent]="notif.priority === 'urgent'"
+          [class.priority-high]="notif.priority === 'high'"
+        >
+          @if (notif.icon) {
+            <img [src]="notif.icon" alt="icon" class="notif-icon" />
+          } @else {
+            <span class="notif-icon-placeholder">{{ getIconForType(notif.notification_type) }}</span>
+          }
+
+          <div class="notif-content" (click)="handleNotificationClick(notif)">
+            <h4 class="notif-title">{{ notif.title }}</h4>
+            <p class="notif-body">{{ notif.body }}</p>
+            <span class="notif-time">{{ formatTime(notif.created_at) }}</span>
+          </div>
+
+          @if (notif.notification_type === 'participant_approval') {
+            <div class="approval-actions">
+              <button
+                class="btn-approve"
+                [disabled]="processingId() === notif.notification_id"
+                (click)="approveParticipant(notif)"
+                title="Aprobar participante"
+              >
+                @if (processingId() === notif.notification_id) {
+                  ⏳
+                } @else {
+                  ✓ Aprobar
+                }
+              </button>
+              <button
+                class="btn-reject"
+                [disabled]="processingId() === notif.notification_id"
+                (click)="rejectParticipant(notif)"
+                title="Rechazar participante"
+              >
+                ✕ Rechazar
+              </button>
+            </div>
+          }
+
+          <div class="notif-actions">
+            @if (!notif.is_read) {
+              <button class="btn-read" (click)="toggleRead(notif.notification_id)" title="Marcar como leída">
+                ●
+              </button>
+            }
+            <button class="btn-delete" (click)="deleteNotification(notif.notification_id)" title="Eliminar">
+              ✕
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

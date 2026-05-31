@@ -1,0 +1,185 @@
+@if (cards().length === 0) {
+  <div class="empty-state">
+    <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
+    <p>No hay partidos programados por el momento.</p>
+  </div>
+} @else {
+  @if (hasLeagueFilter()) {
+    <div class="match-filterbar">
+      <div class="match-filterbar__label">
+        <span class="match-filterbar__text">Filtrar por liga</span>
+      </div>
+
+      <p-select
+        class="match-filterbar__select"
+        [options]="leagueOptions()"
+        optionLabel="league_name"
+        optionValue="league_id"
+        [ngModel]="selectedLeagueId()"
+        (ngModelChange)="onLeagueChange($event)"
+        placeholder="Todas las ligas"
+        appendTo="body"
+      />
+    </div>
+  }
+
+  @if (filteredCards().length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-filter empty-state__icon" aria-hidden="true"></i>
+      <p>No hay partidos para la liga seleccionada.</p>
+    </div>
+  } @else {
+    <div class="matches-grid">
+    @for (card of pagedCards(); track card.match.match_id) {
+      @let state = resolveMatchState(card);
+      <article
+        class="match-card"
+        [class.match-card--live]="state === 'live'"
+        [class.match-card--expanded]="isMatchExpanded(card.match.match_id)"
+      >
+        <div class="match-card__header match-card__header--clickable" (click)="toggleMatchDetail(card.match.match_id)">
+          <p-tag
+            [severity]="getLiveSeverity(card)"
+            [value]="getLiveLabel(card)"
+            styleClass="match-status-tag"
+          />
+          @if (state === 'live') {
+            @let elapsed = getElapsedTime(card.match.start_time);
+            <span class="match-card__elapsed" aria-live="polite">
+              <i class="pi pi-clock" aria-hidden="true"></i>
+              <span class="match-card__elapsed-label">Transcurrido</span>
+              <span class="match-card__elapsed-value">
+                <ngx-digit-flow [value]="elapsed.minutes" [continuous]="true" />
+                <span>:</span>
+                <ngx-digit-flow
+                  [value]="elapsed.seconds"
+                  [continuous]="true"
+                  [prefix]="elapsed.seconds < 10 ? '0' : ''"
+                />
+              </span>
+            </span>
+          }
+          <div class="match-card__header-actions">
+            <span class="match-date">
+              @if (state !== 'live') { {{ formatMatchDate(card.match.start_time) }} }
+            </span>
+            <i [class]="isMatchExpanded(card.match.match_id) ? 'pi pi-chevron-up match-card__toggle' : 'pi pi-chevron-down match-card__toggle'"></i>
+          </div>
+        </div>
+
+        <div class="match-card__league">
+          <i class="pi pi-flag match-card__league-icon" aria-hidden="true"></i>
+          <span class="match-card__league-label">Liga:</span>
+          <span class="match-card__league-name">{{ card.leagueName }}</span>
+        </div>
+
+        @if (getRoundLabel(card)) {
+          <div class="match-card__league match-card__league--round">
+            <i class="pi pi-sitemap match-card__league-icon" aria-hidden="true"></i>
+            <span class="match-card__league-label">Ronda:</span>
+            <span class="match-card__league-name">{{ getRoundLabel(card) }}</span>
+          </div>
+        }
+
+        <div class="match-card__body">
+          <div class="match-card__teams">
+            <div class="match-team">
+              <span class="match-team__emoji">🏟️</span>
+              <span class="match-team__name">{{ card.homeTeam.name }}</span>
+            </div>
+            <div class="match-card__score">
+              @if (!card.period) {
+                -  :  -
+              } @else {
+                <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
+                <span>:</span>
+                <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
+              }
+            </div>
+            <div class="match-team match-team--away">
+              <span class="match-team__name">{{ card.awayTeam.name }}</span>
+              <span class="match-team__emoji">✈️</span>
+            </div>
+          </div>
+        </div>
+
+        @if (isMatchExpanded(card.match.match_id)) {
+          <div class="match-periods">
+            @let periods = getMatchPeriods(card.match.match_id);
+            @if (periods.length === 0) {
+              <p class="match-periods__empty">Sin períodos registrados.</p>
+            } @else {
+              @for (p of periods; track p.period_id; let i = $index) {
+                <div class="match-period-row">
+                  <span class="match-period-row__label">Período {{ i + 1 }}</span>
+                  <span class="match-period-row__score">
+                    <span class="match-period-row__val"><ngx-digit-flow [value]="p.first_team_score ?? 0" /></span>
+                    <span class="match-period-row__sep">:</span>
+                    <span class="match-period-row__val"><ngx-digit-flow [value]="p.second_team_score ?? 0" /></span>
+                  </span>
+                </div>
+              }
+              <div class="match-period-row match-period-row--total">
+                <span class="match-period-row__label">Total</span>
+                <span class="match-period-row__score">
+                  <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
+                  <span class="match-period-row__sep">:</span>
+                  <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (card.prediction) {
+          <div class="match-card__prediction">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Tu predicción: <ngx-digit-flow [value]="card.prediction.first_team_score" /> – <ngx-digit-flow [value]="card.prediction.second_team_score" />
+          </div>
+        }
+
+        @if (state === 'upcoming') {
+          <div class="match-card__footer">
+            <p-button
+              label="Predecir resultado"
+              icon="pi pi-bolt"
+              severity="contrast"
+              size="small"
+              styleClass="w-full predict-btn"
+              [disabled]="!canPredictMatch(card)"
+              (click)="navigateToPredict(card.match.match_id)"
+            />
+          </div>
+        }
+      </article>
+    }
+    </div>
+
+    @if (totalMatchPages() > 1) {
+      <div class="match-pager" role="navigation" aria-label="Navegación de partidos">
+        <button
+          type="button"
+          class="match-pager__btn"
+          [disabled]="currentPage() === 0"
+          (click)="goPrevPage()"
+          title="Página anterior"
+        >
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        <span class="match-pager__info">
+          {{ currentPage() + 1 }} / {{ totalMatchPages() }}
+          <span class="match-pager__total">· {{ filteredCards().length }} partidos</span>
+        </span>
+        <button
+          type="button"
+          class="match-pager__btn"
+          [disabled]="currentPage() >= totalMatchPages() - 1"
+          (click)="goNextPage()"
+          title="Página siguiente"
+        >
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    }
+  }
+}

@@ -1,11 +1,12 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
 import { DynamicTableService } from '../dynamic-table/services/dynamic-table.service';
 import { TypeOption } from '../dynamic-table/interfaces/table-interface';
+import { PaginatorModule, type PaginatorState } from 'primeng/paginator';
 
 @Component({
   selector: 'app-dynamic-cards',
-  imports: [],
+  imports: [PaginatorModule],
   templateUrl: './dynamic-cards.html',
   styleUrl: './dynamic-cards.css',
 })
@@ -19,12 +20,38 @@ export class DynamicCards {
     return this.tableService.tableProps;
   }
 
+  readonly pagedItems = computed(() => {
+    const props = this.tableProps();
+    const currentPage = props.currentPage ?? 0;
+    const rows = props.rows ?? 10;
+    const first = currentPage * rows;
+    return props.data.slice(first, first + rows);
+  });
+
+  readonly showPaginator = computed(() => {
+    const props = this.tableProps();
+    const totalRecords = props.totalRecords ?? props.data.length;
+    const rows = props.rows ?? 10;
+    return totalRecords > rows;
+  });
+
   get actions() {
     return this.tableProps().actions ?? ['view', 'update', 'delete'];
   }
 
   hasAction(action: TypeOption) {
     return this.actions.includes(action);
+  }
+
+  onPageChange(event: PaginatorState) {
+    const rows = this.tableProps().rows ?? 10;
+    const nextPage = {
+      first: event.first ?? 0,
+      rows: event.rows ?? rows,
+    };
+
+    this.tableService.onPageChange(nextPage);
+    this.pageChange.emit(nextPage);
   }
 
   resolveRowId(rowData: Record<string, unknown>) {

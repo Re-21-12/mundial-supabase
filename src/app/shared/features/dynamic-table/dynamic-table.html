@@ -3,36 +3,58 @@
     #data_table
     styleClass="dynamic-table"
     [paginator]="true"
+    paginatorStyleClass="dt-paginator"
     [lazy]="true"
     [scrollable]="true"
     [columns]="tableProps().columns"
-    [value]="tableProps().data"
+    [value]="filteredData()"
     [rows]="tableProps().rows"
-    [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
+    [totalRecords]="filteredData().length"
     [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
-    [first]="(tableProps().currentPage ?? 0) * tableProps().rows"
+    [first]="filterFirst()"
     [tableStyle]="{ 'min-width': '100%', 'background-color': 'white' }"
     [size]="'small'"
+    [showCurrentPageReport]="true"
+    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+    [pageLinks]="pageLinks()"
+    currentPageReportTemplate="{first} - {last} de {totalRecords}"
     (onPage)="onPageChange($event)"
   >
     <ng-template #caption>
-      <div class="text-end pb-4 table-caption-actions">
-        <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" [disabled]="tableProps().data.length === 0" />
-        <p-button
-          icon="pi pi-upload"
-          label="Carga masiva"
-          styleClass="ml-2"
-          (click)="fileInput.click()"
-          [disabled]="tableProps().data.length === 0"
-        />
-        <input
-          #fileInput
-          type="file"
-          accept=".csv,.tsv,.txt,.xlsx,.xls"
-          hidden
-          (change)="handleFileChange($event)"
-          aria-label="Seleccionar archivo para carga masiva"
-        />
+      <div class="table-caption">
+        <div class="dt-search-wrapper">
+          <i class="pi pi-search dt-search-icon"></i>
+          <input
+            class="dt-search"
+            type="text"
+            placeholder="Buscar en toda la tabla…"
+            [value]="globalSearch()"
+            (input)="globalSearch.set($any($event.target).value)"
+            aria-label="Buscar"
+          />
+          @if (hasActiveFilters()) {
+            <button class="dt-clear-btn" type="button" (click)="clearAllFilters()" title="Limpiar filtros">
+              <i class="pi pi-times"></i>
+            </button>
+          }
+        </div>
+        <div class="table-caption-actions">
+          <p-button icon="pi pi-external-link" label="Export" (click)="data_table.exportCSV()" [disabled]="tableProps().data.length === 0" />
+          <p-button
+            icon="pi pi-upload"
+            label="Carga masiva"
+            (click)="fileInput.click()"
+            [disabled]="tableProps().data.length === 0"
+          />
+          <input
+            #fileInput
+            type="file"
+            accept=".csv,.tsv,.txt,.xlsx,.xls"
+            hidden
+            (change)="handleFileChange($event)"
+            aria-label="Seleccionar archivo para carga masiva"
+          />
+        </div>
       </div>
     </ng-template>
 
@@ -82,6 +104,71 @@
         }
         @if (hasAnyAction) {
           <th class="text-center">Acciones</th>
+        }
+      </tr>
+      <tr class="dt-filter-row">
+        @for (col of columns; track col) {
+          <th>
+            @switch (filterInputType(col)) {
+              @case ('text') {
+                <input
+                  class="dt-col-filter"
+                  type="text"
+                  title="Filtrar columna"
+                  [placeholder]="col.header"
+                  [value]="columnFilters()[col.field] || ''"
+                  (input)="setColumnFilter(col.field, $event)"
+                />
+              }
+              @case ('number') {
+                <input
+                  class="dt-col-filter"
+                  type="number"
+                  title="Filtrar columna"
+                  [placeholder]="col.header"
+                  [value]="columnFilters()[col.field] || ''"
+                  (input)="setColumnFilter(col.field, $event)"
+                />
+              }
+              @case ('date') {
+                <input
+                  class="dt-col-filter dt-col-filter--date"
+                  type="date"
+                  title="Filtrar por fecha"
+                  [value]="columnFilters()[col.field] || ''"
+                  (change)="setColumnFilter(col.field, $event)"
+                />
+              }
+              @case ('boolean') {
+                <select
+                  class="dt-col-filter dt-col-filter--select"
+                  title="Filtrar columna"
+                  [ngModel]="columnFilters()[col.field] || ''"
+                  (ngModelChange)="setColumnFilterValue(col.field, $event)"
+                >
+                  <option value="">Todos</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              }
+              @case ('select') {
+                <select
+                  class="dt-col-filter dt-col-filter--select"
+                  title="Filtrar columna"
+                  [ngModel]="columnFilters()[col.field] || ''"
+                  (ngModelChange)="setColumnFilterValue(col.field, $event)"
+                >
+                  <option value="">Todos</option>
+                  @for (opt of getLookupOptions(col); track opt.key) {
+                    <option [value]="opt.label">{{ opt.label }}</option>
+                  }
+                </select>
+              }
+            }
+          </th>
+        }
+        @if (hasAnyAction) {
+          <th></th>
         }
       </tr>
     </ng-template>

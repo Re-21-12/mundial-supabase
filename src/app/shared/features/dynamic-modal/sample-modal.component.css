@@ -1,0 +1,11 @@
+.sample-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sample-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

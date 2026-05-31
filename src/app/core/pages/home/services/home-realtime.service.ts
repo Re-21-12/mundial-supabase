@@ -27,6 +27,10 @@ export class HomeRealtimeService implements OnDestroy {
   readonly leagueMatches = signal<MatchRow[]>([]);
   readonly leagueMatchesLoading = signal(false);
 
+  private hasAssignedTeams(match: Pick<MatchRow, 'first_team_id' | 'second_team_id'>): boolean {
+    return match.first_team_id !== null && match.second_team_id !== null;
+  }
+
   async connect(): Promise<void> {
     await this.loadInitialData();
     this.openChannel();
@@ -60,7 +64,8 @@ export class HomeRealtimeService implements OnDestroy {
           'team_id, name, catalog_id, created_at, created_by, deleted_at, deleted_by, is_deleted, updated_at, updated_by',
       }),
     ]);
-    if (matchData) this.matches.set(matchData as MatchRow[]);
+    if (matchData)
+      this.matches.set((matchData as MatchRow[]).filter((match) => this.hasAssignedTeams(match)));
     if (Array.isArray(periodRes)) this.periods.set(periodRes);
     if (Array.isArray(teamRes)) this.teams.set(teamRes);
     await this.loadGrupos();
@@ -119,7 +124,9 @@ export class HomeRealtimeService implements OnDestroy {
       .eq('is_deleted', false)
       .order('start_time', { ascending: true })
       .limit(120);
-    if (!error && data) this.leagueMatches.set(data as MatchRow[]);
+    if (!error && data) {
+      this.leagueMatches.set((data as MatchRow[]).filter((match) => this.hasAssignedTeams(match)));
+    }
     this.leagueMatchesLoading.set(false);
   }
 
@@ -155,9 +162,15 @@ export class HomeRealtimeService implements OnDestroy {
 
     this.matches.update((current) => {
       if (payload.eventType === 'INSERT') {
+        if (!this.hasAssignedTeams(incoming)) {
+          return current;
+        }
         return [...current, incoming];
       }
       if (payload.eventType === 'UPDATE') {
+        if (!this.hasAssignedTeams(incoming)) {
+          return current.filter((m) => m.match_id !== incoming.match_id);
+        }
         return current.map((m) => (m.match_id === incoming.match_id ? incoming : m));
       }
       if (payload.eventType === 'DELETE') {

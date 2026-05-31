@@ -17,6 +17,8 @@ export interface MatchTicketData {
   awayScore: number;
   stadiumName?: string | null;
   leagueName?: string | null;
+  round?: number | null;
+  grupoId?: number | null;
   status: 'upcoming' | 'live' | 'finished';
   canPredict?: boolean;
 }

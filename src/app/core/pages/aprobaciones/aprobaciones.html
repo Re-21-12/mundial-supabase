@@ -1,0 +1,65 @@
+<div class="apv-page">
+  <header class="apv-header">
+    <h2 class="apv-title">
+      <i class="pi pi-shield"></i> Aprobaciones
+    </h2>
+    <p class="apv-subtitle">
+      Gestiona las solicitudes de ingreso a las ligas que administras.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <div class="apv-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando tus ligas…</span>
+    </div>
+  } @else if (leagues().length === 0) {
+    <div class="apv-empty">
+      <i class="pi pi-trophy"></i>
+      <p class="apv-empty__title">Sin ligas propias</p>
+      <p class="apv-empty__hint">
+        Crea una liga para que otros usuarios puedan solicitar unirse y tú puedas aprobarlos.
+      </p>
+    </div>
+  } @else {
+    <div class="apv-tabs" role="tablist" aria-label="Seleccionar liga">
+      @for (league of leagues(); track league.league_id) {
+        <button
+          type="button"
+          role="tab"
+          class="apv-tab"
+          [class.apv-tab--active]="selectedLeagueId() === league.league_id"
+          [attr.aria-selected]="selectedLeagueId() === league.league_id"
+          (click)="selectLeague(league.league_id)"
+        >
+          <i class="pi pi-trophy"></i>
+          <span>{{ league.name }}</span>
+          @if (league.pendingCount > 0) {
+            <span class="apv-tab__badge">{{ league.pendingCount }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (selectedLeague(); as lg) {
+      <div class="apv-panel-wrap">
+        <div class="apv-panel-header">
+          <span class="apv-panel-title">
+            Solicitudes pendientes
+            @if (lg.pendingCount > 0) {
+              <span class="apv-pending-count">{{ lg.pendingCount }}</span>
+            }
+          </span>
+          <span class="apv-panel-league">{{ lg.name }}</span>
+        </div>
+        <div class="apv-panel-body">
+          <app-approval-panel
+            [leagueId]="lg.league_id"
+            [leagueName]="lg.name"
+            (approvedOrRejected)="decrementCount(lg.league_id)"
+          />
+        </div>
+      </div>
+    }
+  }
+</div>

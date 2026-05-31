@@ -1,0 +1,24 @@
+<div class="confirm-delete-modal">
+  <div class="confirm-delete-modal__content">
+    <i class="pi pi-exclamation-triangle confirm-delete-modal__icon"></i>
+    <div>
+      <p class="confirm-delete-modal__title">¿Estás seguro de eliminar este registro?</p>
+      @if (config.data?.label) {
+        <p class="confirm-delete-modal__label">{{ config.data.label }}</p>
+      }
+      <p class="confirm-delete-modal__hint">
+        Esta acción marcará el registro como eliminado y no podrá deshacerse.
+      </p>
+    </div>
+  </div>
+  <div class="confirm-delete-modal__actions">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="close(false)"
+    ></p-button>
+    <p-button label="Eliminar" icon="pi pi-trash" severity="danger" (onClick)="close(true)"></p-button>
+  </div>
+</div>

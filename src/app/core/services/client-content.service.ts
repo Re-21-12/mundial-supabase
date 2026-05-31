@@ -41,6 +41,8 @@ export interface ClientMatchRow {
   is_deleted: boolean;
   league_id: number;
   stadium_id: number | null;
+  round: number | null;
+  grupo_id: number | null;
   home_team: { team_id: number; name: string; logo_url: string | null } | null;
   away_team: { team_id: number; name: string; logo_url: string | null } | null;
   stadium: { name: string | null } | null;
@@ -217,6 +219,7 @@ export class ClientContentService {
         match_id, start_time, end_time,
         first_team_total, second_team_total,
         scored_at, is_deleted, league_id, stadium_id,
+        round, grupo_id,
         home_team:TEAM!MATCH_first_team_id_fkey(team_id, name, logo_url),
         away_team:TEAM!MATCH_second_team_id_fkey(team_id, name, logo_url),
         stadium:STADIUM(name),
@@ -248,16 +251,52 @@ export class ClientContentService {
   }
 
   async loadGroups(): Promise<ClientLeagueGroupView[]> {
-    const leagues = await this.loadLeagues();
-    if (leagues.length === 0) {
-      return [];
-    }
+    // Always scope to the current user's leagues regardless of role.
+    // Without this, non-client roles (admin, user, user_league) would
+    // receive ALL leagues, spawning hundreds of parallel loadLeagueDetail
+    // requests that timeout or hang indefinitely.
+    const userId = this.getCurrentUserId();
+    if (!userId) return [];
+
+    const [membershipRes, createdRes] = await Promise.all([
+      this.db.client
+        .from('USER_LEAGUE')
+        .select('league_id')
+        .eq('user_id', userId)
+        .eq('is_deleted', false),
+      this.db.client
+        .from('LEAGUE')
+        .select('league_id')
+        .eq('created_by', userId)
+        .eq('is_deleted', false),
+    ]);
+
+    const leagueIds = [
+      ...new Set(
+        [
+          ...(membershipRes.data ?? []).map((r: any) => r.league_id as number),
+          ...(createdRes.data ?? []).map((r: any) => r.league_id as number),
+        ].filter(Boolean),
+      ),
+    ];
+
+    if (leagueIds.length === 0) return [];
+
+    const { data: leaguesData, error } = await this.db.client
+      .from('LEAGUE')
+      .select('league_id, name, status, logo_url')
+      .in('league_id', leagueIds)
+      .eq('is_deleted', false)
+      .order('name');
+
+    if (error || !leaguesData?.length) return [];
 
     const details = await Promise.all(
-      leagues.map(async (league) => {
-        const detail = await this.userLeagues.loadLeagueDetail(league.league_id);
-        return { league, detail };
-      }),
+      (leaguesData as { league_id: number; name: string; status: string | null; logo_url: string | null }[])
+        .map(async (league) => {
+          const detail = await this.userLeagues.loadLeagueDetail(league.league_id);
+          return { league, detail };
+        }),
     );
 
     return details.map(({ league, detail }) => ({

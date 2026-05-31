@@ -259,4 +259,8 @@ export class PreditcionClient implements OnInit, OnDestroy {
     };
     return card.round !== null ? (labels[card.round] ?? `Ronda ${card.round}`) : '';
   }
+
+  protected getMatchLabel(card: PredictionMatchCard): string {
+    return `${card.homeTeamName} vs ${card.awayTeamName}`;
+  }
 }

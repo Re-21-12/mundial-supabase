@@ -1,0 +1,93 @@
+<div class="mg-page">
+  <div class="mg-header">
+    <h2 class="mg-title"><i class="pi pi-users"></i> Mis Grupos</h2>
+    <p class="mg-subtitle">Grupos y posiciones de las ligas que creaste como cliente.</p>
+
+    @if (hasLeagueFilter()) {
+      <div class="mg-filterbar">
+        <div class="mg-filterbar__label">
+          <span class="mg-filterbar__text">Filtrar por liga</span>
+        </div>
+
+        <p-select
+          class="mg-filterbar__select"
+          [options]="leagueOptions()"
+          optionLabel="league_name"
+          optionValue="league_id"
+          [ngModel]="selectedLeagueId()"
+          (ngModelChange)="onLeagueChange($event)"
+          placeholder="Todas las ligas"
+          appendTo="body"
+        />
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="mg-stack">
+      @for (n of [1, 2, 3]; track n) {
+        <div class="mg-skeleton"></div>
+      }
+    </div>
+  } @else if (leagues().length === 0) {
+    <div class="mg-empty">
+      <i class="pi pi-users"></i>
+      <p>No hay grupos disponibles para tus ligas todavía.</p>
+    </div>
+  } @else if (filteredLeagues().length === 0) {
+    <div class="mg-empty">
+      <i class="pi pi-filter"></i>
+      <p>No hay grupos para la liga seleccionada.</p>
+    </div>
+  } @else {
+    <div class="mg-stack">
+      @for (league of filteredLeagues(); track league.league_id) {
+        <section class="mg-league-card">
+          <div class="mg-league-card__header">
+            <div class="mg-league-card__meta">
+              <h3 class="mg-league-card__title">{{ league.league_name }}</h3>
+              <span class="mg-league-card__status">{{ league.league_status ?? 'Sin estado' }}</span>
+            </div>
+          </div>
+
+          <div class="mg-groups-grid">
+            @for (grupo of league.grupos; track grupo.grupo_id) {
+              <article class="mg-group-card">
+                <div class="mg-group-card__header">
+                  <span class="mg-group-card__letter">{{ grupo.grupo_name }}</span>
+                  <span class="mg-group-card__label">Grupo</span>
+                </div>
+
+                <div class="mg-table-wrap">
+                  <table class="mg-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Equipo</th>
+                        <th>PJ</th>
+                        <th>Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (team of grupo.teams; track team.team_id; let i = $index) {
+                        <tr
+                          [class.mg-table__row--advances]="team.advances === true"
+                          [class.mg-table__row--eliminated]="team.advances === false"
+                        >
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ team.team_name }}</td>
+                          <td>{{ team.games_played }}</td>
+                          <td>{{ team.points }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+</div>

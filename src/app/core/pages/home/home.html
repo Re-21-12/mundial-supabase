@@ -1,421 +1,303 @@
 <div class="home-page" role="main">
-  <!-- ═══ HERO CAROUSEL ═══ -->
+
+  <!-- ═══ HERO CAROUSEL — carga inmediata (above the fold) ═══ -->
   <section class="home-section home-section--hero" aria-label="Partidos destacados">
-    @if (carouselMatches().length > 0) {
-      <app-hero-banner [matches]="carouselMatches()" />
+    @if (liveCarouselMatches().length > 0) {
+      <app-hero-banner [matches]="liveCarouselMatches()" />
     } @else {
       <div class="hero-placeholder">
         <i class="pi pi-inbox hero-placeholder__icon" aria-hidden="true"></i>
-        <p>Sin partidos próximos por el momento...</p>
+        <p>No hay partidos en vivo por el momento...</p>
       </div>
     }
   </section>
 
-  <!-- ═══ VIDEO FIFA 2026 ═══ -->
+  <!-- ═══ VIDEO FIFA 2026 — defer al entrar al viewport ═══ -->
   <section class="home-section home-section--video" aria-label="Video oficial FIFA World Cup 2026">
-    <div class="video-wrapper">
-      <iframe
-        [src]="safeVideoUrl"
-        title="FIFA World Cup 2026 — Official Video"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-        loading="lazy"
-      ></iframe>
-    </div>
+    @defer (on viewport) {
+      <a class="video-wrapper" [href]="videoUrl" target="_blank" rel="noopener noreferrer">
+        <span class="video-wrapper__overlay" aria-hidden="true">
+          <span class="video-wrapper__play">
+            <i class="pi pi-play" aria-hidden="true"></i>
+          </span>
+          <span class="video-wrapper__copy">
+            <span class="video-wrapper__eyebrow">Video oficial</span>
+            <span class="video-wrapper__title">FIFA World Cup 2026</span>
+            <span class="video-wrapper__action">Abrir en YouTube</span>
+          </span>
+        </span>
+      </a>
+    } @placeholder {
+      <div class="defer-skeleton defer-skeleton--video"></div>
+    }
   </section>
 
-  <!-- ═══ GLOBO INTERACTIVO ═══ -->
-  <section class="home-section" aria-label="Mapa de países participantes">
-    <div class="section-title-row">
-      <h2 class="section-title">
-        <i class="pi pi-map" aria-hidden="true"></i>
-        Naciones Participantes
-        <span class="leagues-count">48 selecciones · 12 grupos</span>
-      </h2>
-    </div>
-    <app-world-globe [grupos]="grupos()" />
-  </section>
-
-  <!-- ═══ STATS BAR ═══ -->
-  <section class="home-section" aria-label="Estadísticas del torneo">
-    <app-stats-bar />
-  </section>
-
-   <!-- ═══ FASE DE GRUPOS ═══ -->
-
-<!--
-  @if (grupos().length > 0) {
-    <section class="home-section" aria-label="Fase de grupos FIFA World Cup 2026">
+  <!-- ═══ GLOBO INTERACTIVO — defer al viewport (componente 3D pesado) ═══ -->
+  @defer (on viewport) {
+    <section class="home-section" aria-label="Mapa de países participantes">
       <div class="section-title-row">
         <h2 class="section-title">
-          <i class="pi pi-th-large" aria-hidden="true"></i>
-          Fase de Grupos
-          <span class="leagues-count">FIFA World Cup 2026</span>
+          <i class="pi pi-map" aria-hidden="true"></i>
+          Naciones Participantes
+          <span class="leagues-count">48 selecciones · 12 grupos</span>
         </h2>
       </div>
-      <app-world-cup-groups [grupos]="grupos()" />
+      <app-world-globe [grupos]="grupos()" />
+    </section>
+  } @placeholder {
+    <section class="home-section">
+      <div class="defer-skeleton defer-skeleton--globe"></div>
     </section>
   }
--->
 
-  <!-- ═══ LIGAS ═══ -->
-  <section class="home-section" aria-label="Ligas disponibles">
+  <!-- ═══ STATS BAR — defer al viewport ═══ -->
+  @defer (on viewport) {
+    <section class="home-section" aria-label="Estadísticas del torneo">
+      <app-stats-bar />
+    </section>
+  } @placeholder {
+    <section class="home-section">
+      <div class="defer-skeleton defer-skeleton--stats"></div>
+    </section>
+  }
 
-    <!-- Header -->
-    <div class="section-title-row">
-      <h2 class="section-title">
-        <i class="pi pi-trophy" aria-hidden="true"></i>
-        Ligas
-        @if (homeLeagues().length > 0) {
-          <span class="leagues-count">
-            <ngx-digit-flow [value]="filteredHomeLeagues().length" /> de
-            <ngx-digit-flow [value]="homeLeagues().length" />
-          </span>
-        }
-      </h2>
+  <!-- ═══ LIGAS — defer en idle (contenido principal, prefetch temprano) ═══ -->
+  @defer (on idle) {
+    <section class="home-section" aria-label="Ligas disponibles">
 
-      <!-- Botón de filtro -->
-      @if (leagueTypes().length > 1) {
-        <div class="filter-wrap">
-          <button
-            class="filter-btn"
-            [class.filter-btn--active]="leagueFilter() !== 'all'"
-            type="button"
-            (click)="showFilter.set(!showFilter())"
-            [attr.aria-expanded]="showFilter()"
-          >
-            <i class="pi pi-filter-fill"></i>
-            @if (leagueFilter() === 'all') {
-              Filtrar
-            } @else {
-              {{ leagueFilter() }}
-              <i
-                class="pi pi-times filter-btn__clear"
-                title="Quitar filtro"
-                aria-label="Quitar filtro"
-                (click)="$event.stopPropagation(); selectFilter('all')"
-              ></i>
-            }
-          </button>
+      <div class="section-title-row">
+        <h2 class="section-title">
+          <i class="pi pi-trophy" aria-hidden="true"></i>
+          Ligas
+          @if (homeLeagues().length > 0) {
+            <span class="leagues-count">
+              <ngx-digit-flow [value]="filteredHomeLeagues().length" /> de
+              <ngx-digit-flow [value]="homeLeagues().length" />
+            </span>
+          }
+        </h2>
 
-          @if (showFilter()) {
-            <div class="filter-panel" role="listbox" aria-label="Filtrar por tipo de liga">
-              <button
-                class="filter-option"
-                [class.filter-option--active]="leagueFilter() === 'all'"
-                type="button"
-                role="option"
-                (click)="selectFilter('all')"
-              >
-                <i class="pi pi-list"></i>
-                Todas las ligas
-                <span class="filter-option__count"><ngx-digit-flow [value]="homeLeagues().length" /></span>
-              </button>
-              @for (type of leagueTypes(); track type) {
+        @if (leagueTypes().length > 1) {
+          <div class="filter-wrap">
+            <button
+              class="filter-btn"
+              [class.filter-btn--active]="leagueFilter() !== 'all'"
+              type="button"
+              (click)="showFilter.set(!showFilter())"
+              [attr.aria-expanded]="showFilter()"
+            >
+              <i class="pi pi-filter-fill"></i>
+              @if (leagueFilter() === 'all') {
+                Filtrar
+              } @else {
+                {{ leagueFilter() }}
+                <i
+                  class="pi pi-times filter-btn__clear"
+                  title="Quitar filtro"
+                  aria-label="Quitar filtro"
+                  (click)="$event.stopPropagation(); selectFilter('all')"
+                ></i>
+              }
+            </button>
+
+            @if (showFilter()) {
+              <div class="filter-panel" role="listbox" aria-label="Filtrar por tipo de liga">
                 <button
                   class="filter-option"
-                  [class.filter-option--active]="leagueFilter() === type"
+                  [class.filter-option--active]="leagueFilter() === 'all'"
                   type="button"
                   role="option"
-                  (click)="selectFilter(type)"
+                  (click)="selectFilter('all')"
                 >
-                  <i class="pi pi-tag"></i>
-                  {{ type }}
-                  <span class="filter-option__count"><ngx-digit-flow [value]="countByType(type)" /></span>
+                  <i class="pi pi-list"></i>
+                  Todas las ligas
+                  <span class="filter-option__count"><ngx-digit-flow [value]="homeLeagues().length" /></span>
                 </button>
-              }
-            </div>
+                @for (type of leagueTypes(); track type) {
+                  <button
+                    class="filter-option"
+                    [class.filter-option--active]="leagueFilter() === type"
+                    type="button"
+                    role="option"
+                    (click)="selectFilter(type)"
+                  >
+                    <i class="pi pi-tag"></i>
+                    {{ type }}
+                    <span class="filter-option__count"><ngx-digit-flow [value]="countByType(type)" /></span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (leaguesLoading()) {
+        <div class="tc-grid">
+          @for (n of [1, 2, 3]; track n) {
+            <div class="tc-skeleton"></div>
           }
         </div>
+      } @else if (homeLeagues().length > 0) {
+        @if (filteredHomeLeagues().length === 0) {
+          <div class="empty-state empty-state--inline">
+            <p>Sin ligas del tipo <strong>{{ leagueFilter() }}</strong></p>
+            <button class="filter-btn" type="button" (click)="selectFilter('all')">
+              <i class="pi pi-times"></i> Quitar filtro
+            </button>
+          </div>
+        } @else {
+          <div class="tc-grid">
+            @for (league of filteredHomeLeagues(); track league.league_id) {
+              <app-league-tournament-card
+                [league]="league"
+                [joining]="joiningLeagueId() === league.league_id"
+                (join)="joinLeague(league)"
+                (navigate)="navigateToLeague(league.league_id)"
+              />
+            }
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <i class="pi pi-trophy empty-state__icon" aria-hidden="true"></i>
+          <p>No hay ligas disponibles por el momento.</p>
+          <p-button
+            label="Unirse con código"
+            icon="pi pi-link"
+            size="small"
+            severity="secondary"
+            (click)="openJoinDialog()"
+          />
+        </div>
       }
-    </div>
-
-    <!-- Loading skeleton -->
-    @if (leaguesLoading()) {
+    </section>
+  } @placeholder (minimum 200ms) {
+    <section class="home-section">
+      <div class="defer-skeleton defer-skeleton--title"></div>
       <div class="tc-grid">
         @for (n of [1, 2, 3]; track n) {
           <div class="tc-skeleton"></div>
         }
       </div>
+    </section>
+  }
 
-    } @else if (homeLeagues().length > 0) {
-
-      <!-- Sin resultados del filtro -->
-      @if (filteredHomeLeagues().length === 0) {
-        <div class="empty-state empty-state--inline">
-          <p>Sin ligas del tipo <strong>{{ leagueFilter() }}</strong></p>
-          <button class="filter-btn" type="button" (click)="selectFilter('all')">
-            <i class="pi pi-times"></i> Quitar filtro
+  <!-- ═══ FEATURED MATCHES — defer al viewport ═══ -->
+  @defer (on viewport) {
+    <section aria-label="Partidos del torneo">
+      <div class="section-title-row">
+        <h2 class="section-title">
+          <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+          Partidos del Torneo
+        </h2>
+        <div class="view-toggle" role="group" aria-label="Cambiar vista">
+          <button
+            class="view-toggle__btn"
+            [class.view-toggle__btn--active]="matchView() === 'grid'"
+            type="button"
+            title="Vista grilla"
+            (click)="setMatchView('grid')"
+          >
+            <i class="pi pi-th-large"></i>
+          </button>
+          <button
+            class="view-toggle__btn"
+            [class.view-toggle__btn--active]="matchView() === 'calendar'"
+            type="button"
+            title="Vista calendario"
+            (click)="setMatchView('calendar')"
+          >
+            <i class="pi pi-calendar"></i>
+          </button>
+          <button
+            class="view-toggle__btn"
+            [class.view-toggle__btn--active]="matchView() === 'bracket'"
+            type="button"
+            title="Vista bracket"
+            (click)="setMatchView('bracket')"
+          >
+            <i class="pi pi-sitemap"></i>
           </button>
         </div>
-      } @else {
-        <div class="tc-grid">
-          @for (league of filteredHomeLeagues(); track league.league_id) {
-            <app-league-tournament-card
-              [league]="league"
-              [joining]="joiningLeagueId() === league.league_id"
-              (join)="joinLeague(league)"
-              (navigate)="navigateToLeague(league.league_id)"
-            />
-          }
+      </div>
+
+      @if (carouselMatches().length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
+          <p>No hay partidos programados por el momento.</p>
         </div>
-      }
-
-    } @else {
-      <div class="empty-state">
-        <i class="pi pi-trophy empty-state__icon" aria-hidden="true"></i>
-        <p>No hay ligas disponibles por el momento.</p>
-        <p-button
-          label="Unirse con código"
-          icon="pi pi-link"
-          size="small"
-          severity="secondary"
-          (click)="openJoinDialog()"
-        />
-      </div>
-    }
-  </section>
-
-  <!-- ═══ FEATURED MATCHES ═══ -->
-  <section aria-label="Partidos del torneo">
-    <div class="section-title-row">
-      <h2 class="section-title">
-        <i class="pi pi-calendar-clock" aria-hidden="true"></i>
-        Partidos del Torneo
-      </h2>
-      <div class="view-toggle" role="group" aria-label="Cambiar vista">
-        <button
-          class="view-toggle__btn"
-          [class.view-toggle__btn--active]="matchView() === 'grid'"
-          type="button"
-          title="Vista grilla"
-          (click)="setMatchView('grid')"
-        >
-          <i class="pi pi-th-large"></i>
-        </button>
-        <button
-          class="view-toggle__btn"
-          [class.view-toggle__btn--active]="matchView() === 'calendar'"
-          type="button"
-          title="Vista calendario"
-          (click)="setMatchView('calendar')"
-        >
-          <i class="pi pi-calendar"></i>
-        </button>
-        <button
-          class="view-toggle__btn"
-          [class.view-toggle__btn--active]="matchView() === 'bracket'"
-          type="button"
-          title="Vista bracket"
-          (click)="setMatchView('bracket')"
-        >
-          <i class="pi pi-sitemap"></i>
-        </button>
-      </div>
-    </div>
-
-    @if (carouselMatches().length === 0) {
-      <div class="empty-state">
-        <i class="pi pi-inbox empty-state__icon" aria-hidden="true"></i>
-        <p>No hay partidos programados por el momento.</p>
-      </div>
-    } @else if (matchView() === 'calendar') {
-      <app-match-calendar [matches]="carouselMatches()" />
-    } @else if (matchView() === 'bracket') {
-      @if (filteredLeagues().length === 0) {
-        <p class="bracket-empty">Únete a una liga para ver su bracket.</p>
-      } @else {
-        <!-- League tab selector -->
-        <div class="bracket-league-tabs" role="tablist" aria-label="Seleccionar liga">
-          @for (league of filteredLeagues(); track league.league_id) {
-            <button
-              class="bracket-league-tab"
-              role="tab"
-              type="button"
-              [class.bracket-league-tab--active]="selectedLeagueId() === league.league_id"
-              [attr.aria-selected]="selectedLeagueId() === league.league_id"
-              (click)="selectLeague(league.league_id)"
-            >
-              {{ league.name }}
-            </button>
-          }
-        </div>
-
-        @if (selectedLeagueId(); as lid) {
-          <app-tournament-bracket
-            [leagueId]="lid"
-            [grupos]="grupos()"
-            [matchCards]="leagueMatchCards()"
-            [showPredictAction]="isClientUser()"
-            (predict)="navigateToPredict($event)"
-          />
+      } @else if (matchView() === 'calendar') {
+        @defer (when matchView() === 'calendar') {
+          <app-match-calendar [matches]="carouselMatches()" />
+        } @placeholder {
+          <div class="defer-skeleton defer-skeleton--calendar"></div>
         }
-      }
-    } @else {
-      <div class="matches-grid">
-        @for (card of pagedMatches(); track card.match.match_id) {
-          <article
-            class="match-card"
-            [class.match-card--live]="card.isLive"
-            [class.match-card--expanded]="isMatchExpanded(card.match.match_id)"
-          >
-            <!-- Header: status + toggle -->
-            <div class="match-card__header match-card__header--clickable" (click)="toggleMatchDetail(card.match.match_id)">
-
-              <p-tag
-                [severity]="getLiveSeverity(card)"
-                [value]="getLiveLabel(card)"
-                styleClass="match-status-tag"
-              />
-              @if (card.isLive) {
-                @let elapsed = getElapsedTime(card.match.start_time);
-                <span class="match-card__elapsed" aria-live="polite">
-                  <i class="pi pi-clock" aria-hidden="true"></i>
-                  <span class="match-card__elapsed-label">Transcurrido</span>
-                  <span class="match-card__elapsed-value">
-                    <ngx-digit-flow [value]="elapsed.minutes" [continuous]="true" />
-                    <span>:</span>
-                    <ngx-digit-flow
-                      [value]="elapsed.seconds"
-                      [continuous]="true"
-                      [prefix]="elapsed.seconds < 10 ? '0' : ''"
-                    />
-                  </span>
-                </span>
+      } @else if (matchView() === 'bracket') {
+        @defer (when matchView() === 'bracket') {
+          @if (filteredLeagues().length === 0) {
+            <p class="bracket-empty">Únete a una liga para ver su bracket.</p>
+          } @else {
+            <div class="bracket-league-tabs" role="tablist" aria-label="Seleccionar liga">
+              @for (league of filteredLeagues(); track league.league_id) {
+                <button
+                  class="bracket-league-tab"
+                  role="tab"
+                  type="button"
+                  [class.bracket-league-tab--active]="selectedLeagueId() === league.league_id"
+                  [attr.aria-selected]="selectedLeagueId() === league.league_id"
+                  (click)="selectLeague(league.league_id)"
+                >
+                  {{ league.name }}
+                </button>
               }
-              <div class="match-card__header-actions">
-                <span class="match-date">
-                  @if (!card.isLive) { {{ formatMatchDate(card.match.start_time) }} }
-                </span>
-                <i [class]="isMatchExpanded(card.match.match_id) ? 'pi pi-chevron-up match-card__toggle' : 'pi pi-chevron-down match-card__toggle'"></i>
-              </div>
             </div>
 
-            <div class="match-card__league">
-              <i class="pi pi-flag match-card__league-icon" aria-hidden="true"></i>
-              <span class="match-card__league-label">Liga:</span>
-              <span class="match-card__league-name">{{ card.leagueName }}</span>
-            </div>
-
-            <!-- Teams + score -->
-            <div class="match-card__body">
-              <div class="match-card__teams">
-                <div class="match-team">
-                  <span class="match-team__emoji">🏟️</span>
-                  <span class="match-team__name">{{ card.homeTeam.name }}</span>
-                </div>
-                <div class="match-card__score">
-                @if (!card.period) {
-                  -  :  -
-                } @else {
-                  <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
-                  <span>:</span>
-                  <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
-                }
-              </div>
-                <div class="match-team match-team--away">
-                  <span class="match-team__name">{{ card.awayTeam.name }}</span>
-                  <span class="match-team__emoji">✈️</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Expanded: period breakdown -->
-            @if (isMatchExpanded(card.match.match_id)) {
-              <div class="match-periods">
-                @let periods = getMatchPeriods(card.match.match_id);
-                @if (periods.length === 0) {
-                  <p class="match-periods__empty">Sin períodos registrados.</p>
-                } @else {
-                  @for (p of periods; track p.period_id; let i = $index) {
-                    <div class="match-period-row">
-                      <span class="match-period-row__label">Período {{ i + 1 }}</span>
-                      <span class="match-period-row__score">
-                        <span class="match-period-row__val"><ngx-digit-flow [value]="p.first_team_score ?? 0" /></span>
-                        <span class="match-period-row__sep">:</span>
-                        <span class="match-period-row__val"><ngx-digit-flow [value]="p.second_team_score ?? 0" /></span>
-                      </span>
-                    </div>
-                  }
-                  <div class="match-period-row match-period-row--total">
-                    <span class="match-period-row__label">Total</span>
-                    <span class="match-period-row__score">
-                      <ngx-digit-flow [value]="card.match.first_team_total" [continuous]="true" />
-                      <span class="match-period-row__sep">:</span>
-                      <ngx-digit-flow [value]="card.match.second_team_total" [continuous]="true" />
-                    </span>
-                  </div>
-                }
-              </div>
+            @if (selectedLeagueId(); as lid) {
+              <app-tournament-bracket
+                [leagueId]="lid"
+                [grupos]="grupos()"
+                [matchCards]="leagueMatchCards()"
+                [showPredictAction]="isClientUser()"
+                (predict)="navigateToPredict($event)"
+              />
             }
-
-            @if (card.prediction) {
-              <div class="match-card__prediction">
-                <i class="pi pi-check-circle" aria-hidden="true"></i>
-                Tu predicción: <ngx-digit-flow [value]="card.prediction.first_team_score" /> – <ngx-digit-flow [value]="card.prediction.second_team_score" />
-              </div>
-            }
-
-            @if (isClientUser()) {
-              <div class="match-card__footer">
-                <p-button
-                  label="Predecir resultado"
-                  icon="pi pi-bolt"
-                  severity="contrast"
-                  size="small"
-                  styleClass="w-full predict-btn"
-                  [disabled]="!canPredictMatch(card)"
-                  (click)="navigateToPredict(card.match.match_id)"
-                />
-              </div>
-            }
-          </article>
+          }
+        } @placeholder {
+          <div class="defer-skeleton defer-skeleton--bracket"></div>
+        }
+      } @else {
+        <app-home-match-grid [cards]="carouselMatches()" />
+      }
+    </section>
+  } @placeholder {
+    <section>
+      <div class="defer-skeleton defer-skeleton--title"></div>
+      <div class="matches-grid">
+        @for (n of [1,2,3,4,5,6]; track n) {
+          <div class="defer-skeleton defer-skeleton--match-card"></div>
         }
       </div>
+    </section>
+  }
 
-      <!-- Paginator -->
-      @if (totalMatchPages() > 1) {
-        <div class="match-pager" role="navigation" aria-label="Navegación de partidos">
-          <button
-            type="button"
-            class="match-pager__btn"
-            [disabled]="matchPage() === 0"
-            (click)="goPrevPage()"
-            title="Página anterior"
-          >
-            <i class="pi pi-chevron-left"></i>
-          </button>
-          <span class="match-pager__info">
-            {{ matchPage() + 1 }} / {{ totalMatchPages() }}
-            <span class="match-pager__total">· {{ carouselMatches().length }} partidos</span>
-          </span>
-          <button
-            type="button"
-            class="match-pager__btn"
-            [disabled]="matchPage() >= totalMatchPages() - 1"
-            (click)="goNextPage()"
-            title="Página siguiente"
-          >
-            <i class="pi pi-chevron-right"></i>
-          </button>
+  <!-- ═══ CTA BANNER — defer al viewport ═══ -->
+  @defer (on viewport) {
+    <section class="home-section home-section--cta" aria-label="Únete al torneo">
+      <div class="cta-content">
+        <h2 class="cta-title">¿Listo para demostrar tu instinto futbolero?</h2>
+        <p class="cta-subtitle">Crea tu liga, invita a tus amigos y predice cada resultado.</p>
+        <div class="cta-actions">
+          <p-button label="Crear liga" icon="pi pi-plus" size="large" (click)="navigateToCreateLeague()" />
+          <p-button label="Unirse con código" icon="pi pi-link" severity="secondary" size="large" (click)="openJoinDialog()" />
         </div>
-      }
-    }
-  </section>
-
-  <!-- ═══ CTA BANNER ═══ -->
-  <section class="home-section home-section--cta" aria-label="Únete al torneo">
-    <div class="cta-content">
-      <h2 class="cta-title">¿Listo para demostrar tu instinto futbolero?</h2>
-      <p class="cta-subtitle">Crea tu liga, invita a tus amigos y predice cada resultado.</p>
-      <div class="cta-actions">
-        <p-button label="Crear liga" icon="pi pi-plus" size="large" (click)="navigateToCreateLeague()" />
-        <p-button label="Unirse con código" icon="pi pi-link" severity="secondary" size="large" (click)="openJoinDialog()" />
       </div>
-    </div>
-  </section>
+    </section>
+  } @placeholder {
+    <section class="home-section home-section--cta-placeholder" aria-hidden="true"></section>
+  }
 
+  <!-- ═══ DIÁLOGOS — se renderizan solo cuando se activan ═══ -->
   @if (showJoinDialog()) {
     <app-join-league (closed)="closeJoinDialog()" />
   }
@@ -426,4 +308,5 @@
       (cancelled)="showCreateLeagueDialog.set(false)"
     />
   }
+
 </div>

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { SupabaseService } from '../../services/supabase-service';
-import { LeagueRoleService } from '../../services/league-role.service';
+import { SupabaseService } from '../../../services/supabase-service';
+import { LeagueRoleService } from '../../../services/league-role.service';
 
 export type PendingParticipant = {
   user_league_id: number;

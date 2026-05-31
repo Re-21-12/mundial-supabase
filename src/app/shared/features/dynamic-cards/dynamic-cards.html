@@ -1,5 +1,5 @@
 <div class="dc-grid">
-  @for (item of tableProps().data; track item) {
+  @for (item of pagedItems(); track item) {
     <article class="dc-card">
 
       <!-- Header row: entity title + id chip -->
@@ -21,7 +21,7 @@
                   class="dc-field__img"
                   [src]="item[col.field]"
                   [alt]="col.header"
-                  [title]="col.header"
+                  title="{{ col.header }}"
                   loading="lazy"
                 />
               } @else {
@@ -66,3 +66,17 @@
     <p class="dc-empty">No hay registros.</p>
   }
 </div>
+
+@if (showPaginator()) {
+  <div class="dc-pagination">
+    <p-paginator
+      [first]="(tableProps().currentPage ?? 0) * tableProps().rows"
+      [rows]="tableProps().rows"
+      [totalRecords]="tableProps().totalRecords"
+      [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first} - {last} de {totalRecords}"
+      (onPageChange)="onPageChange($event)"
+    />
+  </div>
+}

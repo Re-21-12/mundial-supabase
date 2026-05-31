@@ -177,3 +177,54 @@
   color: var(--muted-foreground);
   font-size: 0.9rem;
 }
+
+.dc-pagination {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+:host ::ng-deep .dc-pagination .p-paginator {
+  width: 100%;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+:host ::ng-deep .dc-pagination .p-paginator .p-paginator-pages,
+:host ::ng-deep .dc-pagination .p-paginator .p-paginator-rpp-options,
+:host ::ng-deep .dc-pagination .p-paginator .p-paginator-current {
+  order: 2;
+}
+
+:host ::ng-deep .dc-pagination .p-paginator .p-dropdown {
+  min-width: 4.5rem;
+}
+
+@media (max-width: 640px) {
+  .dc-pagination {
+    margin-top: 10px;
+  }
+
+  :host ::ng-deep .dc-pagination .p-paginator {
+    padding: 0.45rem 0.5rem;
+    gap: 0.25rem;
+  }
+
+  :host ::ng-deep .dc-pagination .p-paginator .p-paginator-rpp-options {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.25rem;
+  }
+
+  :host ::ng-deep .dc-pagination .p-paginator .p-paginator-current {
+    width: 100%;
+    text-align: center;
+    order: 3;
+    margin-top: 0.1rem;
+  }
+}

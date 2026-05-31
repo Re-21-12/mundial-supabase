@@ -60,9 +60,29 @@ const MATCH_SELECT = `
   first_team_id, second_team_id,
   first_team_total, second_team_total,
   grupo_id, round, is_deleted,
-  homeTeam:TEAM!MATCH_first_team_id_fkey(name, logo_url),
-  awayTeam:TEAM!MATCH_second_team_id_fkey(name, logo_url)
+  homeTeam:TEAM!MATCH_first_team_id_fkey(team_id, name, logo_url),
+  awayTeam:TEAM!MATCH_second_team_id_fkey(team_id, name, logo_url)
 `;
+
+function resolveTeamName(
+  team: {
+    team_id?: number | null;
+    name?: string | null;
+    team_name?: string | null;
+    title?: string | null;
+    label?: string | null;
+  } | null,
+  fallbackLabel: string,
+): string {
+  const name =
+    team?.name?.trim() ?? team?.team_name?.trim() ?? team?.title?.trim() ?? team?.label?.trim();
+  if (name) {
+    return name;
+  }
+
+  const teamId = team?.team_id;
+  return teamId ? `${fallbackLabel} #${teamId}` : fallbackLabel;
+}
 
 const TRX_CUOTA = 98; // Cuota de Entrada — debit predictor
 const TRX_AJUSTE = 100; // Ajuste Manual — refund on rollback
@@ -75,7 +95,13 @@ export class PredictionClientService {
   private readonly notif = inject(NotificationService);
   private readonly leagueRules = inject(LeagueCreationService);
 
+  private async ensureAuthReady(): Promise<void> {
+    await this.auth.waitForAuthReady(8000);
+  }
+
   async loadContext(matchId: number): Promise<PredictionContext | null> {
+    await this.ensureAuthReady();
+
     const userId = Number(this.auth.getInternalUserId());
     if (!userId) return null;
 
@@ -172,8 +198,8 @@ export class PredictionClientService {
       return {
         matchId: m.match_id,
         leagueId: m.league_id,
-        homeTeamName: (m.homeTeam as any)?.name ?? 'Local',
-        awayTeamName: (m.awayTeam as any)?.name ?? 'Visitante',
+        homeTeamName: resolveTeamName(m.homeTeam as any, 'Equipo 1'),
+        awayTeamName: resolveTeamName(m.awayTeam as any, 'Equipo 2'),
         homeTeamLogo: (m.homeTeam as any)?.logo_url ?? null,
         awayTeamLogo: (m.awayTeam as any)?.logo_url ?? null,
         startTime: startIso || m.start_time,
@@ -216,6 +242,8 @@ export class PredictionClientService {
   async listLeaguesWithUpcomingMatches(): Promise<
     Array<{ league: PredictionLeagueInfo; userLeagueId: number; matches: PredictionMatchCard[] }>
   > {
+    await this.ensureAuthReady();
+
     const userId = Number(this.auth.getInternalUserId());
     if (!userId) return [];
 
@@ -288,8 +316,8 @@ export class PredictionClientService {
         return {
           matchId: m.match_id,
           leagueId: m.league_id,
-          homeTeamName: (m.homeTeam as any)?.name ?? 'Local',
-          awayTeamName: (m.awayTeam as any)?.name ?? 'Visitante',
+          homeTeamName: resolveTeamName(m.homeTeam as any, 'Equipo 1'),
+          awayTeamName: resolveTeamName(m.awayTeam as any, 'Equipo 2'),
           homeTeamLogo: (m.homeTeam as any)?.logo_url ?? null,
           awayTeamLogo: (m.awayTeam as any)?.logo_url ?? null,
           startTime: startIso || m.start_time,

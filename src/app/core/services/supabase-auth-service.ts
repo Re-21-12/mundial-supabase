@@ -177,6 +177,19 @@ export class SupabaseAuthService {
     ]);
 
     if (timedOut) {
+      const { data } = await this._supabaseService.client.auth.getSession();
+
+      if (data.session) {
+        this._applySessionState(data.session);
+        this.authReady.set(true);
+        this.authReadyResolve();
+        this.logSessionDebug('waitForAuthReady:recoveredAfterTimeout', {
+          timeoutMs,
+          snapshot: this.getSessionSnapshot(data.session),
+        });
+        return;
+      }
+
       console.warn('[Auth] waitForAuthReady timed out — continuing without session');
       this.logSessionDebug('waitForAuthReady:timeout', { timeoutMs });
     }

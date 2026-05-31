@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ApprovalService, PendingParticipant } from '../approval.service';
+import { ApprovalService, PendingParticipant } from './approval.service';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
 
 @Component({

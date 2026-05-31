@@ -1,0 +1,161 @@
+<div class="mp-page">
+
+  <!-- ── Cabecera + filtros de estado ───────────────────────────────────── -->
+  <div class="mp-header">
+    <h2 class="mp-title">
+      <i class="pi pi-calendar-clock"></i>
+      Mis Partidos
+    </h2>
+
+    <div class="mp-header-controls">
+      <div class="mp-filters">
+        @for (f of statusFilters; track f.value) {
+          <button
+            class="mp-filter-btn"
+            [class.mp-filter-btn--active]="activeFilter() === f.value"
+            type="button"
+            (click)="activeFilter.set(f.value)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+
+      <button
+        class="mp-extra-toggle"
+        [class.mp-extra-toggle--active]="showExtraFilters() || hasActiveExtraFilters()"
+        type="button"
+        (click)="showExtraFilters.set(!showExtraFilters())"
+        title="Filtros adicionales"
+      >
+        <i class="pi pi-filter"></i>
+        <span>Filtrar</span>
+        @if (hasActiveExtraFilters()) {
+          <span class="mp-extra-badge"></span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Panel de filtros adicionales ──────────────────────────────────── -->
+  @if (showExtraFilters()) {
+    <div class="mp-extra-panel">
+
+      <!-- Hora -->
+      <div class="mp-filter-group">
+        <span class="mp-filter-group__label">
+          <i class="pi pi-clock"></i>Hora
+        </span>
+        <div class="mp-filter-group__pills">
+          @for (slot of hourSlots; track slot.value) {
+            <button
+              class="mp-pill"
+              [class.mp-pill--active]="filterHour() === slot.value"
+              type="button"
+              (click)="filterHour.set(slot.value)"
+            >
+              <i [class]="'pi ' + slot.icon"></i>
+              {{ slot.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Fase / Ronda -->
+      @if (availableRounds().length > 0) {
+        <div class="mp-filter-group">
+          <span class="mp-filter-group__label">
+            <i class="pi pi-flag"></i>Fase
+          </span>
+          <div class="mp-filter-group__pills">
+            <button
+              class="mp-pill"
+              [class.mp-pill--active]="filterRound() === 'all'"
+              type="button"
+              (click)="filterRound.set('all')"
+            >Todas</button>
+            @for (r of availableRounds(); track r.value) {
+              <button
+                class="mp-pill"
+                [class.mp-pill--active]="filterRound() === r.value"
+                type="button"
+                (click)="filterRound.set(r.value)"
+              >{{ r.label }}</button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Liga -->
+      <div class="mp-filter-group">
+        <label class="mp-filter-group__label" for="mp-league-select">
+          <i class="pi pi-trophy"></i>Liga
+        </label>
+        <select
+          id="mp-league-select"
+          class="mp-select"
+          [ngModel]="filterLeague()"
+          (ngModelChange)="filterLeague.set($event)"
+        >
+          <option value="">Todas las ligas</option>
+          @for (lg of availableLeagues(); track lg) {
+            <option [value]="lg">{{ lg }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Estadio -->
+      <div class="mp-filter-group">
+        <label class="mp-filter-group__label" for="mp-stadium-select">
+          <i class="pi pi-map-marker"></i>Estadio
+        </label>
+        <select
+          id="mp-stadium-select"
+          class="mp-select"
+          [ngModel]="filterStadium()"
+          (ngModelChange)="filterStadium.set($event)"
+        >
+          <option value="">Todos los estadios</option>
+          @for (st of availableStadiums(); track st) {
+            <option [value]="st">{{ st }}</option>
+          }
+        </select>
+      </div>
+
+      @if (hasActiveExtraFilters()) {
+        <button class="mp-clear-btn" type="button" (click)="clearExtraFilters()">
+          <i class="pi pi-times"></i>
+          Limpiar filtros
+        </button>
+      }
+    </div>
+  }
+
+  <!-- ── Resultados ─────────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="mp-skeleton-grid">
+      @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+        <div class="mp-skeleton"></div>
+      }
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="mp-empty">
+      <i class="pi pi-inbox"></i>
+      <p>No hay partidos con los filtros seleccionados.</p>
+      @if (hasActiveExtraFilters()) {
+        <button class="mp-clear-btn" type="button" (click)="clearExtraFilters()">
+          <i class="pi pi-times"></i>
+          Limpiar filtros
+        </button>
+      }
+    </div>
+  } @else {
+    <p class="mp-count">{{ filtered().length }} partido(s)</p>
+    <div class="mp-grid">
+      @for (card of filtered(); track card.matchId) {
+        <app-match-ticket-card [card]="card" (predict)="onPredict($event)" />
+      }
+    </div>
+  }
+
+</div>

@@ -1,0 +1,233 @@
+.mg-page {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mg-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mg-filterbar {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+.mg-filterbar__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mg-filterbar__text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mg-filterbar__select {
+  min-width: min(100%, 280px);
+}
+
+:host ::ng-deep .mg-filterbar .p-select {
+  width: min(100%, 320px);
+}
+
+.mg-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.mg-subtitle {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.mg-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.mg-skeleton {
+  height: 220px;
+  border-radius: 20px;
+  background: var(--card);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.mg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 200px;
+  color: var(--muted-foreground);
+}
+
+.mg-empty .pi {
+  font-size: 2rem;
+}
+
+.mg-empty p {
+  margin: 0;
+  text-align: center;
+}
+
+.mg-league-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mg-league-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mg-league-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mg-league-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mg-league-card__status {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
+.mg-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.mg-group-card {
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mg-group-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mg-group-card__letter {
+  font-weight: 700;
+}
+
+.mg-group-card__label {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mg-table-wrap {
+  overflow-x: auto;
+}
+
+.mg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.mg-table thead th {
+  text-align: left;
+  padding: 0.45rem 0.5rem;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.mg-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mg-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mg-table__row--advances td {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.mg-table__row--eliminated td {
+  opacity: 0.72;
+}
+
+@media (max-width: 640px) {
+  .mg-page {
+    padding: 1rem;
+  }
+
+  .mg-filterbar {
+    padding: 0.75rem;
+    align-items: stretch;
+  }
+
+  .mg-filterbar__select,
+  :host ::ng-deep .mg-filterbar .p-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mg-groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mg-league-card__header,
+  .mg-group-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

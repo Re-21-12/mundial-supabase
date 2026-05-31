@@ -1,0 +1,46 @@
+@import '../home.css';
+
+:host {
+  display: block;
+}
+
+.match-filterbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.match-filterbar__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.match-filterbar__text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.match-filterbar__select {
+  min-width: min(100%, 18rem);
+}
+
+@media (max-width: 640px) {
+  .match-filterbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .match-filterbar__select {
+    min-width: 100%;
+  }
+}

@@ -2,7 +2,7 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StandingRow, StandingsService } from '../../../services/standings.service';
 import { SendInvitationComponent } from '../../invitation/send-invitation/send-invitation';
-import { ApprovalService } from '../approval.service';
+import { ApprovalService } from '../approval/approval.service';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
 import { SimulateMatchService } from '../../../services/simulate-match.service';
 import { NotificationService } from '../../../../shared/services/notification-service';

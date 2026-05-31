@@ -1,3 +1,24 @@
+/* ─── Defer placeholder skeletons ─────────────────────────────── */
+@keyframes deferPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.defer-skeleton {
+  border-radius: 16px;
+  background: var(--card);
+  animation: deferPulse 1.6s ease-in-out infinite;
+}
+.defer-skeleton--video     { height: 360px; }
+.defer-skeleton--globe     { height: 420px; }
+.defer-skeleton--stats     { height: 80px; }
+.defer-skeleton--title     { height: 36px; width: 240px; border-radius: 8px; margin-bottom: 1rem; }
+.defer-skeleton--calendar  { height: 400px; }
+.defer-skeleton--bracket   { height: 320px; }
+.defer-skeleton--match-card { height: 200px; }
+
+.home-section--cta-placeholder { min-height: 180px; }
+
 /* ─── Page layout ─────────────────────────────────────────────── */
 .home-page {
   display: flex;
@@ -974,20 +995,102 @@
 
 .video-wrapper {
   position: relative;
+  display: flex;
+  align-items: flex-end;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 */
+  min-height: 360px;
   border-radius: var(--radius);
   overflow: hidden;
-  background: #000;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0.78)),
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.3), transparent 34%),
+    linear-gradient(135deg, #0f172a 0%, #111827 46%, #1f2937 100%);
   box-shadow: 0 16px 48px rgb(0 0 0 / 35%);
+  text-decoration: none;
+  color: inherit;
+  isolation: isolate;
 }
 
-.video-wrapper iframe {
+.video-wrapper::before {
+  content: '';
   position: absolute;
   inset: 0;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 70% 25%, rgba(255, 215, 0, 0.18), transparent 24%);
+  pointer-events: none;
+}
+
+.video-wrapper__overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
-  height: 100%;
-  border: none;
+  padding: 1.5rem;
+}
+
+.video-wrapper__play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 35%);
+  flex-shrink: 0;
+}
+
+.video-wrapper__play .pi {
+  font-size: 1.15rem;
+  margin-left: 0.2rem;
+}
+
+.video-wrapper__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.video-wrapper__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.video-wrapper__title {
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.video-wrapper__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.video-wrapper:hover .video-wrapper__action,
+.video-wrapper:focus-visible .video-wrapper__action {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* ─── CTA banner ──────────────────────────────────────────────── */

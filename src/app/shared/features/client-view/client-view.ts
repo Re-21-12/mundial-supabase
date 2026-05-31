@@ -15,12 +15,8 @@ export interface ClientViewConfig {
 @Component({
   selector: 'app-client-view',
   imports: [SelectedDisplay],
-  template: `
-    <div class="p-4">
-      <h2 class="text-xl font-semibold mb-4">{{ config?.header }}</h2>
-      <app-selected-display (pageChange)="onPageChange($event)" />
-    </div>
-  `,
+  templateUrl: './client-view.html',
+  styleUrl: './client-view.css',
   providers: [DynamicTableService],
 })
 export class ClientViewPage implements OnInit {

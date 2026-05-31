@@ -36,129 +36,8 @@ interface LeagueRow {
   standalone: true,
   imports: [ClientCardComponent, ButtonModule, CreateLeagueDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="ml-page">
-      <div class="ml-header">
-        <div class="ml-header__title">
-          <h2 class="ml-title">
-            <i class="pi pi-trophy"></i>
-            Mis Ligas
-          </h2>
-          <p class="ml-subtitle">Crea una liga nueva o revisa las ligas a las que ya perteneces.</p>
-        </div>
-        <div class="ml-actions">
-          <p-button
-            label="Crear liga nueva"
-            icon="pi pi-plus"
-            severity="primary"
-            (click)="showCreateDialog.set(true)"
-          />
-        </div>
-      </div>
-
-      @if (loading()) {
-        <div class="ml-grid">
-          @for (n of [1, 2, 3, 4]; track n) {
-            <div class="ml-skeleton"></div>
-          }
-        </div>
-      } @else if (cards().length === 0) {
-        <div class="ml-empty">
-          <i class="pi pi-trophy"></i>
-          <p>No perteneces a ninguna liga aún.</p>
-        </div>
-      } @else {
-        <div class="ml-grid">
-          @for (card of cards(); track card.id) {
-            <app-client-card [card]="card" (action)="onAction($event)" />
-          }
-        </div>
-      }
-    </div>
-
-    @if (showCreateDialog()) {
-      <app-create-league-dialog
-        (created)="onLeagueCreated($event)"
-        (cancelled)="showCreateDialog.set(false)"
-      />
-    }
-  `,
-  styles: [
-    `
-      .ml-page {
-        padding: 1.5rem;
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-      .ml-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-
-      .ml-actions {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-      .ml-header__title {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      .ml-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0;
-      }
-      .ml-subtitle {
-        margin: 0;
-        color: var(--muted-foreground);
-        font-size: 0.9rem;
-      }
-      .ml-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.25rem;
-      }
-      .ml-skeleton {
-        height: 220px;
-        border-radius: 20px;
-        background: var(--card);
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.45;
-        }
-      }
-      .ml-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        min-height: 200px;
-        color: var(--muted-foreground);
-        font-size: 0.95rem;
-      }
-      .ml-empty .pi {
-        font-size: 2rem;
-      }
-    `,
-  ],
+  templateUrl: './mis-ligas.html',
+  styleUrls: ['./mis-ligas.css'],
 })
 export class MisLigasPage implements OnInit, OnDestroy {
   private readonly db = inject(SupabaseService);
@@ -278,7 +157,7 @@ export class MisLigasPage implements OnInit, OnDestroy {
     if (key === 'chat') {
       this.router.navigate(['/league', card.id, 'chat']);
     } else if (key === 'simulate') {
-      void this.onSimulate(card.id);
+      void this.onSimulate(Number(card.id));
     } else {
       this.router.navigate(['/league', card.id, 'standings']);
     }

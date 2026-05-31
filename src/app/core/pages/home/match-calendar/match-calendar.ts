@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { MatchCard } from '../../../core/pages/home/models/home.models';
+import { MatchCard } from '../models/home.models';
 
 interface CalendarDay {
   date: Date;

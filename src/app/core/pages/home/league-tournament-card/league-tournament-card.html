@@ -1,0 +1,90 @@
+<div class="tc-card" [class.tc-card--joined]="league().is_joined">
+  <div class="tc-banner" [style.background]="bannerBackground()">
+    @if (league().logo_url) {
+      <img
+        class="tc-banner__img"
+        [src]="league().logo_url"
+        [alt]="league().name"
+        loading="lazy"
+      />
+    } @else {
+      <span class="tc-banner__initial">{{ bannerInitial() }}</span>
+    }
+    <div class="tc-banner__overlay"></div>
+    <div class="tc-banner__bottom">
+      <h3 class="tc-banner__title">{{ league().name }}</h3>
+      <div class="tc-chips">
+        <span class="tc-chip" [class]="statusChipClass()">{{ statusLabel() }}</span>
+        @if (league().league_type && league().league_type !== 'Sin tipo') {
+          <span class="tc-chip tc-chip--type">{{ league().league_type }}</span>
+        }
+        @if (league().buy_in_amount > 0) {
+          <span class="tc-chip tc-chip--prize">$ {{ league().buy_in_amount }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="tc-body">
+    @if (league().league_type_desc) {
+      <p class="tc-desc">{{ league().league_type_desc }}</p>
+    }
+
+    <div class="tc-metrics">
+      <div class="tc-metric">
+        <i class="pi pi-users"></i>
+        <span>{{ league().total_participants }}</span>
+        <span class="tc-metric__label">participantes</span>
+      </div>
+      @if (league().buy_in_amount > 0) {
+        <div class="tc-metric tc-metric--prize">
+          <i class="pi pi-trophy"></i>
+          <span class="tc-metric__label">Premio por clasificar</span>
+        </div>
+      }
+    </div>
+
+    @if (league().is_joined) {
+      <div class="tc-user-stats">
+        <span class="tc-user-pos">{{ positionEmoji() }}</span>
+        <div class="tc-user-info">
+          <span class="tc-user-pts">
+            {{ league().accumulated_points }}<span class="tc-pts-label"> pts</span>
+          </span>
+          <span class="tc-user-rank">de {{ league().total_participants }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="tc-footer">
+    @if (league().is_joined) {
+      <button class="tc-btn tc-btn--primary" type="button" (click)="navigate.emit()">
+        <i class="pi pi-arrow-right"></i>
+        Ver liga
+      </button>
+    } @else if (league().approval_status === 'pending_approval') {
+      <div class="tc-pending">
+        <i class="pi pi-clock"></i>
+        <span>Pendiente de aprobación</span>
+      </div>
+    } @else if (canJoin()) {
+      <button
+        class="tc-btn tc-btn--join"
+        type="button"
+        [disabled]="joining()"
+        (click)="join.emit()"
+      >
+        @if (joining()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          Procesando...
+        } @else {
+          <i class="pi pi-plus-circle"></i>
+          {{ joinLabel() }}
+        }
+      </button>
+    } @else {
+      <span class="tc-unavailable">No disponible</span>
+    }
+  </div>
+</div>

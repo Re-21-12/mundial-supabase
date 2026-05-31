@@ -1,6 +1,6 @@
 <div hlmSidebarWrapper class="bg-background text-foreground w-full min-h-screen">
   <!-- Start Side bar -->
-  <hlm-sidebar variant="inset" collapsible="icon">
+  <hlm-sidebar variant="inset" collapsible="icon" class="layout-sidebar">
     <div hlmSidebarHeader class="flex items-center justify-between">
       <span class="text-sm font-semibold tracking-tight">{{ title() }}</span>
       <button hlmSidebarRail aria-label="Alternar sidebar"></button>
@@ -33,8 +33,20 @@
     <header class="flex h-12 items-center justify-between px-4 border-b">
       <div class="flex items-center gap-2">
         <!-- Toggle -->
-        <button hlmSidebarTrigger>
+        <button hlmSidebarTrigger class="hidden sm:inline-flex">
           <span class="sr-only">Alternar menú</span>
+        </button>
+
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          class="sm:hidden"
+          aria-label="Abrir menú"
+          (click)="toggleMobileMenu()"
+        >
+          <ng-icon hlm size="sm" name="lucideMenu" />
         </button>
 
         <app-global-search class="hidden sm:block" />
@@ -120,4 +132,38 @@
       <router-outlet />
     </div>
   </main>
+
+  @if (showMobileMenu()) {
+    <div class="mobile-drawer-backdrop" (click)="closeMobileMenu()"></div>
+    <aside class="mobile-drawer" aria-label="Menú principal móvil">
+      <div class="mobile-drawer__header">
+        <span class="mobile-drawer__title">Menú</span>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          aria-label="Cerrar menú"
+          title="Cerrar menú"
+          (click)="closeMobileMenu()"
+        >
+          <ng-icon hlm size="sm" name="lucideX" />
+        </button>
+      </div>
+
+      <div class="mobile-drawer__content">
+        @for (item of menuItems(); track trackByPath($index, item)) {
+          <a
+            class="mobile-drawer__item"
+            [routerLink]="getRouteLink(item.path)"
+            routerLinkActive="mobile-drawer__item--active"
+            (click)="closeMobileMenu()"
+          >
+            <ng-icon hlm size="sm" [name]="item.icon" />
+            <span>{{ item.title }}</span>
+          </a>
+        }
+      </div>
+    </aside>
+  }
 </div>

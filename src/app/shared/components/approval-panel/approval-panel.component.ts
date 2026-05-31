@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ApprovalService, PendingParticipant } from '../../../core/pages/league/approval.service';
+import { ApprovalService, PendingParticipant } from '../../../core/pages/league/approval/approval.service';
 import { AuthFacade } from '../../features/auth/auth.facade';
 
 @Component({

@@ -4,43 +4,8 @@ import { AuthFacade } from '../auth.facade';
 
 @Component({
   selector: 'app-auth-callback',
-  template: `
-    <section class="callback-shell" aria-live="polite" aria-busy="true">
-      <div class="callback-card">
-        <h1>Validando acceso</h1>
-        <p>Estamos completando tu autenticacion. Seras redirigido en unos segundos.</p>
-      </div>
-    </section>
-  `,
-  styles: [
-    `
-      .callback-shell {
-        min-height: 60vh;
-        display: grid;
-        place-items: center;
-        padding: 1.25rem;
-      }
-
-      .callback-card {
-        width: min(520px, 100%);
-        border: 1px solid #cbd5e1;
-        border-radius: 0.75rem;
-        background: #f8fafc;
-        padding: 1.25rem;
-      }
-
-      .callback-card h1 {
-        margin: 0;
-        font-size: 1.25rem;
-        color: #0f172a;
-      }
-
-      .callback-card p {
-        margin: 0.6rem 0 0;
-        color: #334155;
-      }
-    `,
-  ],
+  templateUrl: './auth-callback.html',
+  styleUrls: ['./auth-callback.css'],
 })
 export class AuthCallback implements OnInit {
   private readonly auth = inject(AuthFacade);
