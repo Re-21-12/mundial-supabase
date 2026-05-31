@@ -144,7 +144,11 @@ export class SupabaseAuthService {
         expiresInSec: expiresAt - nowInSeconds,
       });
 
-      void this._supabaseService.client.auth.getSession().then(({ data }) => {
+      // Usar refreshSession() en lugar de getSession(): getSession() devuelve la
+      // sesión cacheada si aún no expiró (incluso si faltan <5 min), mientras que
+      // refreshSession() siempre obtiene un nuevo access_token del servidor usando
+      // el refresh_token, garantizando que la sesión esté fresca.
+      void this._supabaseService.client.auth.refreshSession().then(({ data }) => {
         if (data.session) {
           this._applySessionState(data.session);
           this.logSessionDebug('backgroundRefresh:refreshed', {
@@ -565,7 +569,24 @@ export class SupabaseAuthService {
       this.logSessionDebug('refreshSession:start', {
         cachedSnapshot: this.getSessionSnapshot(this.session()),
       });
-      const { data, error } = await this._supabaseService.client.auth.getSession();
+
+      // 1. Intentar getSession() primero — rápido, usa caché si el token es válido.
+      const { data: cached, error: cachedErr } = await this._supabaseService.client.auth.getSession();
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const sessionValid =
+        cached?.session?.user &&
+        (cached.session.expires_at ?? 0) > nowInSeconds + 30;
+
+      if (!cachedErr && sessionValid) {
+        this._applySessionState(cached.session!);
+        this.logSessionDebug('refreshSession:cachedValid', {
+          snapshot: this.getSessionSnapshot(cached.session!),
+        });
+        return { data: { session: cached.session! }, error: null };
+      }
+
+      // 2. Token expirado o a punto de expirar: forzar refresh con el refresh_token.
+      const { data, error } = await this._supabaseService.client.auth.refreshSession();
       if (error) {
         console.error('[Auth] Error refreshing session:', error);
         this.logSessionDebug('refreshSession:error', {

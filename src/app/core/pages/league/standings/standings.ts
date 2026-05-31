@@ -6,12 +6,17 @@ import { ApprovalService } from '../approval/approval.service';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
 import { SimulateMatchService } from '../../../services/simulate-match.service';
 import { NotificationService } from '../../../../shared/services/notification-service';
+import { HomeMatchGridComponent } from '../../home/match-grid/home-match-grid';
+import { HomeRealtimeService } from '../../home/services/home-realtime.service';
+import { SupabaseService } from '../../../services/supabase-service';
+import type { MatchCard } from '../../home/models/home.models';
 
 @Component({
   selector: 'app-standings',
-  imports: [SendInvitationComponent, RouterLink],
+  imports: [SendInvitationComponent, RouterLink, HomeMatchGridComponent],
   templateUrl: './standings.html',
   styleUrl: './standings.css',
+  providers: [HomeRealtimeService], // requerido por HomeMatchGridComponent
 })
 export class StandingsPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
@@ -20,6 +25,7 @@ export class StandingsPage implements OnInit, OnDestroy {
   private readonly auth = inject(AuthFacade);
   private readonly simulateSvc = inject(SimulateMatchService);
   private readonly notif = inject(NotificationService);
+  private readonly db = inject(SupabaseService);
 
   protected readonly standings = signal<StandingRow[]>([]);
   protected readonly isLoading = signal(true);
@@ -28,15 +34,19 @@ export class StandingsPage implements OnInit, OnDestroy {
   protected readonly pendingCount = signal(0);
   protected readonly simulating = signal(false);
   protected readonly advancing = signal(false);
+  protected readonly matchCards = signal<MatchCard[]>([]);
+  protected readonly matchCardsLoading = signal(false);
 
   protected leagueId = 0;
 
-  protected readonly isAdmin = () =>
-    (this.auth.role() ?? '').toLowerCase() === 'admin';
+  protected readonly isAdmin = () => (this.auth.role() ?? '').toLowerCase() === 'admin';
+
+  // Puede gestionar la liga: dueño o admin global
+  protected readonly canManage = () => this.isLeagueOwner() || this.isAdmin();
 
   async ngOnInit() {
     this.leagueId = Number(this.route.snapshot.paramMap.get('id'));
-    await this.refresh();
+    await Promise.all([this.refresh(), this.loadMatchCards()]);
     this.standingsService.subscribeToChanges(this.leagueId, () => this.refresh());
     await this._checkOwnerAndPending();
   }
@@ -52,6 +62,40 @@ export class StandingsPage implements OnInit, OnDestroy {
     this.isLoading.set(false);
   }
 
+  private async loadMatchCards(): Promise<void> {
+    this.matchCardsLoading.set(true);
+
+    const { data } = await this.db.client
+      .from('MATCH')
+      .select(
+        '*, home_team:TEAM!MATCH_first_team_id_fkey(*), away_team:TEAM!MATCH_second_team_id_fkey(*), league:LEAGUE(name)',
+      )
+      .eq('league_id', this.leagueId)
+      .eq('is_deleted', false)
+      .order('start_time', { ascending: true });
+
+    if (data) {
+      const now = Date.now();
+      this.matchCards.set(
+        (data as any[])
+          .filter((m) => m.home_team && m.away_team)
+          .map((m) => {
+            const start = new Date(m.start_time).getTime();
+            const end = new Date(m.end_time).getTime();
+            return {
+              match: m,
+              homeTeam: m.home_team,
+              awayTeam: m.away_team,
+              leagueName: m.league?.name ?? '',
+              isLive: Number.isFinite(start) && Number.isFinite(end) && now >= start && now < end,
+            } as MatchCard;
+          }),
+      );
+    }
+
+    this.matchCardsLoading.set(false);
+  }
+
   private async _checkOwnerAndPending() {
     const userId = Number(this.auth.getInternalUserId());
     if (!userId) return;
@@ -59,6 +103,10 @@ export class StandingsPage implements OnInit, OnDestroy {
     const info = await this.approvalSvc.getLeagueInfo(this.leagueId);
     if (info && info.ownerId === userId) {
       this.isLeagueOwner.set(true);
+    }
+
+    // Pendientes visibles tanto para dueño como para admin global
+    if (this.isLeagueOwner() || this.isAdmin()) {
       const count = await this.approvalSvc.getPendingCount(this.leagueId);
       this.pendingCount.set(count);
     }
@@ -72,7 +120,7 @@ export class StandingsPage implements OnInit, OnDestroy {
 
     if (result.success) {
       this.notif.notify('success', 'Partido simulado', result.summary ?? '');
-      await this.refresh();
+      await Promise.all([this.refresh(), this.loadMatchCards()]);
     } else {
       this.notif.notify('warn', 'Sin partidos', result.error ?? 'No hay partidos pendientes.');
     }

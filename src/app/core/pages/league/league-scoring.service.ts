@@ -274,124 +274,68 @@ export class LeagueScoringService {
     return 0;
   }
 
+  // Distribución alineada con settle_league_rewards (SQL):
+  //   1ro → 50% del distributable (empate: dividido entre empatados)
+  //   2do → 25% del distributable (empate: dividido entre empatados)
+  //   Último (solo rank_pos > 2) → 10% del distributable (empate: dividido)
+  //   Plataforma → 5% del total
+  //   El resto queda en la caja de la liga.
   private buildAllocations(standings: StandingEntry[], total: number): PrizeAllocation[] {
     const n = standings.length;
     if (n === 0) return [];
 
-    // Liga con 1 participante: devuelve 95%
+    const dist = round2(total - round2(total * 0.05)); // distributable = 95% del total
+
     if (n === 1) {
-      return [{ ...standings[0], amount: round2(total * 0.95), rank: '1er lugar' }];
+      return [{ ...standings[0], amount: dist, rank: '1er lugar' }];
     }
 
-    const allocs: PrizeAllocation[] = [];
-    const byPoints = (pts: number) => standings.filter((s) => s.points === pts);
-    const uniquePts = [...new Set(standings.map((s) => s.points))].sort((a, b) => b - a);
+    // DENSE_RANK por puntos DESC (posición) y ASC (último) — igual que el SQL
+    const uniquePtsDesc = [...new Set(standings.map((s) => s.points))].sort((a, b) => b - a);
+    const uniquePtsAsc  = [...uniquePtsDesc].reverse();
+    const rankPos  = (s: StandingEntry) => uniquePtsDesc.indexOf(s.points) + 1;
+    const rankLast = (s: StandingEntry) => uniquePtsAsc.indexOf(s.points) + 1;
 
-    const g1 = byPoints(uniquePts[0]); // 1er lugar
-    const g2 = uniquePts.length > 1 ? byPoints(uniquePts[1]) : []; // 2do lugar
-    const g3 = uniquePts.length > 2 ? byPoints(uniquePts[2]) : []; // 3er lugar
-    const gLast = byPoints(uniquePts[uniquePts.length - 1]); // último
+    const byRankPos  = (r: number) => standings.filter((s) => rankPos(s)  === r);
+    const byRankLast = (r: number) => standings.filter((s) => rankLast(s) === r);
 
-    // Caso: todos empatados
-    if (uniquePts.length === 1) {
-      const share = round2((total * 0.95) / n);
-      return standings.map((s) => ({ ...s, amount: share, rank: '1er lugar (empate general)' }));
+    const pool = new Map<number, { amount: number; parts: string[] }>(
+      standings.map((s) => [s.userLeagueId, { amount: 0, parts: [] }]),
+    );
+    const add = (s: StandingEntry, amount: number, label: string) => {
+      const e = pool.get(s.userLeagueId)!;
+      e.amount = round2(e.amount + amount);
+      e.parts.push(label);
+    };
+
+    const g1 = byRankPos(1);
+    const g2 = byRankPos(2);
+
+    // ── 1er lugar: 50% ───────────────────────────────────────────────────────
+    const firstShare = round2((dist * 0.50) / g1.length);
+    g1.forEach((s) => add(s, firstShare, g1.length > 1 ? '1er lugar (empate)' : '1er lugar'));
+
+    // ── 2do lugar: 25% ───────────────────────────────────────────────────────
+    if (g2.length > 0) {
+      const secondShare = round2((dist * 0.25) / g2.length);
+      g2.forEach((s) => add(s, secondShare, g2.length > 1 ? '2do lugar (empate)' : '2do lugar'));
     }
 
-    // ── EMPATE EN 1ER LUGAR ───────────────────────────────────────────────────
-    if (g1.length > 1) {
-      const firstShare = round2((total * 0.85) / g1.length);
-      g1.forEach((s) => allocs.push({ ...s, amount: firstShare, rank: '1er lugar (empate)' }));
-
-      // Último sólo si no está en el grupo 1
-      const lastNotInFirst = gLast.filter(
-        (l) => !g1.some((f) => f.userLeagueId === l.userLeagueId),
-      );
-      if (lastNotInFirst.length > 0) {
-        const lastShare = round2((total * 0.1) / lastNotInFirst.length);
-        lastNotInFirst.forEach((s) =>
-          allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }),
-        );
-      }
-      return allocs;
-    }
-
-    // 1er lugar único
-    allocs.push({ ...g1[0], amount: round2(total * 0.5), rank: '1er lugar' });
-
-    // Liga con sólo 2 participantes
-    if (n === 2) {
-      allocs.push({ ...gLast[0], amount: round2(total * 0.35), rank: 'Último lugar' });
-      return allocs;
-    }
-
-    // ── EMPATE EN 2DO LUGAR ───────────────────────────────────────────────────
-    if (g2.length > 1) {
-      const secondShare = round2((total * 0.35) / g2.length);
-      g2.forEach((s) => allocs.push({ ...s, amount: secondShare, rank: '2do lugar (empate)' }));
-
-      const lastNotIn2nd = gLast.filter(
-        (l) => !g2.some((s2) => s2.userLeagueId === l.userLeagueId),
-      );
-      if (lastNotIn2nd.length > 0) {
-        const lastShare = round2((total * 0.1) / lastNotIn2nd.length);
-        lastNotIn2nd.forEach((s) => allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }));
-      }
-      return allocs;
-    }
-
-    // 2do lugar único
-    if (g2.length === 1) {
-      allocs.push({ ...g2[0], amount: round2(total * 0.25), rank: '2do lugar' });
-    }
-
-    // Liga con sólo 3 participantes (3ro = último, combina 10%+10% = 20%)
-    if (n === 3) {
-      const thirdShare = round2((total * 0.2) / gLast.length);
-      gLast.forEach((s) => allocs.push({ ...s, amount: thirdShare, rank: '3er/Último lugar' }));
-      return allocs;
-    }
-
-    // ── EMPATE EN 3ER LUGAR ───────────────────────────────────────────────────
-    if (g3.length > 1) {
-      const thirdShare = round2((total * 0.1) / g3.length);
-      g3.forEach((s) => allocs.push({ ...s, amount: thirdShare, rank: '3er lugar (empate)' }));
-
-      const lastNotIn3rd = gLast.filter(
-        (l) => !g3.some((s3) => s3.userLeagueId === l.userLeagueId),
-      );
-      if (lastNotIn3rd.length > 0) {
-        const lastShare = round2((total * 0.1) / lastNotIn3rd.length);
-        lastNotIn3rd.forEach((s) => allocs.push({ ...s, amount: lastShare, rank: 'Último lugar' }));
-      }
-      return allocs;
-    }
-
-    // 3er lugar único
-    if (g3.length === 1) {
-      allocs.push({ ...g3[0], amount: round2(total * 0.1), rank: '3er lugar' });
-    }
-
-    // ── EMPATE EN ÚLTIMO LUGAR (≥4 participantes) ─────────────────────────────
-    const inTop3Ids = new Set([
-      ...g1.map((s) => s.userLeagueId),
-      ...g2.map((s) => s.userLeagueId),
-      ...g3.map((s) => s.userLeagueId),
-    ]);
-    const lastNotInTop3 = gLast.filter((l) => !inTop3Ids.has(l.userLeagueId));
-
-    if (lastNotInTop3.length > 0) {
-      const lastShare = round2((total * 0.1) / lastNotInTop3.length);
-      lastNotInTop3.forEach((s) =>
-        allocs.push({
-          ...s,
-          amount: lastShare,
-          rank: lastNotInTop3.length > 1 ? 'Último lugar (empate)' : 'Último lugar',
-        }),
+    // ── Último lugar: 10% — SOLO para rank_pos > 2 ───────────────────────────
+    // Si el último coincide con el 2do (liga de 2 o empate total), el 10% queda
+    // en la caja; no se paga doble.
+    const gLast = byRankLast(1).filter((s) => rankPos(s) > 2);
+    if (gLast.length > 0) {
+      const lastShare = round2((dist * 0.10) / gLast.length);
+      gLast.forEach((s) =>
+        add(s, lastShare, gLast.length > 1 ? 'Último lugar (empate)' : 'Último lugar'),
       );
     }
 
-    return allocs;
+    return standings.map((s) => {
+      const e = pool.get(s.userLeagueId)!;
+      return { ...s, amount: e.amount, rank: e.parts.join(' / ') || 'Sin posición' };
+    });
   }
 }
 

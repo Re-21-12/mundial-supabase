@@ -72,7 +72,7 @@
     <p-paginator
       [first]="(tableProps().currentPage ?? 0) * tableProps().rows"
       [rows]="tableProps().rows"
-      [totalRecords]="tableProps().totalRecords"
+      [totalRecords]="tableProps().totalRecords ?? tableProps().data.length"
       [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
       [showCurrentPageReport]="true"
       currentPageReportTemplate="{first} - {last} de {totalRecords}"

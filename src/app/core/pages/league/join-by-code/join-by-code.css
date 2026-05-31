@@ -1,0 +1,120 @@
+.jbc-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--background);
+}
+
+.jbc-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ── States ────────────────────────────────────────────────────── */
+.jbc-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.jbc-state--loading { color: var(--muted-foreground); }
+.jbc-state--success { color: var(--foreground); }
+.jbc-state--pending { color: var(--foreground); }
+.jbc-state--error   { color: var(--foreground); }
+
+/* ── Icon ──────────────────────────────────────────────────────── */
+.jbc-icon {
+  font-size: 2.75rem;
+  margin-bottom: 0.25rem;
+}
+.jbc-icon--success { color: #22c55e; }
+.jbc-icon--pending { color: #f59e0b; }
+.jbc-icon--error   { color: var(--destructive, #ef4444); }
+
+/* ── League preview ────────────────────────────────────────────── */
+.jbc-league-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.jbc-league-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.jbc-buy-in {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+}
+
+.jbc-buy-in strong { font-weight: 700; }
+
+.jbc-free {
+  font-size: 0.9rem;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.jbc-hint {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 300px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.jbc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+  margin-top: 0.25rem;
+}
+
+.jbc-btn:hover { opacity: 0.85; }
+
+.jbc-btn--primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.jbc-btn--secondary {
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.jbc-link {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.jbc-link:hover { color: var(--foreground); }

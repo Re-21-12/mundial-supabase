@@ -2,6 +2,6 @@
 @if(isDesktop())  {
   <app-dynamic-table (delete)="deletedFn($event)" (pageChange)="onPageChange($event)"></app-dynamic-table>
 } @else {
-  <app-dynamic-cards (delete)="deletedFn($event)"></app-dynamic-cards>
+  <app-dynamic-cards (delete)="deletedFn($event)" (pageChange)="onPageChange($event)"></app-dynamic-cards>
 }
 </div>

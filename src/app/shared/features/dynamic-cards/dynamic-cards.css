@@ -195,12 +195,6 @@
   flex-wrap: wrap;
 }
 
-:host ::ng-deep .dc-pagination .p-paginator .p-paginator-pages,
-:host ::ng-deep .dc-pagination .p-paginator .p-paginator-rpp-options,
-:host ::ng-deep .dc-pagination .p-paginator .p-paginator-current {
-  order: 2;
-}
-
 :host ::ng-deep .dc-pagination .p-paginator .p-dropdown {
   min-width: 4.5rem;
 }

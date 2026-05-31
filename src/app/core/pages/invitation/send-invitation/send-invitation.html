@@ -1,6 +1,34 @@
 <section class="send-inv-shell" aria-labelledby="send-inv-title">
   <h2 id="send-inv-title" class="send-inv-title">Enviar Invitación</h2>
 
+  <!-- Enlace directo de unirse por código de liga -->
+  @if (joinUrl()) {
+    <div class="join-url-block">
+      <p class="join-url-label">
+        <i class="pi pi-link"></i>
+        Enlace directo de ingreso
+      </p>
+      <p class="join-url-hint">
+        Comparte este enlace — cualquier persona puede usarlo para solicitar unirse a la liga directamente.
+      </p>
+      <div class="token-row">
+        <code class="token-code join-url-code">{{ joinUrl() }}</code>
+        <button
+          type="button"
+          class="copy-btn"
+          (click)="copyJoinUrl()"
+          [attr.aria-label]="copiedUrl() ? 'Copiado' : 'Copiar enlace'"
+        >
+          @if (copiedUrl()) {
+            <i class="pi pi-check"></i> Copiado
+          } @else {
+            <i class="pi pi-copy"></i> Copiar
+          }
+        </button>
+      </div>
+    </div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="send-inv-form">
 
     <div class="field">

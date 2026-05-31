@@ -1,7 +1,31 @@
 .standings-wrapper {
-  max-width: 680px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
+}
+
+/* ── Sección de partidos ───────────────────────────────────────── */
+.standings-matches {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.standings-matches__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 1rem;
+}
+
+.standings-matches__msg {
+  color: var(--muted-foreground);
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 1.5rem 0;
 }
 
 .standings-header {

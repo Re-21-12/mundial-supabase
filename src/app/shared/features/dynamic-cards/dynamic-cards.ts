@@ -22,10 +22,17 @@ export class DynamicCards {
 
   readonly pagedItems = computed(() => {
     const props = this.tableProps();
+    const data = props.data;
+    const totalRecords = props.totalRecords ?? data.length;
+
+    // Paginación server-side: el padre carga solo una página a la vez.
+    // data.length < totalRecords → data ya es la rebanada correcta, no rebanar de nuevo.
+    if (data.length < totalRecords) return data;
+
+    // Paginación client-side: todos los registros cargados, rebanar localmente.
     const currentPage = props.currentPage ?? 0;
     const rows = props.rows ?? 10;
-    const first = currentPage * rows;
-    return props.data.slice(first, first + rows);
+    return data.slice(currentPage * rows, (currentPage + 1) * rows);
   });
 
   readonly showPaginator = computed(() => {

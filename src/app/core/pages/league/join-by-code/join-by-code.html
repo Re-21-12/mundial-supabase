@@ -1,0 +1,95 @@
+<div class="jbc-shell">
+  <div class="jbc-card">
+
+    <!-- Loading -->
+    @if (status() === 'loading') {
+      <div class="jbc-state jbc-state--loading">
+        <i class="pi pi-spin pi-spinner jbc-icon"></i>
+        <p>Verificando código…</p>
+      </div>
+    }
+
+    <!-- Preview: mostrar info de la liga y botón de unirse -->
+    @if (status() === 'preview') {
+      @let l = league()!;
+      <div class="jbc-state">
+        <div class="jbc-league-icon">🏆</div>
+        <h2 class="jbc-league-name">{{ l.name }}</h2>
+        @if (l.isBettingLeague) {
+          <p class="jbc-buy-in">
+            <i class="pi pi-wallet"></i>
+            Cuota de entrada: <strong>Q.{{ l.buyInAmount }}</strong>
+          </p>
+        } @else {
+          <p class="jbc-free">Liga gratuita</p>
+        }
+        <p class="jbc-hint">Al unirte, tu solicitud será revisada por el administrador de la liga.</p>
+        <button class="jbc-btn jbc-btn--primary" type="button" (click)="onJoin()">
+          <i class="pi pi-user-plus"></i>
+          Unirme a esta liga
+        </button>
+        <a class="jbc-link" routerLink="/home">Cancelar</a>
+      </div>
+    }
+
+    <!-- Joining spinner -->
+    @if (status() === 'joining') {
+      <div class="jbc-state jbc-state--loading">
+        <i class="pi pi-spin pi-spinner jbc-icon"></i>
+        <p>Procesando tu solicitud…</p>
+      </div>
+    }
+
+    <!-- Success: ingresó de inmediato -->
+    @if (status() === 'success') {
+      <div class="jbc-state jbc-state--success">
+        <i class="pi pi-check-circle jbc-icon jbc-icon--success"></i>
+        <h2>¡Bienvenido!</h2>
+        <p>Ingresaste a <strong>{{ league()?.name }}</strong> exitosamente.</p>
+        <p class="jbc-hint">Redirigiendo a la liga…</p>
+        @if (joinedLeagueId()) {
+          <a class="jbc-btn jbc-btn--primary" [routerLink]="['/league', joinedLeagueId(), 'standings']">
+            Ver posiciones
+          </a>
+        }
+      </div>
+    }
+
+    <!-- Pending: solicitud pendiente de aprobación -->
+    @if (status() === 'pending') {
+      <div class="jbc-state jbc-state--pending">
+        <i class="pi pi-clock jbc-icon jbc-icon--pending"></i>
+        <h2>Solicitud enviada</h2>
+        <p>Tu solicitud para unirte a <strong>{{ league()?.name }}</strong> está pendiente de aprobación.</p>
+        <p class="jbc-hint">El administrador de la liga recibirá una notificación. Te avisaremos cuando sea aprobada.</p>
+        <a class="jbc-btn jbc-btn--secondary" routerLink="/home">Ir al inicio</a>
+      </div>
+    }
+
+    <!-- Already a member -->
+    @if (status() === 'already') {
+      <div class="jbc-state jbc-state--success">
+        <i class="pi pi-check-circle jbc-icon jbc-icon--success"></i>
+        <h2>Ya eres miembro</h2>
+        <p>Ya perteneces a <strong>{{ league()?.name }}</strong>.</p>
+        @if (joinedLeagueId()) {
+          <a class="jbc-btn jbc-btn--primary" [routerLink]="['/league', joinedLeagueId(), 'standings']">
+            Ver posiciones
+          </a>
+        }
+        <a class="jbc-link" routerLink="/home">Ir al inicio</a>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (status() === 'error') {
+      <div class="jbc-state jbc-state--error">
+        <i class="pi pi-times-circle jbc-icon jbc-icon--error"></i>
+        <h2>No se pudo procesar</h2>
+        <p>{{ errorMsg() }}</p>
+        <a class="jbc-btn jbc-btn--secondary" routerLink="/home">Ir al inicio</a>
+      </div>
+    }
+
+  </div>
+</div>

@@ -21,6 +21,12 @@ export const routes: Routes = [
     loadComponent: () => import('./core/pages/invite/invite').then((m) => m.InvitePage),
   },
   {
+    path: 'join',
+    title: 'Unirse a liga',
+    loadComponent: () =>
+      import('./core/pages/league/join-by-code/join-by-code').then((m) => m.JoinByCodePage),
+  },
+  {
     path: 'league-preview/:id',
     title: 'Vista previa de liga',
     loadComponent: () =>

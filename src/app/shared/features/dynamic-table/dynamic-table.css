@@ -48,12 +48,6 @@
   padding: 0.6rem 0.75rem;
 }
 
-:host ::ng-deep .dynamic-table-shell .dt-paginator .p-paginator-pages,
-:host ::ng-deep .dynamic-table-shell .dt-paginator .p-paginator-rpp-options,
-:host ::ng-deep .dynamic-table-shell .dt-paginator .p-paginator-current {
-  order: 2;
-}
-
 :host ::ng-deep .dynamic-table-shell .dt-paginator .p-paginator-current {
   color: var(--muted-foreground, #64748b);
   font-size: 0.8rem;

@@ -71,7 +71,9 @@ export class DynamicTable {
   // ── Filtros ──────────────────────────────────────────────────────────────────
   protected readonly globalSearch = signal('');
   protected readonly columnFilters = signal<Record<string, string>>({});
-  protected readonly filterFirst = signal(0);
+  protected readonly filterFirst = computed(
+    () => this.tableService.getCurrentPage() * this.tableService.getPageSize(),
+  );
   private filtersInitialized = false;
 
   protected readonly hasActiveFilters = computed(
@@ -79,6 +81,13 @@ export class DynamicTable {
       this.globalSearch().trim().length > 0 ||
       this.tableProps().columns.some((col) => !!this.columnFilters()[col.field]?.trim()),
   );
+
+  // Slice de la página actual sobre los datos filtrados (para que lazy=true muestre solo la página)
+  protected readonly pagedFilteredData = computed(() => {
+    const first = this.filterFirst();
+    const rows = this.tableProps().rows;
+    return this.filteredData().slice(first, first + rows);
+  });
 
   protected readonly filteredData = computed(() => {
     const data = this.tableProps().data as Record<string, unknown>[];
@@ -139,7 +148,6 @@ export class DynamicTable {
       this.columnFilters();
       if (this.filtersInitialized) {
         untracked(() => {
-          this.filterFirst.set(0);
           this.tableService.onPageChange({ first: 0, rows: this.tableService.getPageSize() });
         });
       }
@@ -475,7 +483,6 @@ export class DynamicTable {
   }
 
   onPageChange(event: { first: number; rows: number }) {
-    this.filterFirst.set(event.first);
     this.tableService.onPageChange(event);
     this.pageChange.emit(event);
   }

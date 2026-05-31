@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } fro
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade } from '../../../../shared/features/auth/auth.facade';
 import { InvitationService, InvitationType } from '../../../../shared/components/notification-inbox/invitation.service';
+import { SupabaseService } from '../../../services/supabase-service';
 
 @Component({
   selector: 'app-send-invitation',
@@ -14,6 +15,7 @@ export class SendInvitationComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly invitationService = inject(InvitationService);
   private readonly authFacade = inject(AuthFacade);
+  private readonly db = inject(SupabaseService);
 
   readonly leagueId = input<number>(0);
 
@@ -22,6 +24,9 @@ export class SendInvitationComponent implements OnInit {
   protected readonly emailSent = signal<boolean | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly copied = signal(false);
+  /** URL directa para que el invitado se una sin token de email */
+  protected readonly joinUrl = signal<string | null>(null);
+  protected readonly copiedUrl = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -29,11 +34,25 @@ export class SendInvitationComponent implements OnInit {
     type: ['existing' as InvitationType, Validators.required],
   });
 
-  ngOnInit() {
+  async ngOnInit() {
     const id = this.leagueId();
     if (id > 0) {
       this.form.controls.leagueId.setValue(id);
       this.form.controls.leagueId.disable();
+      await this._loadJoinUrl(id);
+    }
+  }
+
+  private async _loadJoinUrl(leagueId: number): Promise<void> {
+    const { data } = await this.db.client
+      .from('LEAGUE')
+      .select('invitation_code')
+      .eq('league_id', leagueId)
+      .maybeSingle();
+
+    const code = (data as any)?.invitation_code;
+    if (code) {
+      this.joinUrl.set(`${window.location.origin}/join?code=${code}`);
     }
   }
 
@@ -81,6 +100,18 @@ export class SendInvitationComponent implements OnInit {
       await navigator.clipboard.writeText(token);
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      // clipboard not available
+    }
+  }
+
+  protected async copyJoinUrl() {
+    const url = this.joinUrl();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      this.copiedUrl.set(true);
+      setTimeout(() => this.copiedUrl.set(false), 2000);
     } catch {
       // clipboard not available
     }

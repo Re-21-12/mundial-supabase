@@ -10,7 +10,8 @@
         <i class="pi pi-comments"></i>
         Chat
       </a>
-      @if (isLeagueOwner() || isAdmin()) {
+
+      @if (canManage()) {
         <a
           class="approvals-btn"
           [routerLink]="['/league', leagueId, 'approvals']"
@@ -45,6 +46,7 @@
           {{ advancing() ? 'Avanzando…' : 'Avanzar bracket' }}
         </button>
       }
+
       <button
         class="invite-btn"
         type="button"
@@ -63,6 +65,7 @@
     </div>
   }
 
+  <!-- ── Tabla de posiciones ───────────────────────────────────────── -->
   @if (isLoading()) {
     <div class="standings-loading" role="status" aria-live="polite">Cargando posiciones…</div>
   } @else if (standings().length === 0) {
@@ -116,4 +119,19 @@
       </tbody>
     </table>
   }
+
+  <!-- ── Partidos de esta liga ─────────────────────────────────────── -->
+  <section class="standings-matches">
+    <h3 class="standings-matches__title">
+      <i class="pi pi-calendar-clock"></i>
+      Partidos
+    </h3>
+    @if (matchCardsLoading()) {
+      <p class="standings-matches__msg">Cargando partidos…</p>
+    } @else if (matchCards().length === 0) {
+      <p class="standings-matches__msg">No hay partidos registrados para esta liga.</p>
+    } @else {
+      <app-home-match-grid [cards]="matchCards()" />
+    }
+  </section>
 </div>
