@@ -41,6 +41,14 @@ export class Auth implements OnInit {
     this.getModeSignIn();
     this.syncModeFromQueryParams();
     this.checkCallbackError();
+    this._saveReturnUrl();
+  }
+
+  private _saveReturnUrl() {
+    const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl && returnUrl.startsWith('/')) {
+      sessionStorage.setItem('pending_return_url', returnUrl);
+    }
   }
 
   private syncModeFromQueryParams() {

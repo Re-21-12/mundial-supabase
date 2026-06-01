@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
-import { WalletService } from '../wallet/wallet.service';
 import { LeagueRoleService } from '../../services/league-role.service';
+import { WalletService } from '../admin/wallet/wallet.service';
 
 export interface LeaguePreview {
   leagueId: number;

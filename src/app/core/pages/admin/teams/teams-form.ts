@@ -1,0 +1,81 @@
+import { Validators } from '@angular/forms';
+import { FormFields } from '../../../../shared/features/dynamic-form/interfaces/field-props';
+import { TypeFields } from '../../../../shared/features/dynamic-form/enums/type-fields';
+
+export const formFields: FormFields = {
+  teamForm: {
+    fields: [
+      {
+        icon: 'pi pi-users',
+        key: 'name',
+        type: TypeFields.TEXT,
+        label: 'Nombre del Equipo',
+        placeholder: 'Ingresa el nombre del equipo',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        hint: 'Nombre oficial del equipo',
+        value: '',
+        rules: [Validators.required, Validators.minLength(3)],
+        options: [],
+        controlType: TypeFields.TEXT,
+        order: 1,
+      },
+      {
+        icon: 'pi pi-globe',
+        key: 'catalog_id',
+        type: TypeFields.SELECT,
+        label: 'Categoría del Equipo',
+        placeholder: 'Selecciona la categoría',
+        state: {
+          required: true,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 1, maxItems: 1 },
+        },
+        hint: 'Selección nacional, club de liga, etc.',
+        value: 0,
+        rules: [Validators.required],
+        options: [],
+        optionsSource: {
+          table: 'CATALOG',
+          filterField: 'table_id',
+          filterValue: 10,
+          valueField: 'catalog_id',
+          labelField: 'description',
+          orderBy: 'description',
+          order: 'asc',
+          includeDeleted: false,
+        },
+        controlType: TypeFields.SELECT,
+        order: 2,
+      },
+      {
+        icon: 'pi pi-image',
+        key: 'logo_url',
+        type: TypeFields.IMAGE_UPLOAD,
+        label: 'Logo',
+        placeholder: '',
+        state: {
+          required: false,
+          disabled: false,
+          hidden: false,
+          readonly: false,
+          repeatible: { repeat: false, minItems: 0, maxItems: 1 },
+        },
+        hint: 'Imagen del equipo (subida a Supabase Storage)',
+        value: '',
+        rules: [],
+        options: [],
+        controlType: TypeFields.IMAGE_UPLOAD,
+        storage: { bucket: 'logos', folder: 'teams' },
+        order: 3,
+      },
+    ],
+  },
+};

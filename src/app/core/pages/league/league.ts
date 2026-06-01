@@ -9,8 +9,8 @@ import { firstValueFrom } from 'rxjs';
 import { PostgrestError } from '@supabase/supabase-js';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
-import { formFields } from './league-form';
 import { SupabaseService } from '../../services/supabase-service';
+import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 
 @Component({
   selector: 'app-league',

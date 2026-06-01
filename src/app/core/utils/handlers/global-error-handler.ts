@@ -1,5 +1,5 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
-import { ErrorRegistryService } from '../../pages/error-monitor/error-registry.service';
+import { ErrorRegistryService } from '../../pages/admin/error-monitor/error-registry.service';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {

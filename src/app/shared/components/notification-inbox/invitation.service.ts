@@ -28,7 +28,7 @@ export class InvitationService {
 
   // ─── Existing user ────────────────────────────────────────────────────────
 
-  async sendToExistingUser(email: string, leagueId: number, inviterId: number) {
+  async sendToExistingUser(email: string, leagueId: number, inviterId: number, approveDirectly = false) {
     const client = this._db.client;
 
     // 1. Find the user by email
@@ -58,12 +58,13 @@ export class InvitationService {
       alreadyMember = true;
       userLeagueId = existing.user_league_id;
     } else if (existing && existing.is_deleted) {
-      // Soft-deleted — reactivate and approve directly
+      // Soft-deleted — reactivate
+      const approvalStatus = approveDirectly ? 'approved' : 'pending_approval';
       const { data: reactivated, error: reErr } = await client
         .from('USER_LEAGUE')
         .update({
           is_deleted: false,
-          approval_status: 'approved',
+          approval_status: approvalStatus,
           updated_at: new Date().toISOString(),
           updated_by: inviterId,
         } as any)
@@ -76,18 +77,18 @@ export class InvitationService {
       }
       userLeagueId = reactivated.user_league_id;
     } else if (existing && !existing.is_deleted) {
-      // Pending/rejected → approve directly
+      // Pending/rejected → update status based on who is inviting
       await client
         .from('USER_LEAGUE')
         .update({
-          approval_status: 'approved',
+          approval_status: approveDirectly ? 'approved' : 'pending_approval',
           updated_at: new Date().toISOString(),
           updated_by: inviterId,
         } as any)
         .eq('user_league_id', existing.user_league_id);
       userLeagueId = existing.user_league_id;
     } else {
-      // Fresh record — approve directly (registered user, no manual approval needed)
+      // Fresh record
       const { data: ul, error: ulErr } = await client
         .from('USER_LEAGUE')
         .insert({
@@ -95,7 +96,7 @@ export class InvitationService {
           user_id: user.user_id,
           created_by: inviterId,
           accumulated_points: 0,
-          approval_status: 'approved',
+          approval_status: approveDirectly ? 'approved' : 'pending_approval',
         } as any)
         .select('user_league_id')
         .single<{ user_league_id: number }>();
@@ -107,11 +108,38 @@ export class InvitationService {
       userLeagueId = ul.user_league_id;
     }
 
-    // 3. Assign user_league role (idempotent — skipped if already has it)
-    if (!alreadyMember) {
+    // 3. Assign role immediately only when approved; pending = role assigned on approval
+    if (!alreadyMember && approveDirectly) {
       this._leagueRole
         .ensureLeagueMemberRole(user.user_id, inviterId)
         .catch((err) => console.warn('[Invitation] Role assignment failed:', err));
+    }
+
+    // 3b. When pending, notify the league owner to approve/reject
+    if (!alreadyMember && !approveDirectly) {
+      const { data: leagueRow } = await client
+        .from('LEAGUE')
+        .select('user_id, name')
+        .eq('league_id', leagueId)
+        .maybeSingle<{ user_id: number; name: string }>();
+
+      if (leagueRow?.user_id && leagueRow.user_id !== inviterId) {
+        this._notifications
+          .sendNotification(
+            {
+              userId: leagueRow.user_id,
+              leagueId,
+              type: 'participant_approval',
+              title: 'Solicitud de ingreso a liga',
+              body: `${user.name ?? email} quiere unirse a ${leagueRow.name ?? 'tu liga'}. Aprueba o rechaza su solicitud.`,
+              actionUrl: `/league/${leagueId}/approvals`,
+              priority: 'high',
+              data: { userLeagueId, userId: user.user_id, userName: user.name ?? '', userEmail: email },
+            },
+            inviterId,
+          )
+          .catch((err) => console.warn('[Invitation] Pending approval notification failed:', err));
+      }
     }
 
     // 4. Create token + expiry (link lets them navigate directly to the league)

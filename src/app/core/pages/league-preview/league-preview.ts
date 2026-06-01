@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { StandingRow, StandingsService } from '../../services/standings.service';
+import { StandingRow, StandingsService } from '../league/standings/standings.service';
 
 @Component({
   selector: 'app-league-preview',

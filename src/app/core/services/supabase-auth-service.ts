@@ -263,8 +263,25 @@ export class SupabaseAuthService {
           this._applySessionState(session);
           if (session.user.user_metadata?.['force_password_change']) {
             this._router.navigate(['/set-password']);
+          } else {
+            // If the user already has a session and landed on the auth page
+            // (e.g. opening a join link while already logged in), honour the returnUrl.
+            const initUrl = this._router.url;
+            const isOnAuthPage =
+              !initUrl ||
+              initUrl === '/' ||
+              initUrl.startsWith('/auth') ||
+              initUrl.startsWith('/login') ||
+              initUrl.startsWith('/sign-in');
+            if (isOnAuthPage) {
+              const returnUrl = sessionStorage.getItem('pending_return_url');
+              if (returnUrl && returnUrl.startsWith('/')) {
+                sessionStorage.removeItem('pending_return_url');
+                void this._router.navigateByUrl(returnUrl);
+              }
+            }
+            // If not on auth page: normal page reload — do NOT redirect anywhere
           }
-          // Do not redirect to /home on normal page reload
         } else {
           this._clearSessionState();
         }
@@ -291,12 +308,18 @@ export class SupabaseAuthService {
             currentUrl.startsWith('/auth') ||
             currentUrl.startsWith('/sign-in');
           if (isAuthPage) {
-            const pendingInviteToken = sessionStorage.getItem('invite_token');
-            if (pendingInviteToken) {
-              sessionStorage.removeItem('invite_token');
-              this._router.navigate(['/invite'], { queryParams: { token: pendingInviteToken } });
+            const returnUrl = sessionStorage.getItem('pending_return_url');
+            if (returnUrl && returnUrl.startsWith('/')) {
+              sessionStorage.removeItem('pending_return_url');
+              void this._router.navigateByUrl(returnUrl);
             } else {
-              this._router.navigate(['/home']);
+              const pendingInviteToken = sessionStorage.getItem('invite_token');
+              if (pendingInviteToken) {
+                sessionStorage.removeItem('invite_token');
+                this._router.navigate(['/invite'], { queryParams: { token: pendingInviteToken } });
+              } else {
+                this._router.navigate(['/home']);
+              }
             }
           }
         }

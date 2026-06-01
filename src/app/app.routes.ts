@@ -1,8 +1,7 @@
-import { Routes, ResolveFn } from '@angular/router';
+import { Routes } from '@angular/router';
 import { LayoutComponent } from './shared/layouts/layout';
 import { authGuard } from './shared/features/auth/guard/auth-guard';
-import { PERMISSIONS } from './shared/utils/enums/permissions';
-import { sessionResolver } from './shared/features/auth/session.resolver';
+import { ADMIN_ROUTES } from './core/pages/admin/admin.routes';
 
 export const routes: Routes = [
   {
@@ -33,32 +32,21 @@ export const routes: Routes = [
       import('./core/pages/league-preview/league-preview').then((m) => m.LeaguePreviewPage),
   },
   {
-    path: 'prediction-client',
-    title: 'Predicciones',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./core/pages/prediction/preditcion-client/preditcion-client-list').then(
-        (m) => m.PreditcionClientList,
-      ),
-  },
-  {
     path: 'prediction-client/:id',
     title: 'Predicción de partido',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./core/pages/prediction/preditcion-client/preditcion-client').then(
+      import('../app/core/pages/client/preditcion-client/preditcion-client').then(
         (m) => m.PreditcionClient,
       ),
   },
   {
-    // Primary callback for Google OAuth and all Supabase redirects
     path: 'auth/callback',
     title: 'Auth Callback',
     loadComponent: () =>
       import('./shared/features/auth/callback/auth-callback').then((m) => m.AuthCallback),
   },
   {
-    // Legacy path kept for existing magic-link emails in circulation
     path: 'auth/v1/callback',
     redirectTo: 'auth/callback',
     pathMatch: 'full',
@@ -88,496 +76,39 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     canActivateChild: [authGuard],
-    resolve: {
-      // session: sessionResolver,
-    },
     children: [
+      // ── Rutas cliente ──────────────────────────────────────────────────────
       {
-        path: 'admin/users',
-        title: 'Administrar Usuarios',
-        data: {
-          description: 'Backoffice de usuarios',
-          icon: 'lucideUserCog',
-          requiredPermission: 'ADMIN',
-        },
-        loadChildren: () =>
-          import('./core/pages/user-admin/user-admin.routes').then((m) => m.USER_ADMIN_ROUTES),
-      },
-      {
-        path: 'admin/bracket',
-        title: 'Bracket Eliminatorias',
-        data: {
-          description: 'Asignar equipos al bracket eliminatorio',
-          icon: 'lucideTrophy',
-          requiredPermission: PERMISSIONS.BRACKET.UPDATE,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/admin-bracket/admin-bracket.routes').then(
-            (m) => m.ADMIN_BRACKET_ROUTES,
-          ),
-      },
-      {
-        path: 'admin/migrations',
-        title: 'Migraciones DB',
-        data: {
-          description: 'Historial de migraciones de base de datos',
-          icon: 'lucideSliders',
-          requiredPermission: PERMISSIONS.ADMIN.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/admin-migrations/admin-migrations.routes').then(
-            (m) => m.ADMIN_MIGRATIONS_ROUTES,
-          ),
+        path: 'home',
+        title: 'Home',
+        data: { description: 'Welcome to the home page', icon: 'lucideHome', publicRoute: true },
+        loadChildren: () => import('./core/pages/home/home.routes').then((m) => m.HOME_ROUTES),
       },
       {
         path: 'profile',
         title: 'Profile',
-        data: {
-          description: 'Tu perfil de usuario',
-          icon: 'lucideUser',
-          // requiredPermission: PERMISSIONS.USER.READ,
-        },
+        data: { description: 'Tu perfil de usuario', icon: 'lucideUser' },
         loadChildren: () =>
-          import('./core/pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
-      },
-      {
-        path: 'home',
-        title: 'Home',
-        data: {
-          description: 'Welcome to the home page',
-          icon: 'lucideHome',
-          publicRoute: true,
-        },
-        loadChildren: () => import('./core/pages/home/home.routes').then((m) => m.HOME_ROUTES),
-      },
-      /*       {
-        path: 'taste',
-        title: 'Taste',
-        data: {
-          description: 'Discover new flavors',
-          icon: 'lucideHeart',
-          requiredPermission: PERMISSIONS.LEAGUE.READ,
-        },
-        loadChildren: () => import('./core/pages/taste/taste.routes').then((m) => m.TASTE_ROUTES),
-      }, */
-      /*       {
-        path: 'photo',
-        title: 'Photo Gallery',
-        data: {
-          description: 'View our photo gallery',
-          icon: 'lucideImage',
-          requiredPermission: PERMISSIONS.USER.READ,
-        },
-        loadComponent: () =>
-          import('./shared/features/camera/camera').then((m) => m.CameraComponent),
-      }, */
-      /*       {
-        path: 'ocr',
-        title: 'OCR Scanner',
-        data: {
-          description: 'Scan and recognize text in images',
-          icon: 'lucideImage',
-          requiredPermission: PERMISSIONS.PREDICTION.READ,
-        },
-        loadComponent: () => import('./shared/features/ocr/ocr').then((m) => m.Ocr),
-      },
-      {
-        path: 'page-error',
-        title: 'Page Error',
-        data: {
-          description: 'An error occurred',
-        },
-        loadComponent: () =>
-          import('./shared/features/page-error/page-error').then((m) => m.PageError),
-      }, */
-      {
-        path: 'teams',
-        title: 'Teams',
-        data: {
-          description: 'List of teams',
-          icon: 'lucideUsers',
-          requiredPermission: PERMISSIONS.TEAM.READ,
-          adminOnly: true,
-        },
-        loadChildren: () => import('./core/pages/teams/teams.routes').then((m) => m.TEAMS_ROUTES),
-      },
-      {
-        path: 'catalog',
-        title: 'Catalog',
-        data: {
-          description: 'List of catalogs',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.CATALOG.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/catalog/catalog.routes').then((m) => m.CATALOG_ROUTES),
-      },
-      {
-        path: 'stadium',
-        title: 'Stadium',
-        data: {
-          description: 'List of stadiums',
-          icon: 'lucideMapPin',
-          requiredPermission: PERMISSIONS.STADIUM.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/stadium/stadium.routes').then((m) => m.STADIUM_ROUTES),
-      },
-      {
-        path: 'audit-log',
-        title: 'Audit Log',
-        data: {
-          description: 'List of audit log',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.AUDIT_LOG.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/audit-log/audit-log.routes').then((m) => m.AUDIT_LOG_ROUTES),
-      },
-      {
-        path: 'error-monitor',
-        title: 'Error Monitor',
-        data: {
-          description: 'Registry of runtime and application errors',
-          icon: 'lucideInfo',
-          requiredPermission: PERMISSIONS.AUDIT_LOG.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/error-monitor/error-monitor').then((m) => m.ErrorMonitorPage),
-      },
-      {
-        path: 'invitation',
-        title: 'Invitation',
-        data: {
-          description: 'List of invitation',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.INVITATION.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/invitation/invitation.routes').then((m) => m.INVITATION_ROUTES),
+          import('./core/pages/client/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
       },
       {
         path: 'league',
         title: 'League',
-        data: {
-          description: 'List of league',
-          icon: 'lucideDatabase',
-        },
+        data: { description: 'Ligas', icon: 'lucideTrophy', hideFromSidebar: true },
         loadChildren: () =>
           import('./core/pages/league/league.routes').then((m) => m.LEAGUE_ROUTES),
       },
       {
-        path: 'league-reward',
-        title: 'League Reward',
-        data: {
-          description: 'List of league reward',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.LEAGUE_REWARD.READ,
-        },
+        path: 'client',
+        title: 'Mi Espacio',
+        data: { description: 'Mis ligas, partidos y más', icon: 'lucideHome' },
         loadChildren: () =>
-          import('./core/pages/league-reward/league-reward.routes').then(
-            (m) => m.LEAGUE_REWARD_ROUTES,
-          ),
-      },
-      {
-        path: 'match',
-        title: 'Match',
-        data: {
-          description: 'List of match',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.MATCH.READ,
-          adminOnly: true,
-        },
-        loadChildren: () => import('./core/pages/match/match.routes').then((m) => m.MATCH_ROUTES),
-      },
-      {
-        path: 'match-scoreboard',
-        title: 'Tablero de Marcadores',
-        data: {
-          description: 'Control de punteos por período',
-          icon: 'lucideSliders',
-          requiredPermission: PERMISSIONS.MATCH_PERIOD.UPDATE,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/match-scoreboard/match-scoreboard.routes').then(
-            (m) => m.MATCH_SCOREBOARD_ROUTES,
-          ),
-      },
-      {
-        path: 'match-period',
-        title: 'Match Period',
-        data: {
-          description: 'List of match period',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.MATCH_PERIOD.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/match-period/match-period.routes').then(
-            (m) => m.MATCH_PERIOD_ROUTES,
-          ),
-      },
-      {
-        path: 'permission',
-        title: 'Permission',
-        data: {
-          description: 'List of permission',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.PERMISSION.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/permission/permission.routes').then((m) => m.PERMISSION_ROUTES),
-      },
-      {
-        path: 'prediction',
-        title: 'Prediction',
-        data: {
-          description: 'List of prediction',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.PREDICTION.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/prediction/prediction.routes').then((m) => m.PREDICTION_ROUTES),
-      },
-      {
-        path: 'role',
-        title: 'Role',
-        data: {
-          description: 'List of role',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.ROLE.READ,
-        },
-        loadChildren: () => import('./core/pages/role/role.routes').then((m) => m.ROLE_ROUTES),
-      },
-      {
-        path: 'role-permission',
-        title: 'Role Permission',
-        data: {
-          description: 'List of role permission',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.ROLE_PERMISSION.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/role-permission/role-permission.routes').then(
-            (m) => m.ROLE_PERMISSION_ROUTES,
-          ),
-      },
-      {
-        path: 'rules-league',
-        title: 'Rules League',
-        data: {
-          description: 'List of rules league',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.RULES_LEAGUE.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/rules-league/rules-league.routes').then(
-            (m) => m.RULES_LEAGUE_ROUTES,
-          ),
-      },
-      {
-        path: 'transaction',
-        title: 'Transaction',
-        data: {
-          description: 'List of transaction',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.TRANSACTION.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/transaction/transaction.routes').then((m) => m.TRANSACTION_ROUTES),
-      },
-      {
-        path: 'user',
-        title: 'User',
-        data: {
-          description: 'List of user',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.USER.READ,
-        },
-        loadChildren: () => import('./core/pages/user/user.routes').then((m) => m.USER_ROUTES),
-      },
-      {
-        path: 'user-league',
-        title: 'User League',
-        data: {
-          description: 'List of user league',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.USER_LEAGUE.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/user-league/user-league.routes').then((m) => m.USER_LEAGUE_ROUTES),
-      },
-      {
-        path: 'user-league-reward',
-        title: 'User League Reward',
-        data: {
-          description: 'List of user league reward',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.USER_LEAGUE_REWARD.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/user-league-reward/user-league-reward.routes').then(
-            (m) => m.USER_LEAGUE_REWARD_ROUTES,
-          ),
-      },
-      {
-        path: 'user-role',
-        title: 'User Role',
-        data: {
-          description: 'List of user role',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.USER_ROLE.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/user-role/user-role.routes').then((m) => m.USER_ROLE_ROUTES),
-      },
-      {
-        path: 'user-session',
-        title: 'User Session',
-        data: {
-          description: 'List of user session',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.USER_SESSION.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/user-session/user-session.routes').then(
-            (m) => m.USER_SESSION_ROUTES,
-          ),
-      },
-      {
-        path: 'wallet',
-        title: 'Wallet',
-        data: {
-          description: 'List of wallet',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.WALLET.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
-      },
-      {
-        path: 'world-league',
-        title: 'World League',
-        data: {
-          description: 'List of world league',
-          icon: 'lucideDatabase',
-          requiredPermission: PERMISSIONS.WORLD_LEAGUE.READ,
-          adminOnly: true,
-        },
-        loadChildren: () =>
-          import('./core/pages/world-league/world-league.routes').then(
-            (m) => m.WORLD_LEAGUE_ROUTES,
-          ),
+          import('./core/pages/client/client.routes').then((m) => m.CLIENT_ROUTES),
       },
 
-      // ── Vistas cliente (solo lectura, filtradas por RLS) ─────────────────────
-      {
-        path: 'mis-partidos',
-        title: 'Mis Partidos',
-        data: {
-          description: 'Partidos de mis ligas',
-          icon: 'lucideSliders',
-          requiredPermission: PERMISSIONS.MATCH.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/mis-partidos/mis-partidos').then((m) => m.MisPartidosPage),
-      },
-      {
-        path: 'mis-transacciones',
-        title: 'Mis Transacciones',
-        data: {
-          description: 'Historial de movimientos',
-          icon: 'lucideWallet',
-          requiredPermission: PERMISSIONS.TRANSACTION.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/mis-transacciones/mis-transacciones').then(
-            (m) => m.MisTransaccionesPage,
-          ),
-      },
-      {
-        path: 'invitaciones',
-        title: 'Invitaciones',
-        data: {
-          description: 'Autorizar invitaciones desde la bandeja',
-          icon: 'lucideBell',
-          publicRoute: true,
-        },
-        loadComponent: () =>
-          import('./core/pages/invitaciones/invitaciones').then((m) => m.InvitacionesPage),
-      },
-      {
-        path: 'aprobaciones',
-        title: 'Aprobaciones',
-        data: {
-          description: 'Solicitudes de ingreso de tus ligas',
-          icon: 'lucideShield',
-          hideFromSidebar: true,
-        },
-        loadComponent: () =>
-          import('./core/pages/aprobaciones/aprobaciones').then((m) => m.AprobacionesPage),
-      },
-      {
-        path: 'mis-ligas',
-        title: 'Mis Ligas',
-        data: {
-          description: 'Ligas a las que perteneces',
-          icon: 'lucideTrophy',
-          requiredPermission: PERMISSIONS.LEAGUE.READ,
-        },
-        loadComponent: () => import('./core/pages/mis-ligas/mis-ligas').then((m) => m.MisLigasPage),
-      },
-      {
-        path: 'mis-grupos',
-        title: 'Mis Grupos',
-        data: {
-          description: 'Grupos de tus ligas',
-          icon: 'lucideUsers',
-          requiredPermission: PERMISSIONS.LEAGUE.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/mis-grupos/mis-grupos').then((m) => m.MisGruposPage),
-      },
-      {
-        path: 'mis-equipos',
-        title: 'Mis Equipos',
-        data: {
-          description: 'Equipos en tus ligas',
-          icon: 'lucideUsers',
-          requiredPermission: PERMISSIONS.TEAM.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/mis-equipos/mis-equipos').then((m) => m.MisEquiposPage),
-      },
-      {
-        path: 'mis-estadios',
-        title: 'Mis Estadios',
-        data: {
-          description: 'Estadios de tus ligas',
-          icon: 'lucideMapPin',
-          requiredPermission: PERMISSIONS.STADIUM.READ,
-        },
-        loadComponent: () =>
-          import('./core/pages/mis-estadios/mis-estadios').then((m) => m.MisEstadiosPage),
-      },
-      {
-        path: 'team-league',
-        title: 'Team League',
-        data: {
-          description: 'Equipos asignados por liga',
-          icon: 'lucideShield',
-          requiredPermission: PERMISSIONS.TEAM_LEAGUE.READ,
-        },
-        loadChildren: () =>
-          import('./core/pages/team-league/team-league.routes').then((m) => m.TEAM_LEAGUE_ROUTES),
-      },
+      // ── Rutas admin (extraídas a admin.routes.ts) ─────────────────────────
+      ...ADMIN_ROUTES,
+
       { path: '**', redirectTo: '/login' },
     ],
   },

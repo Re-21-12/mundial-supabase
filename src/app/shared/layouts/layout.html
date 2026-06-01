@@ -8,9 +8,15 @@
 
     <sidebar hlmSidebarContent>
       <div hlmSidebarGroup>
-        <div hlmSidebarGroupLabel>Menú</div>
-        <ul hlmSidebarMenu>
-          <li *ngFor="let item of menuItems(); trackBy: trackByPath" hlmSidebarMenuItem>
+        <div class="flex items-center justify-between">
+          <div hlmSidebarGroupLabel (click)="toggleClient()" style="cursor:pointer">Mi espacio</div>
+          <button hlmSidebarGroupAction type="button" (click)="toggleClient()" aria-label="Toggle client menu">
+            <ng-icon hlm name="lucideChevronDown" [class]="clientExpanded() ? 'rotate-180 transition-transform' : 'transition-transform'" />
+          </button>
+        </div>
+
+        <ul hlmSidebarMenu *ngIf="clientExpanded()">
+          <li *ngFor="let item of clientMenu(); trackBy: trackByPath" hlmSidebarMenuItem>
             <a
               hlmSidebarMenuButton
               [routerLink]="getRouteLink(item.path)"
@@ -25,6 +31,33 @@
           </li>
         </ul>
       </div>
+
+      @if (adminItems().length > 0) {
+        <div hlmSidebarGroup>
+          <div class="flex items-center justify-between">
+            <div hlmSidebarGroupLabel (click)="toggleAdmin()" style="cursor:pointer">Administración</div>
+            <button hlmSidebarGroupAction type="button" (click)="toggleAdmin()" aria-label="Toggle admin menu">
+              <ng-icon hlm name="lucideChevronDown" [class]="adminExpanded() ? 'rotate-180 transition-transform' : 'transition-transform'" />
+            </button>
+          </div>
+
+          <ul hlmSidebarMenu *ngIf="adminExpanded()">
+            <li *ngFor="let item of adminItems(); trackBy: trackByPath" hlmSidebarMenuItem>
+              <a
+                hlmSidebarMenuButton
+                [routerLink]="getRouteLink(item.path)"
+                routerLinkActive="active"
+                #rlaAdmin="routerLinkActive"
+                [attr.data-active]="rlaAdmin.isActive"
+                [tooltip]="item.title"
+              >
+                <ng-icon hlm [name]="item.icon" />
+                <span>{{ item.title }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      }
     </sidebar>
   </hlm-sidebar>
   <!-- End Side bar -->

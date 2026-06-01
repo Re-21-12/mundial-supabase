@@ -9,7 +9,7 @@
     [columns]="tableProps().columns"
     [value]="pagedFilteredData()"
     [rows]="tableProps().rows"
-    [totalRecords]="filteredData().length"
+    [totalRecords]="hasActiveFilters() ? filteredData().length : (tableProps().totalRecords ?? filteredData().length)"
     [rowsPerPageOptions]="tableProps().rowsPerPageOptions"
     [first]="filterFirst()"
     [tableStyle]="{ 'min-width': '100%', 'background-color': 'white' }"
@@ -242,9 +242,9 @@
       <tr>
         <td colspan="100%">
           @if (hasActiveFilters()) {
-            {{ filteredData().length }} de {{ tableProps().data.length }} registros
+            {{ filteredData().length }} de {{ tableProps().totalRecords ?? tableProps().data.length }} registros
           } @else {
-            {{ tableProps().data.length }} registros
+            {{ tableProps().totalRecords ?? tableProps().data.length }} registros
           }
         </td>
       </tr>

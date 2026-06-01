@@ -18,6 +18,8 @@ export class SendInvitationComponent implements OnInit {
   private readonly db = inject(SupabaseService);
 
   readonly leagueId = input<number>(0);
+  /** true = inviter is the league owner or global admin → new member joins as 'approved' */
+  readonly canApprove = input<boolean>(false);
 
   protected readonly isSending = signal(false);
   protected readonly successToken = signal<string | null>(null);
@@ -74,7 +76,7 @@ export class SendInvitationComponent implements OnInit {
       const inviterId = Number(this.authFacade.getInternalUserId());
 
       const result = type === 'existing'
-        ? await this.invitationService.sendToExistingUser(email, leagueId, inviterId)
+        ? await this.invitationService.sendToExistingUser(email, leagueId, inviterId, this.canApprove())
         : await this.invitationService.sendToAnonymous(email, leagueId, inviterId);
 
       if (!result.success) {

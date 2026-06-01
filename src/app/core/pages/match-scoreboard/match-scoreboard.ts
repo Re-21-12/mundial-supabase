@@ -9,7 +9,6 @@ import { SupabaseService } from '../../services/supabase-service';
 import { DynamicService } from '../../services/dynamic-service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
-import { formFields as matchPeriodFormFields } from '../match-period/match-period-form';
 import type { Database } from '../../../types/database.types';
 import {
   getMatchPhaseLabel,
@@ -17,6 +16,7 @@ import {
   isMatchLive,
   isMatchClosed,
 } from './match-phase.util';
+import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 
 type MatchRow = Database['public']['Tables']['MATCH']['Row'];
 type PeriodRow = Database['public']['Tables']['MATCH_PERIOD']['Row'];
@@ -82,7 +82,7 @@ export class MatchScoreboardPage implements OnInit, OnDestroy {
 
     return this.matches().filter((match) => match.round === selectedRound);
   });
-  readonly periodFields = matchPeriodFormFields['matchPeriodForm'].fields.filter(
+  readonly periodFields = formFields['matchPeriodForm'].fields.filter(
     (field) => field.key !== 'match_id',
   );
 

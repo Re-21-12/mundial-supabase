@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, effect, DestroyRef } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, effect, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ActivatedRoute,
@@ -8,11 +8,12 @@ import {
   RouterLink,
   RouterLinkActive,
   RouterOutlet,
+  Routes,
 } from '@angular/router';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { ThemeService } from '../services/theme-service';
-import { WalletService } from '../../core/pages/wallet/wallet.service';
+import { WalletService } from '../../core/pages/admin/wallet/wallet.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideSun,
@@ -120,7 +121,16 @@ export class LayoutComponent implements OnInit {
   private sessionCheckInProgress = false;
   readonly authFacade = inject(AuthFacade);
 
-  protected readonly menuItems = signal<SidebarMenuItem[]>([]);
+  protected readonly clientItems = signal<SidebarMenuItem[]>([]);
+  protected readonly adminItems = signal<SidebarMenuItem[]>([]);
+  protected readonly clientExpanded = signal(false);
+  protected readonly adminExpanded = signal(false);
+  protected readonly menuItems = computed(() => [...this.clientItems(), ...this.adminItems()]);
+  protected readonly clientChildItems = signal<SidebarMenuItem[]>([]);
+  protected readonly clientMenu = computed(() => [
+    ...this.clientItems(),
+    ...this.clientChildItems(),
+  ]);
   protected readonly title = signal('');
   protected readonly showNotifications = signal(false);
   protected readonly showMobileMenu = signal(false);
@@ -140,29 +150,58 @@ export class LayoutComponent implements OnInit {
 
       const visibleRoutes =
         layoutRoute?.children?.filter((route) => {
-          if (route.path === 'not-found') {
-            return false;
-          }
+          if (route.path === 'not-found') return false;
           return this.canSeeRoute(route, userPermissions);
         }) ?? [];
 
-      const menuItems = visibleRoutes
-        .filter((route): route is Route & { path: string } => typeof route.path === 'string')
-        .map((route) => ({
+      const clientItems: SidebarMenuItem[] = [];
+      const adminItems: SidebarMenuItem[] = [];
+
+      for (const route of visibleRoutes) {
+        if (typeof route.path !== 'string') continue;
+        if (route.data?.['hideFromSidebar'] === true) continue;
+        const item: SidebarMenuItem = {
           path: route.path,
           title: typeof route.title === 'string' ? route.title : route.path,
           icon: typeof route.data?.['icon'] === 'string' ? route.data['icon'] : 'lucideCircle',
-        }));
-
-      if (this.showApprovalsMenu()) {
-        menuItems.push({
-          path: 'aprobaciones',
-          title: 'Aprobaciones',
-          icon: 'lucideShield',
-        });
+        };
+        if (route.data?.['adminOnly'] === true) {
+          adminItems.push(item);
+        } else {
+          // Skip the parent `client` top-level route from the list (we show its children instead)
+          if (route.path === 'client') continue;
+          clientItems.push(item);
+        }
       }
 
-      this.menuItems.set(menuItems);
+      if (this.showApprovalsMenu()) {
+        clientItems.push({ path: 'aprobaciones', title: 'Aprobaciones', icon: 'lucideShield' });
+      }
+
+      this.clientItems.set(clientItems);
+      this.adminItems.set(adminItems);
+
+      // Try to load child routes for the `client` group so we can display them
+      try {
+        import('../../core/pages/client/client.routes').then((m) => {
+          const childRoutes = (m.CLIENT_ROUTES as Routes) || [];
+          const childItems: SidebarMenuItem[] = [];
+          for (const r of childRoutes) {
+            if (!r || typeof r.path !== 'string') continue;
+            if (r.data?.['hideFromSidebar'] === true) continue;
+            if (!this.canSeeRoute(r, this.authFacade.permissions())) continue;
+            const childPath = r.path ? `client/${r.path}` : 'client';
+            childItems.push({
+              path: childPath,
+              title: typeof r.title === 'string' ? r.title : r.path,
+              icon: typeof r.data?.['icon'] === 'string' ? r.data['icon'] : 'lucideCircle',
+            });
+          }
+          this.clientChildItems.set(childItems);
+        });
+      } catch (e) {
+        this.clientChildItems.set([]);
+      }
     });
   }
 
@@ -171,7 +210,9 @@ export class LayoutComponent implements OnInit {
   }
 
   protected getRouteLink(path: string): string[] {
-    return ['/', path];
+    if (!path) return ['/'];
+    const segments = path.split('/').filter(Boolean);
+    return ['/', ...segments];
   }
 
   protected trackByPath(_: number, item: SidebarMenuItem): string {
@@ -302,6 +343,24 @@ export class LayoutComponent implements OnInit {
           this.title.set(pageTitle);
           this.titleService.setTitle(pageTitle);
         }
+        // Expand admin and client menus automatically when navigating to related routes
+        try {
+          const url = this.router.url || '';
+          this.adminExpanded.set(url.startsWith('/admin') || url.includes('/admin/'));
+          // Expand client group when navigating under /client
+          this.clientExpanded.set(url.startsWith('/client') || url.includes('/client/'));
+        } catch (e) {
+          this.adminExpanded.set(false);
+          this.clientExpanded.set(false);
+        }
       });
+  }
+
+  protected toggleAdmin(): void {
+    this.adminExpanded.update((v) => !v);
+  }
+
+  protected toggleClient(): void {
+    this.clientExpanded.update((v) => !v);
   }
 }

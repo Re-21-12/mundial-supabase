@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
-import { WalletService } from '../wallet/wallet.service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
+import { WalletService } from '../admin/wallet/wallet.service';
 
 // TODO: Confirm catalog_id for Premio Global en la tabla CATALOG
 const TRX_PREMIO_GLOBAL = 98;
@@ -85,15 +85,30 @@ export class GlobalPrizeService {
     }));
 
     const individualPool = round2(totalPool * 0.5);
-    const leaguePool     = round2(totalPool * 0.5);
+    const leaguePool = round2(totalPool * 0.5);
 
     const top3 = this.getTop3(members);
     const bestLeagueMembers = this.getBestLeagueMembers(members, leagueIds);
 
     // Pay top-3 individuals (50 / 25 / 10 of the individual half)
-    if (top3[0]) await this.payUser(top3[0].userId, round2(individualPool * 0.5),  'Premio Global — 1er lugar individual');
-    if (top3[1]) await this.payUser(top3[1].userId, round2(individualPool * 0.25), 'Premio Global — 2do lugar individual');
-    if (top3[2]) await this.payUser(top3[2].userId, round2(individualPool * 0.10), 'Premio Global — 3er lugar individual');
+    if (top3[0])
+      await this.payUser(
+        top3[0].userId,
+        round2(individualPool * 0.5),
+        'Premio Global — 1er lugar individual',
+      );
+    if (top3[1])
+      await this.payUser(
+        top3[1].userId,
+        round2(individualPool * 0.25),
+        'Premio Global — 2do lugar individual',
+      );
+    if (top3[2])
+      await this.payUser(
+        top3[2].userId,
+        round2(individualPool * 0.1),
+        'Premio Global — 3er lugar individual',
+      );
 
     // Pay all members of the best-avg-points league equally
     if (bestLeagueMembers.length > 0) {
@@ -128,7 +143,7 @@ export class GlobalPrizeService {
 
   // Return all members of the league with the highest average accumulated_points
   private getBestLeagueMembers(members: GlobalMember[], leagueIds: number[]): GlobalMember[] {
-    let bestId  = -1;
+    let bestId = -1;
     let bestAvg = -1;
 
     for (const lid of leagueIds) {
@@ -137,7 +152,7 @@ export class GlobalPrizeService {
       const avg = group.reduce((s, m) => s + m.points, 0) / group.length;
       if (avg > bestAvg) {
         bestAvg = avg;
-        bestId  = lid;
+        bestId = lid;
       }
     }
 

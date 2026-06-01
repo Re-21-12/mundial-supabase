@@ -37,4 +37,10 @@ export const LEAGUE_ROUTES: Routes = [
     title: 'Aprobar miembros',
     loadComponent: () => import('./approval/approval').then((m) => m.ApprovalPage),
   },
+  {
+    path: ':id/rules',
+    title: 'Reglas de la liga',
+    loadComponent: () =>
+      import('./rules/league-rules-client').then((m) => m.LeagueRulesClientPage),
+  },
 ];

@@ -45,6 +45,9 @@ export class JoinByCodePage implements OnInit {
       return;
     }
 
+    // Wait for auth state to resolve before checking (avoids cold-load race condition)
+    await this.auth.waitForAuthReady();
+
     // Si no está autenticado → guardar el código y redirigir al login
     if (!this.auth.isLoggedIn()) {
       sessionStorage.setItem('join_pending_code', this.code);

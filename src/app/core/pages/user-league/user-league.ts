@@ -7,10 +7,10 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { ConfirmDeleteModalComponent } from '../../../shared/features/dynamic-modal/confirm-delete-modal.component';
 import { firstValueFrom } from 'rxjs';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formFields } from './user-league-form';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
 import { Overlay } from '../../../shared/layouts/overlay/overlay';
 import { UserLeagueRealtimeService } from './services/user-league-realtime.service';
+import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 
 @Component({
   selector: 'app-user-league',

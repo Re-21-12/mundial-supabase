@@ -1,0 +1,36 @@
+<div class="rules-page">
+  <header class="rules-header">
+    <a class="rules-back" [routerLink]="['/league', leagueId, 'standings']">
+      <i class="pi pi-arrow-left"></i>
+      Volver
+    </a>
+    <h2 class="rules-title">Reglas de la liga</h2>
+  </header>
+
+  @if (loading()) {
+    <p class="rules-msg">Cargando reglas…</p>
+  } @else if (error()) {
+    <p class="rules-msg rules-msg--error">{{ error() }}</p>
+  } @else if (rules().length === 0) {
+    <p class="rules-msg">Esta liga no tiene reglas configuradas.</p>
+  } @else {
+    <table class="rules-table" role="table" aria-label="Reglas de puntuación">
+      <thead>
+        <tr>
+          <th scope="col">Dimensión</th>
+          <th scope="col">Descripción</th>
+          <th scope="col" class="col-value">Puntos</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rule of rules(); track rule.rules_league_id) {
+          <tr>
+            <td class="td-dimension">{{ rule.dimension ?? '—' }}</td>
+            <td>{{ rule.description ?? '—' }}</td>
+            <td class="col-value td-value">{{ rule.value ?? '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

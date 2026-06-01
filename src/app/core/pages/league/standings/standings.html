@@ -23,7 +23,9 @@
             <span class="approvals-badge">{{ pendingCount() }}</span>
           }
         </a>
+      }
 
+      @if (canManage()) {
         <button
           class="simulate-btn"
           type="button"
@@ -47,6 +49,15 @@
         </button>
       }
 
+      <a
+        class="rules-btn"
+        [routerLink]="['/league', leagueId, 'rules']"
+        aria-label="Ver reglas de la liga"
+      >
+        <i class="pi pi-info-circle"></i>
+        Reglas
+      </a>
+
       <button
         class="invite-btn"
         type="button"
@@ -61,7 +72,7 @@
 
   @if (showInvite()) {
     <div class="invite-panel">
-      <app-send-invitation [leagueId]="leagueId" />
+      <app-send-invitation [leagueId]="leagueId" [canApprove]="canManage()" />
     </div>
   }
 

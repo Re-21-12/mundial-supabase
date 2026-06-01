@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../services/supabase-service';
-import { WalletService } from '../wallet/wallet.service';
+import { WalletService } from '../admin/wallet/wallet.service';
 import { NotificationService } from '../../../shared/services/notification-service';
 import { AuthFacade } from '../../../shared/features/auth/auth.facade';
 import { GlobalPrizeService } from './global-prize.service';
@@ -292,11 +292,11 @@ export class LeagueScoringService {
 
     // DENSE_RANK por puntos DESC (posición) y ASC (último) — igual que el SQL
     const uniquePtsDesc = [...new Set(standings.map((s) => s.points))].sort((a, b) => b - a);
-    const uniquePtsAsc  = [...uniquePtsDesc].reverse();
-    const rankPos  = (s: StandingEntry) => uniquePtsDesc.indexOf(s.points) + 1;
+    const uniquePtsAsc = [...uniquePtsDesc].reverse();
+    const rankPos = (s: StandingEntry) => uniquePtsDesc.indexOf(s.points) + 1;
     const rankLast = (s: StandingEntry) => uniquePtsAsc.indexOf(s.points) + 1;
 
-    const byRankPos  = (r: number) => standings.filter((s) => rankPos(s)  === r);
+    const byRankPos = (r: number) => standings.filter((s) => rankPos(s) === r);
     const byRankLast = (r: number) => standings.filter((s) => rankLast(s) === r);
 
     const pool = new Map<number, { amount: number; parts: string[] }>(
@@ -312,7 +312,7 @@ export class LeagueScoringService {
     const g2 = byRankPos(2);
 
     // ── 1er lugar: 50% ───────────────────────────────────────────────────────
-    const firstShare = round2((dist * 0.50) / g1.length);
+    const firstShare = round2((dist * 0.5) / g1.length);
     g1.forEach((s) => add(s, firstShare, g1.length > 1 ? '1er lugar (empate)' : '1er lugar'));
 
     // ── 2do lugar: 25% ───────────────────────────────────────────────────────
@@ -326,7 +326,7 @@ export class LeagueScoringService {
     // en la caja; no se paga doble.
     const gLast = byRankLast(1).filter((s) => rankPos(s) > 2);
     if (gLast.length > 0) {
-      const lastShare = round2((dist * 0.10) / gLast.length);
+      const lastShare = round2((dist * 0.1) / gLast.length);
       gLast.forEach((s) =>
         add(s, lastShare, gLast.length > 1 ? 'Último lugar (empate)' : 'Último lugar'),
       );

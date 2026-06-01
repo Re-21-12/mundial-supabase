@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { DynamicForm } from '../../../shared/features/dynamic-form/dynamic-form';
-import { formFields } from './taste-form';
+import { formFields } from '../../../shared/features/dynamic-form/utils/forms';
 
 @Component({
   selector: 'app-taste',
@@ -11,4 +11,3 @@ import { formFields } from './taste-form';
 export class Taste {
   fields = formFields['proofForm'].fields;
 }
-

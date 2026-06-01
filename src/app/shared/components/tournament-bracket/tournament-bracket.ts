@@ -8,12 +8,13 @@ import {
   output,
   resource,
 } from '@angular/core';
-import {
-  BracketService,
-  type BracketMatchRaw,
-} from '../../../core/pages/admin-bracket/bracket.service';
+
 import { WorldCupGroupsComponent } from '../world-cup-groups/world-cup-groups';
 import type { GrupoCard, MatchCard } from '../../../core/pages/home/models/home.models';
+import {
+  BracketMatchRaw,
+  BracketService,
+} from '../../../core/pages/admin/admin-bracket/bracket.service';
 
 export interface BracketMatch {
   matchId: number;
