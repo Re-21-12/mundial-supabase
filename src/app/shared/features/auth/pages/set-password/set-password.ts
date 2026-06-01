@@ -17,7 +17,6 @@ export class SetPasswordPage {
   private readonly router = inject(Router);
 
   protected readonly isSubmitting = signal(false);
-  protected readonly successMessage = signal('');
   protected readonly errorMessage = signal('');
 
   protected readonly form = this.fb.nonNullable.group({
@@ -41,7 +40,6 @@ export class SetPasswordPage {
     }
 
     this.errorMessage.set('');
-    this.successMessage.set('');
     this.isSubmitting.set(true);
 
     try {
@@ -58,8 +56,11 @@ export class SetPasswordPage {
         return;
       }
 
-      this.successMessage.set('Password actualizada correctamente.');
       await this.authFacade.signOut();
+      this.router.navigate(['/auth'], {
+        queryParams: { mode: 'login' },
+        state: { passwordUpdated: true },
+      });
     } catch {
       this.errorMessage.set(
         'No se pudo actualizar la password. Verifica tu enlace e intenta de nuevo.',

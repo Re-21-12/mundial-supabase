@@ -39,7 +39,19 @@
             <p>Registro exitoso. Revisa tu correo para confirmar tu cuenta.</p>
             <button type="button" (click)="onModeSelected('login')">Ir a iniciar sesión</button>
           </div>
+        } @else if (mode() === 'change-password' && changePasswordSuccess()) {
+          <div class="register-success" role="status" aria-live="polite">
+            <span class="status-badge">Enviado</span>
+            <p>Si existe una cuenta con ese correo, recibirás un enlace de recuperación en breve.</p>
+            <button type="button" (click)="onModeSelected('login')">Volver a iniciar sesión</button>
+          </div>
         } @else {
+          @if (passwordUpdatedBanner()) {
+            <div class="register-success" role="status" aria-live="polite">
+              <span class="status-badge">Listo</span>
+              <p>Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.</p>
+            </div>
+          }
           <app-dynamic-form [fields]="fields" (data)="submitData($event)"></app-dynamic-form>
           @if (mode() === 'register' && registrationError()) {
             <p class="register-error" role="alert">{{ registrationError() }}</p>

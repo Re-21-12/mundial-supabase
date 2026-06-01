@@ -7,7 +7,6 @@ export const CLIENT_ROUTES: Routes = [
   {
     path: 'prediction-client',
     title: 'Predicciones',
-    canActivate: [authGuard],
     loadComponent: () =>
       import('../client/preditcion-client/preditcion-client-list').then(
         (m) => m.PreditcionClientList,
@@ -61,21 +60,10 @@ export const CLIENT_ROUTES: Routes = [
       icon: 'lucideMapPin',
       requiredPermission: PERMISSIONS.STADIUM.READ,
     },
-    loadChildren: () =>
+    loadComponent: () =>
       import('../client/mis-estadios/mis-estadios').then((m) => m.MisEstadiosPage),
   },
-  {
-    path: 'team-league',
-    title: 'Team League',
-    data: {
-      description: 'Equipos asignados por liga',
-      icon: 'lucideShield',
-      requiredPermission: PERMISSIONS.TEAM_LEAGUE.READ,
-      isAdmin: true,
-    },
-    loadChildren: () =>
-      import('../client/team-league/team-league.routes').then((m) => m.TEAM_LEAGUE_ROUTES),
-  },
+
   {
     path: 'mis-transacciones',
     title: 'Mis Transacciones',

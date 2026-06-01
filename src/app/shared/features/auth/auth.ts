@@ -1,7 +1,7 @@
 import { Component, ViewChild, inject, OnInit, signal } from '@angular/core';
 import { formFields } from '../dynamic-form/utils/forms';
 import { DynamicForm } from '../dynamic-form/dynamic-form';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AuthOverlay,
   AuthOverlayMode,
@@ -21,6 +21,7 @@ import { environment } from '../../../../environments/environment';
 export class Auth implements OnInit {
   private readonly authFacade = inject(AuthFacade);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   @ViewChild(AuthOverlay) private readonly authOverlay?: AuthOverlay;
 
   id = signal<string | null>(null);
@@ -34,6 +35,8 @@ export class Auth implements OnInit {
   resendInProgress = signal(false);
   resendSuccess = signal(false);
   captchaToken = signal<string | null>(null);
+  changePasswordSuccess = signal(false);
+  passwordUpdatedBanner = signal(false);
   readonly turnstileSiteKey = environment.turnstileSiteKey;
 
   ngOnInit() {
@@ -42,6 +45,15 @@ export class Auth implements OnInit {
     this.syncModeFromQueryParams();
     this.checkCallbackError();
     this._saveReturnUrl();
+    this._checkPasswordUpdatedState();
+  }
+
+  private _checkPasswordUpdatedState() {
+    const nav = this.router.getCurrentNavigation();
+    const state = nav?.extras?.state ?? history.state;
+    if (state?.['passwordUpdated']) {
+      this.passwordUpdatedBanner.set(true);
+    }
   }
 
   private _saveReturnUrl() {
@@ -182,12 +194,8 @@ export class Auth implements OnInit {
           return;
         }
         {
-          const { error } = await this.authFacade.requestPasswordReset(email, captchaToken);
-          if (error) {
-            this.authError.set(
-              (error as any)?.message ?? 'No se pudo enviar el correo de recuperación.',
-            );
-          }
+          await this.authFacade.requestPasswordReset(email, captchaToken);
+          this.changePasswordSuccess.set(true);
           this.resetCaptcha();
         }
         return;
@@ -210,6 +218,8 @@ export class Auth implements OnInit {
           }
 
           await this.authFacade.signOut();
+          this.passwordUpdatedBanner.set(true);
+          this.mode.set('login');
         }
         this.resetCaptcha();
         return;
@@ -218,6 +228,8 @@ export class Auth implements OnInit {
 
   onModeSelected(mode: AuthOverlayMode) {
     this.mode.set(mode);
+    this.changePasswordSuccess.set(false);
+    this.passwordUpdatedBanner.set(false);
   }
 
   get modeTitle(): string {

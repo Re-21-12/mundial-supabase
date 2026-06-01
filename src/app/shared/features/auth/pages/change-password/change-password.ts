@@ -34,12 +34,15 @@ export class ChangePasswordPage {
 
     try {
       await this.authFacade.requestPasswordReset(this.form.getRawValue().email);
-      this.successMessage.set('Si el correo existe, recibiras un enlace para cambiar tu password.');
-      this.form.reset({ email: '' });
     } catch {
-      this.errorMessage.set('No se pudo procesar la solicitud. Intenta nuevamente.');
+      // Silently ignore - no revelar si el correo existe o no
     } finally {
       this.isSubmitting.set(false);
     }
+
+    this.successMessage.set(
+      'Si existe una cuenta con ese correo, recibirás un enlace de recuperación en breve.',
+    );
+    this.form.reset({ email: '' });
   }
 }

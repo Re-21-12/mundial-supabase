@@ -206,6 +206,18 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: 'team-league',
+    title: 'Team League',
+    data: {
+      description: 'Equipos asignados por liga',
+      icon: 'lucideShield',
+      requiredPermission: PERMISSIONS.TEAM_LEAGUE.READ,
+      adminOnly: true,
+    },
+    loadChildren: () =>
+      import('../client/team-league/team-league.routes').then((m) => m.TEAM_LEAGUE_ROUTES),
+  },
+  {
     path: 'rules-league',
     title: 'Rules League',
     data: {

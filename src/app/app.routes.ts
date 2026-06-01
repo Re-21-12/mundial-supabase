@@ -34,7 +34,6 @@ export const routes: Routes = [
   {
     path: 'prediction-client/:id',
     title: 'Predicción de partido',
-    canActivate: [authGuard],
     loadComponent: () =>
       import('../app/core/pages/client/preditcion-client/preditcion-client').then(
         (m) => m.PreditcionClient,
